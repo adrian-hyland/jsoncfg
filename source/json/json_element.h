@@ -40,4 +40,7 @@ void JsonElementCleanUp(tJsonElement *Element);
 tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create);
 
 
+tJsonElement *JsonElementMoveChild(tJsonElement *Element, tJsonElement *Value);
+
+
 #endif
