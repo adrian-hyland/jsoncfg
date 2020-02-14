@@ -234,29 +234,29 @@ tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Cr
 }
 
 
-tJsonElement *JsonElementMoveChild(tJsonElement *Element, tJsonElement *Value)
+tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From)
 {
     tJsonElement *Child;
 
-    if ((Value == NULL) || (Element == NULL) || (Element->Type != json_TypeKey))
+    if ((From == NULL) || (To == NULL) || (From->Type != To->Type))
     {
         return NULL;
     }
 
-    if (Element->Child != NULL)
+    if (To->Child != NULL)
     {
-        JsonElementFree(Element->Child);
+        JsonElementFree(To->Child);
     }
 
-    Element->Child = Value->Child;
-    Value->Child = NULL;
+    To->Child = From->Child;
+    From->Child = NULL;
 
-    Child = Element->Child;
+    Child = To->Child;
     while (Child != NULL)
     {
-        Child->Parent = Element;
+        Child->Parent = To;
         Child = Child->Next;
     }
 
-    return Element->Child;
+    return To->Child;
 }
