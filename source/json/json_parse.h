@@ -27,6 +27,11 @@ typedef struct
 } tJsonParse;
 
 
+#define JSON_PARSE_ERROR      -1
+#define JSON_PARSE_COMPLETE   0
+#define JSON_PARSE_INCOMPLETE 1
+
+
 void JsonParseSetUp(tJsonParse *Parse, tJsonElement *RootElement);
 
 

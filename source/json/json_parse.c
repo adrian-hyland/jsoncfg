@@ -378,14 +378,14 @@ int JsonParse(tJsonParse *Parse, uint8_t Character)
 
     if (Parse->State == json_ParseError)
     {
-        return -1;
+        return JSON_PARSE_ERROR;
     }
     else if (Parse->State == json_ParseComplete)
     {
-        return 0;
+        return JSON_PARSE_COMPLETE;
     }
     else
     {
-        return 1;
+        return JSON_PARSE_INCOMPLETE;
     }
 }

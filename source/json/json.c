@@ -13,11 +13,11 @@ int JsonReadString(tJsonElement *Root, const char *String)
         Error = JsonParse(&Parse, *String);
         String++;
     }
-    while (Error > 0);
+    while (Error == JSON_PARSE_INCOMPLETE);
 
     JsonParseCleanUp(&Parse);
 
-    return Error == 0;
+    return Error == JSON_PARSE_COMPLETE;
 }
 
 
@@ -39,11 +39,11 @@ int JsonReadFile(tJsonElement *Root, FILE *Stream)
 
         Error = JsonParse(&Parse, Character);
     }
-    while (Error > 0);
+    while (Error == JSON_PARSE_INCOMPLETE);
 
     JsonParseCleanUp(&Parse);
 
-    return Error == 0;
+    return Error == JSON_PARSE_COMPLETE;
 }
 
 
@@ -66,9 +66,9 @@ int JsonWriteFile(tJsonElement *Root, FILE *Stream)
             }
         }
     }
-    while (Error > 0);
+    while (Error == JSON_FORMAT_INCOMPLETE);
 
     JsonFormatCleanUp(&Format);
 
-    return Error == 0;
+    return Error == JSON_FORMAT_COMPLETE;
 }

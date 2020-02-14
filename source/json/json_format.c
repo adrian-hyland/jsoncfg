@@ -374,14 +374,14 @@ int JsonFormat(tJsonFormat *Format, uint8_t *Character)
 
     if (Format->State == json_FormatError)
     {
-        return -1;
+        return JSON_FORMAT_ERROR;
     }
     else if (Format->State == json_FormatComplete)
     {
-        return 0;
+        return JSON_FORMAT_COMPLETE;
     }
     else
     {
-        return 1;
+        return JSON_FORMAT_INCOMPLETE;
     }
 }

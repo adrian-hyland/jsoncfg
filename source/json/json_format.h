@@ -41,6 +41,11 @@ typedef struct
 } tJsonFormat;
 
 
+#define JSON_FORMAT_ERROR      -1
+#define JSON_FORMAT_COMPLETE   0
+#define JSON_FORMAT_INCOMPLETE 1
+
+
 void JsonFormatSetUpCompress(tJsonFormat *Format, tJsonElement *RootElement);
 
 
