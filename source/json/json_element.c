@@ -28,20 +28,13 @@ tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
 }
 
 
-void JsonElementFree(tJsonElement *Element)
+void JsonElementFree(tJsonElement **Element)
 {
-    JsonStringCleanUp(&Element->Name);
-    if (Element->Child != NULL)
+    if (*Element != NULL)
     {
-        JsonElementFree(Element->Child);
-        free(Element->Child);
-        Element->Child = NULL;
-    }
-    if (Element->Next != NULL)
-    {
-        JsonElementFree(Element->Next);
-        free(Element->Next);
-        Element->Next = NULL;
+        JsonElementCleanUp(*Element);
+        free(*Element);
+        *Element = NULL;
     }
 }
 
@@ -54,11 +47,13 @@ void JsonElementSetUp(tJsonElement *Element)
 
 void JsonElementCleanUp(tJsonElement *Element)
 {
-    JsonElementFree(Element);
+    JsonStringCleanUp(&Element->Name);
+    JsonElementFree(&Element->Child);
+    JsonElementFree(&Element->Next);
 }
 
 
-static tJsonElement *JsonElementFindSubPath(tJsonElement *Element, const uint8_t *Path, size_t PathLength, int Create);
+static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, int Create);
 
 
 static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent, const uint8_t *Path, size_t PathLength)
@@ -72,16 +67,14 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
         {
             if (!JsonPathSetString(Path, PathLength, &Element->Name))
             {
-                JsonElementFree(Element);
-                Element = NULL;
+                JsonElementFree(&Element);
             }
         }
         else if (Type == json_TypeArray)
         {
-            if (JsonElementFindSubPath(Element, Path, PathLength, 1) == NULL)
+            if (JsonElementFindSubPath(&Element->Child, Element, Path, PathLength, 1) == NULL)
             {
-                JsonElementFree(Element);
-                Element = NULL;
+                JsonElementFree(&Element);
             }
         }
     }
@@ -90,113 +83,103 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
 }
 
 
-static tJsonElement *JsonElementFindSubPath(tJsonElement *Element, const uint8_t *Path, size_t PathLength, int Create)
+static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, int Create)
 {
-    tJsonElement ArrayElement;
     tJsonType ComponentType;
     const uint8_t *Component;
     size_t ComponentLength;
     size_t PathIndex;
     size_t Length;
-   
-    JsonElementSetUpType(&ArrayElement, json_TypeArray, NULL);
 
-    for (PathIndex = 0; (Element != NULL) && (PathIndex < PathLength); PathIndex = PathIndex + Length)
+    PathIndex = 0;
+
+    for (;;)
     {
         Length = JsonPathGetComponent(&Path[PathIndex], PathLength - PathIndex, &ComponentType, &Component, &ComponentLength);
         if (Length == 0)
         {
             return NULL;
         }
-
-        if (Element->Child == NULL)
+        else if (*Element == NULL)
         {
             if (Create)
             {
-                Element->Child = JsonElementCreatePath(ComponentType, Element, Component, ComponentLength);
+                *Element = JsonElementCreatePath(ComponentType, Parent, Component, ComponentLength);
+                if ((ComponentType == json_TypeArray) && (*Element != NULL))
+                {
+                    Parent = *Element;
+                    Element = &Parent->Child;
+                }
             }
-            Element = Element->Child;
         }
-        else
+        else if (ComponentType != (*Element)->Type)
         {
-            Element = Element->Child;
-            if ((Element == NULL) || (ComponentType != Element->Type))
+            return NULL;
+        }
+        else if (ComponentType == json_TypeArray)
+        {
+            Parent = *Element;
+            Element = &Parent->Child;
+
+            while (*Element != NULL)
+            {
+                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, 0) != NULL)
+                {
+                    break;
+                }
+
+                Element = &(*Element)->Next;
+            }
+
+            if ((*Element == NULL) && Create)
+            {
+                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, 1) == NULL)
+                {
+                    JsonElementCleanUp(*Element);
+                    return NULL;
+                }
+            }
+        }
+        else if (ComponentType == json_TypeKey)
+        {
+            while (*Element != NULL)
+            {
+                if (JsonPathCompareString(Component, ComponentLength, &(*Element)->Name))
+                {
+                    break;
+                }
+
+                Element = &(*Element)->Next;
+            }
+
+            if ((*Element == NULL) && Create)
+            {
+                *Element = JsonElementCreatePath(json_TypeKey, Parent, Component, ComponentLength);
+            }
+        }
+        else if (ComponentType != json_TypeObject)
+        {
+            if (!JsonPathCompareString(Component, ComponentLength, &(*Element)->Name))
             {
                 return NULL;
             }
+        }
 
-            if (ComponentType == json_TypeArray)
-            {
-                if (Element->Child == NULL)
-                {
-                    if (Create)
-                    {
-                        if (JsonElementFindSubPath(Element, Component, ComponentLength, 1) == NULL)
-                        {
-                            JsonElementCleanUp(Element);
-                        }
-                    }
-                    Element = Element->Child;
-                }
-                else
-                {            
-                    Element = Element->Child;
-                    while (Element != NULL)
-                    {
-                        ArrayElement.Child = Element;
-                        if (JsonElementFindSubPath(&ArrayElement, Component, ComponentLength, 0) != NULL)
-                        {
-                            Element = &ArrayElement;
-                            break;
-                        }
+        if (*Element == NULL)
+        {
+            return NULL;
+        }
 
-                        if ((Element->Next == NULL) && Create)
-                        {
-                            ArrayElement.Child = NULL;
-                            if (JsonElementFindSubPath(&ArrayElement, Component, ComponentLength, 1) == NULL)
-                            {
-                                JsonElementCleanUp(&ArrayElement);
-                                Element = NULL;
-                            }
-                            else
-                            {
-                                Element->Next = ArrayElement.Child;
-                                Element->Next->Parent = Element->Parent;
-                                Element = &ArrayElement;
-                            }
-                            break;
-                        }
+        PathIndex = PathIndex + Length;
+        if (PathIndex == PathLength)
+        {
+            return Element;
+        }
 
-                        Element = Element->Next;
-                    }
-                }
-            }
-            else if (ComponentType == json_TypeKey)
-            {
-                while (Element != NULL)
-                {
-                    if (JsonPathCompareString(Component, ComponentLength, &Element->Name))
-                    {
-                        break;
-                    }
-
-                    if ((Element->Next == NULL) && Create)
-                    {
-                        Element->Next = JsonElementCreatePath(json_TypeKey, Element->Parent, Component, ComponentLength);
-                        Element = Element->Next;
-                        break;
-                    }
-
-                    Element = Element->Next;
-                }
-            }
-            else if (ComponentType != json_TypeObject)
-            {
-                if (!JsonPathCompareString(Component, ComponentLength, &Element->Name))
-                {
-                    Element = NULL;
-                }
-            }
+        if (ComponentType != json_TypeArray)
+        {
+            Parent = *Element;
+            Element = &Parent->Child;
         }
     }
 
@@ -206,6 +189,7 @@ static tJsonElement *JsonElementFindSubPath(tJsonElement *Element, const uint8_t
 
 tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create)
 {
+    tJsonElement **ElementReference;
     size_t PathLength;
 
     if ((Path != NULL) && (Element != NULL) && (Element->Type == json_TypeRoot))
@@ -223,7 +207,8 @@ tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Cr
             PathLength--;
         }
 
-        Element = JsonElementFindSubPath(Element, Path, PathLength, Create);
+        ElementReference = JsonElementFindSubPath(&Element->Child, Element, Path, PathLength, Create);
+        Element = (ElementReference != NULL) ? *ElementReference : NULL;
     }
     else
     {
@@ -238,24 +223,27 @@ tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From)
 {
     tJsonElement *Child;
 
-    if ((From == NULL) || (To == NULL) || (From->Type != To->Type))
+    if ((From == NULL) || (To == NULL))
     {
         return NULL;
     }
 
-    if (To->Child != NULL)
+    if (From != To)
     {
-        JsonElementFree(To->Child);
-    }
+        if (To->Child != NULL)
+        {
+            JsonElementFree(&To->Child);
+        }
 
-    To->Child = From->Child;
-    From->Child = NULL;
+        To->Child = From->Child;
+        From->Child = NULL;
 
-    Child = To->Child;
-    while (Child != NULL)
-    {
-        Child->Parent = To;
-        Child = Child->Next;
+        Child = To->Child;
+        while (Child != NULL)
+        {
+            Child->Parent = To;
+            Child = Child->Next;
+        }
     }
 
     return To->Child;
