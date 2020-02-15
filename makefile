@@ -27,7 +27,7 @@ ifeq ($(DEBUG),1)
 C_DEFINE += DEBUG
 C_FLAGS += -g3
 else
-C_DEFINE += DEBUG
+C_DEFINE += RELEASE
 C_FLAGS += -O3
 endif
 
