@@ -4,42 +4,87 @@
 #include "json_string.h"
 
 
+/**
+ * @brief Enumeration used to define different JSON element types
+ */
 typedef enum
 {
-    json_TypeRoot,
-    json_TypeKey,
-    json_TypeValueString,
-    json_TypeValueLiteral,
-    json_TypeObject,
-    json_TypeArray
+    json_TypeRoot,         /**< Root element */
+    json_TypeKey,          /**< Key element*/
+    json_TypeValueString,  /**< String value element */
+    json_TypeValueLiteral, /**< Literal value element (for \a null, \a boolean or \a numeric values) */
+    json_TypeObject,       /**< Object element */
+    json_TypeArray         /**< Array element */
 } tJsonType;
 
 
+/**
+ * @brief Type used for a JSON element
+ */
 typedef struct tJsonElement
 {
-    tJsonType            Type;
-    struct tJsonElement *Parent;
-    struct tJsonElement *Next;
-    struct tJsonElement *Child;
-    tJsonString          Name;
+    tJsonType            Type;   /**< The element type */
+    struct tJsonElement *Parent; /**< The parent element */
+    struct tJsonElement *Next;   /**< The next (sibling) element */
+    struct tJsonElement *Child;  /**< The child element */
+    tJsonString          Name;   /**< The element name */
 } tJsonElement;
 
 
+/**
+ * @brief Allocates a new JSON element
+ * @param Type   The type of element to allocate
+ * @param Parent The parent of the new JSON element
+ * @return The allocated JSON element
+ * @return A \a `NULL` value is returned if a new JSON element could not be allocated
+ */
 tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent);
 
 
-void JsonElementFree(tJsonElement *Element);
+/**
+ * @brief Frees an allocates JSON element
+ * @param Element A pointer to an allocated JSON element
+ * @return None
+ */
+void JsonElementFree(tJsonElement **Element);
 
 
+/**
+ * @brief Sets up a JSON element
+ * @param Element The element to set up
+ * @return None
+ */
 void JsonElementSetUp(tJsonElement *Element);
 
 
+/**
+ * @brief Cleans up a JSON element
+ * @param Element The element to clean up
+ * @return None
+ */
 void JsonElementCleanUp(tJsonElement *Element);
 
 
+/**
+ * @brief Finds a JSON element
+ * @param Element The element
+ * @param Path    The path of elements to find
+ * @param Create  Indicates if the elements in the path should be created if they do not exist
+ * @return The last element in the path that was found
+ * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is zero) or created (if \a `Create` is non-zero)
+ */
 tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create);
 
 
+/**
+ * @brief Moves the child elements from one element to another
+ * @param To   The element to move the children to
+ * @param From The element to move the children from
+ * @return The first child element that was moved
+ * @return A \a `NULL` value is returned if the children could not be moved
+ * @note If the element \a `To` has any children then these will be freed
+ * @note The element \a `From` will not have any children after they have been moved (they are not shared)
+ */
 tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From);
 
 
