@@ -58,7 +58,7 @@ int JsonWriteFile(tJsonElement *Root, FILE *Stream)
     do
     {
         Error = JsonFormat(&Format, &Character);
-        if (Error > 0)
+        if (Error == JSON_FORMAT_INCOMPLETE)
         {
             if (fputc(Character, Stream) == EOF)
             {
