@@ -6,7 +6,9 @@ int JsonCharacterIsLiteral(uint8_t Character)
     return ((Character >= '0') && (Character <= '9')) ||
            ((Character >= 'a') && (Character <= 'z')) ||
            ((Character >= 'A') && (Character <= 'Z')) ||
-           (Character == '-') || (Character == '+') || (Character == '_');
+            (Character == '-') ||
+            (Character == '+') ||
+            (Character == '.');
 }
 
 
