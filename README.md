@@ -29,12 +29,24 @@ The JSON content is provided using the input stream. The modified JSON content i
 The 1st parameter provides the path of the key that you want to set \
 The 2nd parameter provides the JSON value for the key
 
-e.g.
+
+***Example 1***
 
 The following will set the '`defines`' key value to '`["-g3","-DDEBUG"]`' in an object of the array '`configurations`' that has the '`name`' key set as '`Linux (Debug)`'
 
+```bash
+touch c_cpp_properties.json
+cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
+"[\"-g3\",\"-DDEBUG\"]" > c_cpp_properties.json
+```
+
+
+***Example 2***
+
+The following will replace an object in the array '`configurations`' that has the '`name`' key set as '`Linux (Release)`'
 
 ```bash
 touch c_cpp_properties.json
-cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" "[\"-g3\",\"-DDEBUG\"]" > c_cpp_properties.json
+cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
+"{\"name\":\"Linux (Release)\",\"defines\":[\"-O3\",\"-DRELEASE\"]}" > c_cpp_properties.json
 ```
