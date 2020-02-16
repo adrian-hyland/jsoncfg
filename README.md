@@ -26,7 +26,7 @@ To clean the debug version of the utility:
 
 The JSON content is provided using the input stream. The modified JSON content is provided using the output stream.
 
-The 1st parameter provides the path of the key that you want to set
+The 1st parameter provides the path of the key that you want to set \
 The 2nd parameter provides the JSON value for the key
 
 e.g.
