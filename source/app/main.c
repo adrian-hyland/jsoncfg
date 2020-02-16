@@ -33,6 +33,7 @@ int main(int argc, const char *argv[])
     tJsonElement Root;
     tJsonElement Value;
     tJsonElement *Element;
+    tJsonElement *ChildValue;
     int Error;
 
     JsonElementSetUp(&Root);
@@ -57,17 +58,22 @@ int main(int argc, const char *argv[])
         {
             Error = JSONCFG_ERROR_NO_PATH;
         }
-        else if (JsonElementMoveChild(Element, &Value) == NULL)
-        {
-            Error = JSONCFG_ERROR_SET_VALUE;
-        }
-        else if (!JsonWriteFile(&Root, stdout))
-        {
-            Error = JSONCFG_ERROR_WRITE_STDOUT;
-        }
         else
         {
-            Error = JSONCFG_ERROR_NONE;
+            ChildValue = JsonElementGetChild(&Value);
+            if ((JsonElementGetType(Element) == json_TypeObject) && (JsonElementGetType(ChildValue) == json_TypeObject))
+            {
+                Error = (JsonElementMoveChild(Element, ChildValue) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+            }
+            else
+            {
+                Error = (JsonElementMoveChild(Element, &Value) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+            }
+
+            if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, stdout))
+            {
+                Error = JSONCFG_ERROR_WRITE_STDOUT;
+            }
         }
     }
 
