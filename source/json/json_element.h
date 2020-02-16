@@ -70,6 +70,30 @@ void JsonElementCleanUp(tJsonElement *Element);
 
 
 /**
+ * @brief Gets the type of a JSON element
+ * @param Element The element
+ * @return The element type
+ */
+tJsonType JsonElementGetType(tJsonElement *Element);
+
+
+/**
+ * @brief Gets the child of a JSON element
+ * @param Element The element
+ * @return The child element
+ */
+tJsonElement *JsonElementGetChild(tJsonElement *Element);
+
+
+/**
+ * @brief Gets the next sibling of a JSON element
+ * @param Element The element
+ * @return The next sibling element
+ */
+tJsonElement *JsonElementGetNext(tJsonElement *Element);
+
+
+/**
  * @brief Finds a JSON element
  * @param Element The element
  * @param Path    The path of elements to find

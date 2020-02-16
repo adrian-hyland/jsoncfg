@@ -14,6 +14,27 @@ static void JsonElementSetUpType(tJsonElement *Element, tJsonType Type, tJsonEle
 }
 
 
+static int JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
+{
+    int ok;
+
+    ok = (ParentType != ChildType);
+
+    if (ParentType != json_TypeRoot)
+    {
+        ok = ok && (ParentType != json_TypeValueLiteral);
+        
+        ok = ok && (ParentType != json_TypeValueString);
+        
+        ok = ok && ((ParentType != json_TypeObject) || (ChildType == json_TypeKey));
+        
+        ok = ok && ((ParentType != json_TypeArray) || (ChildType != json_TypeKey));
+    }
+
+    return ok;
+}
+
+
 tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
 {
     tJsonElement *Element;
@@ -27,12 +48,7 @@ tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
     }
     else
     {
-        if ((Parent == NULL) ||
-            (Parent->Type == Type) ||
-            (Parent->Type == json_TypeValueLiteral) ||
-            (Parent->Type == json_TypeValueString) ||
-            ((Parent->Type == json_TypeObject) && (Type != json_TypeKey)) ||
-            ((Parent->Type == json_TypeArray) && (Type == json_TypeKey)))
+        if ((Parent == NULL) || !JsonElementCheckChildType(Parent->Type, Type))
         {
             return NULL;
         }
@@ -70,6 +86,24 @@ void JsonElementCleanUp(tJsonElement *Element)
     JsonStringCleanUp(&Element->Name);
     JsonElementFree(&Element->Child);
     JsonElementFree(&Element->Next);
+}
+
+
+tJsonType JsonElementGetType(tJsonElement *Element)
+{
+    return Element->Type;
+}
+
+
+tJsonElement *JsonElementGetChild(tJsonElement *Element)
+{
+    return (Element != NULL) ? Element->Child : NULL;
+}
+
+
+tJsonElement *JsonElementGetNext(tJsonElement *Element)
+{
+    return (Element != NULL) ? Element->Next : NULL;
 }
 
 
@@ -249,6 +283,11 @@ tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From)
 
     if (From != To)
     {
+        if ((From->Child != NULL) && !JsonElementCheckChildType(To->Type, From->Child->Type))
+        {
+            return NULL;
+        }
+
         if (To->Child != NULL)
         {
             JsonElementFree(&To->Child);
