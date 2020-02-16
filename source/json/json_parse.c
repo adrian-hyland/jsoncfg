@@ -272,6 +272,14 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
         }
         return json_ParseValueString;
     }
+    else if (Character == '\0')
+    {
+        if (Parse->Element->Type != json_TypeRoot)
+        {
+            return json_ParseError;
+        }
+        return json_ParseComplete;
+    }
     else if (JsonCharacterIsLiteral(Character))
     {
         if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray) || ((Parse->Element->Type == json_TypeArray) && (Parse->Element->Child == NULL)))
