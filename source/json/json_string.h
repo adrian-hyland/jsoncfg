@@ -20,7 +20,7 @@ typedef struct
  * @brief Sets up a string
  * @param String The string to set up
  * @return None
- * @note This function should be called before the string is used
+ * @note Use \a `JsonStringCleanUp()` to clean up the string when it is no longer required
  */
 void JsonStringSetUp(tJsonString *String);
 
@@ -29,7 +29,6 @@ void JsonStringSetUp(tJsonString *String);
  * @brief Cleans up a string
  * @param String The string to clean up
  * @return None
- * @note This function should be called before the string goes out of scope
  */
 void JsonStringCleanUp(tJsonString *String);
 

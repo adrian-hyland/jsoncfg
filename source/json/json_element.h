@@ -37,14 +37,16 @@ typedef struct tJsonElement
  * @param Parent The parent of the new JSON element
  * @return The allocated JSON element
  * @return A \a `NULL` value is returned if a new JSON element could not be allocated
+ * @note Use \a `JsonElementFree()` to free the element when it is no longer required
  */
 tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent);
 
 
 /**
- * @brief Frees an allocates JSON element
+ * @brief Frees an allocated JSON element
  * @param Element A pointer to an allocated JSON element
  * @return None
+ * @note The parameter \a `Element` must point to an element that was allocated by \a `JsonElementAllocate()`
  */
 void JsonElementFree(tJsonElement **Element);
 
@@ -53,6 +55,8 @@ void JsonElementFree(tJsonElement **Element);
  * @brief Sets up a JSON element
  * @param Element The element to set up
  * @return None
+ * @note The type of parameter \a `Element` will be set to \a `json_TypeRoot`
+ * @note Use \a `JsonElementCleanUp()` to clean up the element when it is no longer required
  */
 void JsonElementSetUp(tJsonElement *Element);
 
@@ -72,6 +76,7 @@ void JsonElementCleanUp(tJsonElement *Element);
  * @param Create  Indicates if the elements in the path should be created if they do not exist
  * @return The last element in the path that was found
  * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is zero) or created (if \a `Create` is non-zero)
+ * @note The type of parameter \a `Element` must be equal to \a `json_TypeRoot` - use \a `JsonElementSetUp()` to set up an appropriate element
  */
 tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create);
 
@@ -82,8 +87,8 @@ tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Cr
  * @param From The element to move the children from
  * @return The first child element that was moved
  * @return A \a `NULL` value is returned if the children could not be moved
- * @note If the element \a `To` has any children then these will be freed
- * @note The element \a `From` will not have any children after they have been moved (they are not shared)
+ * @note If the parameter \a `To` has any children then these will get freed
+ * @note The parameter \a `From` will not have any children after they have been moved (they are not shared)
  */
 tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From);
 
