@@ -18,6 +18,26 @@ tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
 {
     tJsonElement *Element;
 
+    if (Type == json_TypeRoot)
+    {
+        if (Parent != NULL)
+        {
+            return NULL;
+        }
+    }
+    else
+    {
+        if ((Parent == NULL) ||
+            (Parent->Type == Type) ||
+            (Parent->Type == json_TypeValueLiteral) ||
+            (Parent->Type == json_TypeValueString) ||
+            ((Parent->Type == json_TypeObject) && (Type != json_TypeKey)) ||
+            ((Parent->Type == json_TypeArray) && (Type == json_TypeKey)))
+        {
+            return NULL;
+        }
+    }
+
     Element = malloc(sizeof(tJsonElement));
     if (Element != NULL)
     {
@@ -135,8 +155,7 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
             {
                 if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, 1) == NULL)
                 {
-                    JsonElementCleanUp(*Element);
-                    return NULL;
+                    JsonElementFree(Element);
                 }
             }
         }
