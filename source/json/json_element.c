@@ -243,24 +243,10 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create)
 {
     tJsonElement **ElementReference;
-    size_t PathLength;
 
     if ((Path != NULL) && (Element != NULL) && (Element->Type == json_TypeRoot))
     {
-        PathLength = strlen((char *)Path);
-
-        while ((PathLength > 0) && (*Path == ' '))
-        {
-            Path++;
-            PathLength--;
-        }
-
-        while ((PathLength > 0) && (Path[PathLength - 1] == ' '))
-        {
-            PathLength--;
-        }
-
-        ElementReference = JsonElementFindSubPath(&Element->Child, Element, Path, PathLength, Create);
+        ElementReference = JsonElementFindSubPath(&Element->Child, Element, Path, strlen((const char *)Path), Create);
         Element = (ElementReference != NULL) ? *ElementReference : NULL;
     }
     else
