@@ -47,7 +47,7 @@ static tJsonParseState JsonParseKey(tJsonParse *Parse, uint8_t Character)
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseKey;
 }
 
 
@@ -71,7 +71,7 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseKeyStart;
 }
 
 
@@ -87,7 +87,7 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, uint8_t Character)
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseKeyEnd;
 }
 
 
@@ -119,7 +119,7 @@ static tJsonParseState JsonParseValueString(tJsonParse *Parse, uint8_t Character
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseValueString;
 }
 
 
@@ -183,7 +183,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseValueEnd;
 }
 
 
@@ -198,7 +198,7 @@ static tJsonParseState JsonParseValueLiteral(tJsonParse *Parse, uint8_t Characte
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseValueLiteral;
 }
 
 
@@ -263,7 +263,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
         return json_ParseError;
     }
 
-    return Parse->State;
+    return json_ParseValueStart;
 }
 
 
