@@ -1,4 +1,4 @@
-# make [all | clean] [DEBUG=1]
+# make [all | clean] [DEBUG=1] [TEST=1]
 
 # Rules:
 #   all     - builds the application (default rule)
@@ -6,10 +6,17 @@
 
 # Options:
 #   DEBUG=1 - enables a debug build of the application (default is a release build with no debug information)
+#   TEST=1  - builds the unit test application
 
 APP_NAME := jsoncfg
 
-SRC_DIR := ./source/json ./source/app
+SRC_DIR := ./source/json
+ifeq ($(TEST),1)
+APP_NAME := $(APP_NAME)-test
+SRC_DIR += ./source/test
+else
+SRC_DIR += ./source/app
+endif
 ifeq ($(DEBUG),1)
 BIN_DIR := ./bin/debug
 else
