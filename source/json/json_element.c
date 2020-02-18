@@ -18,10 +18,12 @@ static int JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
 {
     int ok;
 
-    ok = (ParentType != ChildType);
+    ok = (ChildType != json_TypeRoot);
 
     if (ParentType != json_TypeRoot)
     {
+        ok = ok && ((ParentType == json_TypeArray) || (ParentType != ChildType));
+
         ok = ok && (ParentType != json_TypeValueLiteral);
         
         ok = ok && (ParentType != json_TypeValueString);
