@@ -2,6 +2,23 @@
 #include "json_parse.h"
 
 
+static int JsonParseAllocateElement(tJsonParse *Parse, tJsonType Type)
+{
+    if (Parse->AllocateChild)
+    {
+        Parse->Element->Child = JsonElementAllocate(Type, Parse->Element);
+        Parse->Element = Parse->Element->Child;
+    }
+    else
+    {
+        Parse->Element->Next = JsonElementAllocate(Type, Parse->Element->Parent);
+        Parse->Element = Parse->Element->Next;
+    }
+
+    return Parse->Element != NULL;
+}
+
+
 static tJsonParseState JsonParseKeyEscape(tJsonParse *Parse, uint8_t Character)
 {
     Character = JsonCharacterFromEscape(Character);
@@ -38,24 +55,11 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
 {
     if (Character == '"')
     {
-        if (Parse->Element->Type == json_TypeObject)
+        if (!JsonParseAllocateElement(Parse, json_TypeKey))
         {
-            Parse->Element->Child = JsonElementAllocate(json_TypeKey, Parse->Element);
-            if (Parse->Element->Child == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Child;
+            return json_ParseError;
         }
-        else
-        {
-            Parse->Element->Next = JsonElementAllocate(json_TypeKey, Parse->Element->Parent);
-            if (Parse->Element->Next == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Next;
-        }
+
         return json_ParseKey;
     }
     else if (Character == '}')
@@ -75,6 +79,7 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, uint8_t Character)
 {
     if (Character == ':')
     {
+        Parse->AllocateChild = 1;
         return json_ParseValueStart;
     }
     else if (!JsonCharacterIsWhitespace(Character))
@@ -122,6 +127,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 {
     if (Character == ',')
     {
+        Parse->AllocateChild = 0;
         if (Parse->Element->Parent == NULL)
         {
             return json_ParseError;
@@ -200,46 +206,22 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 {
     if (Character == '{')
     {
-        if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray) || ((Parse->Element->Type == json_TypeArray) && (Parse->Element->Child == NULL)))
+        if (!JsonParseAllocateElement(Parse, json_TypeObject))
         {
-            Parse->Element->Child = JsonElementAllocate(json_TypeObject, Parse->Element);
-            if (Parse->Element->Child == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Child;
+            return json_ParseError;
         }
-        else
-        {
-            Parse->Element->Next = JsonElementAllocate(json_TypeObject, Parse->Element->Parent);
-            if (Parse->Element->Next == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Next;
-        }
+
+        Parse->AllocateChild = 1;
         return json_ParseKeyStart;
     }
     else if (Character == '[')
     {
-        if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray) || ((Parse->Element->Type == json_TypeArray) && (Parse->Element->Child == NULL)))
+        if (!JsonParseAllocateElement(Parse, json_TypeArray))
         {
-            Parse->Element->Child = JsonElementAllocate(json_TypeArray, Parse->Element);
-            if (Parse->Element->Child == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Child;
+            return json_ParseError;
         }
-        else
-        {
-            Parse->Element->Next = JsonElementAllocate(json_TypeArray, Parse->Element->Parent);
-            if (Parse->Element->Next == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Next;
-        }
+
+        Parse->AllocateChild = 1;
         return json_ParseValueStart;
     }
     else if (Character == ']')
@@ -252,24 +234,11 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
     }
     else if (Character == '"')
     {
-        if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray) || ((Parse->Element->Type == json_TypeArray) && (Parse->Element->Child == NULL)))
+        if (!JsonParseAllocateElement(Parse, json_TypeValueString))
         {
-            Parse->Element->Child = JsonElementAllocate(json_TypeValueString, Parse->Element);
-            if (Parse->Element->Child == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Child;
+            return json_ParseError;
         }
-        else
-        {
-            Parse->Element->Next = JsonElementAllocate(json_TypeValueString, Parse->Element->Parent);
-            if (Parse->Element->Next == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Next;
-        }
+
         return json_ParseValueString;
     }
     else if (Character == '\0')
@@ -282,28 +251,11 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
     }
     else if (JsonCharacterIsLiteral(Character))
     {
-        if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray) || ((Parse->Element->Type == json_TypeArray) && (Parse->Element->Child == NULL)))
-        {
-            Parse->Element->Child = JsonElementAllocate(json_TypeValueLiteral, Parse->Element);
-            if (Parse->Element->Child == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Child;
-        }
-        else
-        {
-            Parse->Element->Next = JsonElementAllocate(json_TypeValueLiteral, Parse->Element->Parent);
-            if (Parse->Element->Next == NULL)
-            {
-                return json_ParseError;
-            }
-            Parse->Element = Parse->Element->Next;
-        }
-        if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+        if (!JsonParseAllocateElement(Parse, json_TypeValueLiteral) || !JsonStringAddCharacter(&Parse->Element->Name, Character))
         {
             return json_ParseError;
         }
+
         return json_ParseValueLiteral;
     }
     else if (!JsonCharacterIsWhitespace(Character))
@@ -319,6 +271,7 @@ void JsonParseSetUp(tJsonParse *Parse, tJsonElement *RootElement)
 {
     Parse->State = json_ParseValueStart;
     Parse->Element = RootElement;
+    Parse->AllocateChild = 1;
 }
 
 
@@ -326,6 +279,7 @@ void JsonParseCleanUp(tJsonParse *Parse)
 {
     Parse->State = json_ParseComplete;
     Parse->Element = NULL;
+    Parse->AllocateChild = 0;
 }
 
 

@@ -28,8 +28,9 @@ typedef enum
  */
 typedef struct
 {
-    tJsonParseState State;   /**< The current parse state */
-    tJsonElement   *Element; /**< The current element being parsed */
+    tJsonParseState State;         /**< The current parse state */
+    tJsonElement   *Element;       /**< The current element being parsed */
+    int             AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
 } tJsonParse;
 
 
