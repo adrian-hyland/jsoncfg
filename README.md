@@ -37,7 +37,7 @@ The following will set the '`defines`' key value to '`["-g3","-DDEBUG"]`' in an 
 ```bash
 touch c_cpp_properties.json
 cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
-"[\"-g3\",\"-DDEBUG\"]" > c_cpp_properties.json
+"[\"-g3\",\"-DDEBUG\"]"
 ```
 
 
@@ -48,5 +48,30 @@ The following will replace an object in the array '`configurations`' that has th
 ```bash
 touch c_cpp_properties.json
 cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
-"{\"name\":\"Linux (Release)\",\"defines\":[\"-O3\",\"-DRELEASE\"]}" > c_cpp_properties.json
+"{\"name\":\"Linux (Release)\",\"defines\":[\"-O3\",\"-DRELEASE\"]}"
 ```
+
+### Known Limitations
+
+- The JSON content should not contain any embedded comments as these are not currently supported by the parsing functionality
+- The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are also not yet supported by the parsing functionality
+
+
+
+## Building the unit test harness
+
+To create a release version of the unit test harness:
+
+`make all TEST=1`
+
+To clean the release version of the unit test harness:
+
+`make clean TEST=1`
+
+To create a debug version of the unit test harness:
+
+`make all TEST=1 DEBUG=1`
+
+To clean the debug version of the unit test harness:
+
+`make clean TEST=1 DEBUG=1`
