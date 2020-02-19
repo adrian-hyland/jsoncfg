@@ -77,11 +77,11 @@ vscode:
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $(NAME)
 	mkdir -p $(@D)
-	gcc $(O_FILES) $(LNK_FLAGS) -o $@
+	$(CC) $(O_FILES) $(LNK_FLAGS) -o $@
 
 -include $(D_FILES)
 
 $(OBJ_DIR)/%.o : %.c
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
-	gcc $< $(C_FLAGS) -MMD -o $@
+	$(CC) $< $(C_FLAGS) -MMD -o $@
