@@ -3,12 +3,17 @@
 # Rules:
 #   all     - builds the application (default rule)
 #   clean   - cleans the application build
+#   vscode  - add a build configuration to VS Code 
 
 # Options:
 #   DEBUG=1 - enables a debug build of the application (default is a release build with no debug information)
 #   TEST=1  - builds the unit test application
 
 APP_NAME := jsoncfg
+
+NULL  :=
+SPACE := $(NULL) #
+COMMA := ,
 
 SRC_DIR := ./source/json
 ifeq ($(TEST),1)
@@ -30,15 +35,20 @@ C_FILES := $(wildcard $(addsuffix /*.c,$(SRC_DIR)))
 O_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(C_FILES:.c=.o)))
 D_FILES := $(O_FILES:.o=.d)
 
+BUILD_CFG := ./.vscode/c_cpp_properties.json
+
 ifeq ($(DEBUG),1)
+BUILD_NAME := Debug
 C_DEFINE += DEBUG
 C_FLAGS += -g3
 else
+BUILD_NAME := Release
 C_DEFINE += RELEASE
 C_FLAGS += -O3
 endif
+C_DEFINE += APP_NAME="$(APP_NAME)"
 
-C_FLAGS += -c -Wall -Werror $(addprefix -I,$(SRC_DIR)) $(addprefix -D,$(C_DEFINE))
+C_FLAGS += -c -Wall -Werror $(addprefix -I,$(SRC_DIR)) $(addprefix -D,$(subst ","\",$(C_DEFINE)))
 
 
 APP := $(BIN_DIR)/$(APP_NAME)
@@ -48,6 +58,21 @@ all: $(APP)
 clean:
 	rm -f $(APP)
 	rm -f $(O_FILES) $(D_FILES)
+
+vscode:
+	touch $(BUILD_CFG)
+	cat $(BUILD_CFG) | ./bin/release/jsoncfg /configurations[/name:\"$(BUILD_NAME)\"] \
+	    "{ \
+			\"name\":\"$(BUILD_NAME)\", \
+            \"includePath\":[\"\$${workspaceFolder\}/**\"], \
+            \"defines\":[ $(subst $(SPACE),$(COMMA)$(SPACE),$(patsubst %,\"%\",$(subst ",\\\",$(C_DEFINE)))) ], \
+            \"compilerPath\":\"/usr/bin/gcc\", \
+            \"cStandard\":\"c11\", \
+            \"cppStandard\":\"c++17\", \
+            \"intelliSenseMode\":\"clang-x64\" \
+        }" >$(BUILD_CFG).tmp
+	mv $(BUILD_CFG).tmp $(BUILD_CFG)
+
 
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $(NAME)

@@ -1,6 +1,18 @@
 #include "json.h"
 
 
+#ifdef DEBUG
+// This string declaration serves only to illustrate using jsoncfg to set up different build configuration for VS Code.
+// Once you have built a release version of jsoncfg (using 'make all'), use 'make vscode DEBUG=1' to add a 'Debug' build configuration
+// to the VS Code project.
+// If you select the 'Debug' configuration (at the right of the bar at the bottom of the window) then this part of the code will appear
+// enabled and 'APP_NAME' will correctly resolve to 'jsoncfg' when you hover your mouse pointer over it.
+// You can also use 'make vscode' to add a 'Release' build configurations to the VS Code project. Selecting the 'Release' configuration
+// will cause this code to appear disabled.
+const char AppName[] = APP_NAME;
+#endif
+
+
 #define JSONCFG_ERROR_NONE          0
 #define JSONCFG_ERROR_BAD_ARGS     -1
 #define JSONCFG_ERROR_READ_VALUE   -2
