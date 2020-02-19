@@ -14,22 +14,22 @@
 To create a release version of the utility:
 
 ```bash
-make all
+$ make all
 ```
 
 To clean the release version of the utility:
 ```bash
-make clean
+$ make clean
 ```
 
 To create a debug version of the utility:
 ```bash
-make all DEBUG=1
+$ make all DEBUG=1
 ```
 
 To clean the debug version of the utility:
 ```bash
-make clean DEBUG=1
+$ make clean DEBUG=1
 ```
 
 
@@ -71,8 +71,8 @@ path = key [array] [path]
 
 The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)`
 ```bash
-touch c_cpp_properties.json
-cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
+$ touch c_cpp_properties.json
+$ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
 "[\"-g3\",\"-DDEBUG\"]"
 ```
 
@@ -81,8 +81,8 @@ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/de
 
 The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)`
 ```bash
-touch c_cpp_properties.json
-cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
+$ touch c_cpp_properties.json
+$ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
 "{\"name\":\"Linux (Release)\",\"defines\":[\"-O3\",\"-DRELEASE\"]}"
 ```
 
@@ -98,12 +98,12 @@ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]"
 
 To add a 'Relase' build configuration to the VS Code project
 ```bash
-make vscode
+$ make vscode
 ```
 
 To add a 'Debug' build configuration to the VS Code project
 ```bash
-make vscode DEBUG=1
+$ make vscode DEBUG=1
 ```
 
 
@@ -112,20 +112,28 @@ make vscode DEBUG=1
 
 To create a release version of the unit test harness:
 ```bash
-make all TEST=1
+$ make all TEST=1
 ```
 
 To clean the release version of the unit test harness:
 ```bash
-make clean TEST=1
+$ make clean TEST=1
 ```
 
 To create a debug version of the unit test harness:
 ```bash
-make all TEST=1 DEBUG=1
+$ make all TEST=1 DEBUG=1
 ```
 
 To clean the debug version of the unit test harness:
 ```bash
-make clean TEST=1 DEBUG=1
+$ make clean TEST=1 DEBUG=1
+```
+
+**Note:**
+The debug version of the unit test harness has malloc tracing enabled. To produce the malloc trace and check for any memory issues during testing, you can do the following:
+```bash
+$ export MALLOC_TRACE=./malloc-trace
+$ ./bin/debug/jsoncfg-test
+$ mtrace ./bin/debug/jsoncfg-test ./malloc-trace
 ```
