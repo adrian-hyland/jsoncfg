@@ -278,19 +278,69 @@ int TestJsonFormatIndent(void)
                          "      \"key\": value\n"
                          "   },\n"
                          "   \"key-array-empty\": [],\n"
-                         "   \"key-array\": [ true, false, null, 123, 1.23e4, NaN, \"hello world\", \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+                         "   \"key-array\": [\n"
+                         "      true,\n"
+                         "      false,\n"
+                         "      null,\n"
+                         "      123,\n"
+                         "      1.23e4,\n"
+                         "      NaN,\n"
+                         "      \"hello world\",\n"
+                         "      \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
                          "      {},\n"
                          "      {\n"
                          "         \"key\": value\n"
                          "      },\n"
-                         "      [], [ 1, 2, 3 ] ]\n"
+                         "      [],\n"
+                         "      [\n"
+                         "         1,\n"
+                         "         2,\n"
+                         "         3\n"
+                         "      ]\n"
+                         "   ]\n"
                          "}",
-        (const uint8_t *)"[ true, false, null, 123, 1.23e4, NaN, \"hello world\", \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+        (const uint8_t *)"[]",
+        (const uint8_t *)"[ 1 ]",
+        (const uint8_t *)"[\n"
+                         "   {}\n"
+                         "]",
+        (const uint8_t *)"[\n"
+                         "   {\n"
+                         "      \"key\": \"value\"\n"
+                         "   }\n"
+                         "]",
+        (const uint8_t *)"[\n"
+                         "   []\n"
+                         "]",
+        (const uint8_t *)"[\n"
+                         "   [ 1 ]\n"
+                         "]",
+        (const uint8_t *)"[\n"
+                         "   [\n"
+                         "      1,\n"
+                         "      2\n"
+                         "   ]\n"
+                         "]",
+        (const uint8_t *)"[\n"
+                         "   true,\n"
+                         "   false,\n"
+                         "   null,\n"
+                         "   123,\n"
+                         "   1.23e4,\n"
+                         "   NaN,\n"
+                         "   \"hello world\",\n"
+                         "   \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
                          "   {},\n"
                          "   {\n"
                          "      \"key\": value\n"
                          "   },\n"
-                         "   [], [ 1, 2, 3 ] ]",
+                         "   [],\n"
+                         "   [\n"
+                         "      1,\n"
+                         "      2,\n"
+                         "      3\n"
+                         "   ]\n"
+                         "]",
         (const uint8_t *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
         (const uint8_t *)"true",
         (const uint8_t *)"false",
