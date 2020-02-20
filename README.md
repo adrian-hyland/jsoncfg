@@ -41,7 +41,8 @@ The JSON content is provided using the input stream. The modified JSON content i
 The 1st parameter provides the path of the key that you want to set \
 The 2nd parameter provides the JSON content value for the key
 
-**Path Format**
+***Path Format***\
+The path used to identify the key in the JSON content should have the following format (note that this format, although similar, is **not** intended to conform to RFC6901)
 ```abnf
 quotation-mark = %x22 ; "
 key-start = %x2F      ; /
@@ -67,8 +68,7 @@ array = array-start [path] value array-end              ; The '[path] value' ide
 path = key [array] [path]
 ```
 
-***Example 1***
-
+***Example 1***\
 The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)`
 ```bash
 $ touch c_cpp_properties.json
@@ -77,8 +77,7 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/
 ```
 
 
-***Example 2***
-
+***Example 2***\
 The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)`
 ```bash
 $ touch c_cpp_properties.json
@@ -88,6 +87,7 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"
 
 ### Known Limitations
 
+- The JSON content should be encoded using UTF-8 (without a byte order mark)
 - The JSON content should not contain any embedded comments as these are not currently supported by the parsing functionality
 - The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are also not yet supported by the parsing functionality
 - The parsing functionality does not check the validity of any literals that are contained in the JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
@@ -130,7 +130,7 @@ To clean the debug version of the unit test harness:
 $ make clean TEST=1 DEBUG=1
 ```
 
-**Note:**
+***Note:***\
 The debug version of the unit test harness has malloc tracing enabled. To produce the malloc trace and check for any memory issues during testing, you can do the following:
 ```bash
 $ export MALLOC_TRACE=./malloc-trace
