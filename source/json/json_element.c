@@ -37,23 +37,13 @@ static int JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
 }
 
 
-tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
+static tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
 {
     tJsonElement *Element;
 
-    if (Type == json_TypeRoot)
+    if ((Type == json_TypeRoot) || (Parent == NULL) || !JsonElementCheckChildType(Parent->Type, Type))
     {
-        if (Parent != NULL)
-        {
-            return NULL;
-        }
-    }
-    else
-    {
-        if ((Parent == NULL) || !JsonElementCheckChildType(Parent->Type, Type))
-        {
-            return NULL;
-        }
+        return NULL;
     }
 
     Element = malloc(sizeof(tJsonElement));
@@ -66,7 +56,7 @@ tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
 }
 
 
-void JsonElementFree(tJsonElement **Element)
+static void JsonElementFree(tJsonElement **Element)
 {
     if (*Element != NULL)
     {
@@ -88,6 +78,29 @@ void JsonElementCleanUp(tJsonElement *Element)
     JsonStringCleanUp(&Element->Name);
     JsonElementFree(&Element->Child);
     JsonElementFree(&Element->Next);
+}
+
+
+int JsonElementAllocateChild(tJsonElement *Element, tJsonType Type)
+{
+    JsonElementFree(&Element->Child);
+
+    Element->Child = JsonElementAllocate(Type, Element);
+
+    return Element->Child != NULL;
+}
+
+
+int JsonElementAllocateNext(tJsonElement *Element, tJsonType Type)
+{
+    JsonElementFree(&Element->Next);
+
+    if ((Element->Parent != NULL) && ((Element->Parent->Type == json_TypeObject) || (Element->Parent->Type == json_TypeArray)))
+    {
+        Element->Next = JsonElementAllocate(Type, Element->Parent);
+    }
+
+    return Element->Next != NULL;
 }
 
 

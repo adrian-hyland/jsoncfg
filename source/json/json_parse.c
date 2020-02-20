@@ -4,18 +4,20 @@
 
 static int JsonParseAllocateElement(tJsonParse *Parse, tJsonType Type)
 {
+    int ok;
+
     if (Parse->AllocateChild)
     {
-        Parse->Element->Child = JsonElementAllocate(Type, Parse->Element);
+        ok = JsonElementAllocateChild(Parse->Element, Type);
         Parse->Element = Parse->Element->Child;
     }
     else
     {
-        Parse->Element->Next = JsonElementAllocate(Type, Parse->Element->Parent);
+        ok = JsonElementAllocateNext(Parse->Element, Type);
         Parse->Element = Parse->Element->Next;
     }
 
-    return Parse->Element != NULL;
+    return ok;
 }
 
 

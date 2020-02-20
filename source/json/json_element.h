@@ -32,26 +32,6 @@ typedef struct tJsonElement
 
 
 /**
- * @brief Allocates a new JSON element
- * @param Type   The type of element to allocate
- * @param Parent The parent of the new JSON element
- * @return The allocated JSON element
- * @return A \a `NULL` value is returned if a new JSON element could not be allocated
- * @note Use \a `JsonElementFree()` to free the element when it is no longer required
- */
-tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent);
-
-
-/**
- * @brief Frees an allocated JSON element
- * @param Element A pointer to an allocated JSON element
- * @return None
- * @note The parameter \a `Element` must point to an element that was allocated by \a `JsonElementAllocate()`
- */
-void JsonElementFree(tJsonElement **Element);
-
-
-/**
  * @brief Sets up a JSON element
  * @param Element The element to set up
  * @return None
@@ -67,6 +47,26 @@ void JsonElementSetUp(tJsonElement *Element);
  * @return None
  */
 void JsonElementCleanUp(tJsonElement *Element);
+
+
+/**
+ * @brief Allocates a child for an element
+ * @param Element The element to allocate a child for
+ * @param Type    The type of child to allocate
+ * @return A non-zero (true) value is returned if a child was successfully allocated for the element
+ * @return A zero (false) value is returned if a child could not be allocated for the element
+ */
+int JsonElementAllocateChild(tJsonElement *Element, tJsonType Type);
+
+
+/**
+ * @brief Allocates a sibling for an element
+ * @param Element The element to allocate a sibling for
+ * @param Type    The type of sibling to allocate
+ * @return A non-zero (true) value is returned if a sibling was successfully allocated for the element
+ * @return A zero (false) value is returned if a sibling could not be allocated for the element
+ */
+int JsonElementAllocateNext(tJsonElement *Element, tJsonType Type);
 
 
 /**
