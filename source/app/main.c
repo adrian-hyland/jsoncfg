@@ -2,13 +2,23 @@
 
 
 #ifdef DEBUG
-// This string declaration serves only to illustrate using jsoncfg to set up different build configuration for VS Code.
-// Once you have built a release version of jsoncfg (using 'make all'), use 'make vscode DEBUG=1' to add a 'Debug' build configuration
-// to the VS Code project.
-// If you select the 'Debug' configuration (at the right of the bar at the bottom of the window) then this part of the code will appear
-// enabled and 'APP_NAME' will correctly resolve to 'jsoncfg' when you hover your mouse pointer over it.
-// You can also use 'make vscode' to add a 'Release' build configurations to the VS Code project. Selecting the 'Release' configuration
-// will cause this code to appear disabled.
+// This string declaration serves only to illustrate using jsoncfg to set up different build configurations for VS Code.
+// The 'DEBUG' and 'APP_NAME' define constants are passed to the compiler by the makefile when the application is built. Their values
+// are defined based on the configuration that is being used for the build. For this project, there are just two configurations:
+//  - a 'Debug' configuration
+//     - the constant 'DEBUG' will be defined
+//     - the constant 'RELEASE' will not be defined
+//     - the constant 'APP_NAME' will be defined as 'jsoncfg (Debug)'
+//  - a 'Release' configuration
+//     - the constant 'DEBUG' will not be defined
+//     - the constant 'RELEASE' will be defined
+//     - the constant 'APP_NAME' will be defined as 'jsoncfg (Release)'
+// Once you have built the release version of jsoncfg (using 'make all'), you can use 'make vscode' to add the 'Release' configuration
+// to the VS Code project and 'make vscode DEBUG=1' to add a 'Debug' configuration.
+// The values that are set in the VS Code project configuration are exactly the same ones that are passed to the compiler. So if you
+// now select the 'Debug' configuration (at the right of the bar at the bottom of the window) then this part of the code will appear
+// enabled and 'APP_NAME' will correctly resolve to 'jsoncfg (Debug)' (when you hover your mouse pointer over it). Likewise, if you
+// select the 'Release' configuration then this part of the code will appear disabled.
 const char AppName[] = APP_NAME;
 #endif
 

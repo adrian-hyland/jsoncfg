@@ -11,16 +11,38 @@
 
 APP_NAME := jsoncfg
 
+# Some useful character constants
 NULL  :=
-SPACE := $(NULL) #
+SPACE := $(NULL) $(NULL)
 COMMA := ,
 
-SRC_DIR := ./source/json
+# @brief A function to escape characters in a text string
+# @param $(1) The text string to escape
+# @return The escaped text
+# @note This will escape the '"', '$' and '\' characters (with a '\' character prefix)
+escape = $(subst $$,\$$,$(subst ",\",$(subst \,\\,$(1))))
+
+# @brief Escapes a text item and marks it as an item in a list
+# @param $(1) The text item to escape and mark as a list item
+# @return The list item
+# @note The text item must not contain a '¬' character (as this is used for marking the list item).
+list_add = ¬$(call escape,$(1))¬
+
+# @brief Gets the text of items that are in an item list
+# @param $(1) The text to prefix each item text
+# @param $(2) The item list
+# @param $(3) The test to suffix each item text
+# @return The list of text items.
+# @note By using list_add() and list_get() you can manipulate text items that have any spaces in them
+# @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item
+list_get = $(patsubst %¬,%$(3),$(patsubst ¬%,$(1)%,$(patsubst ¬%¬,$(1)%$(3),$(2))))
+
+SRC_DIR := $(call list_add,./source/json)
 ifeq ($(TEST),1)
 APP_NAME := $(APP_NAME)-test
-SRC_DIR += ./source/test
+SRC_DIR += $(call list_add,./source/test)
 else
-SRC_DIR += ./source/app
+SRC_DIR += $(call list_add,./source/app)
 endif
 ifeq ($(DEBUG),1)
 BIN_DIR := ./bin/debug
@@ -29,26 +51,28 @@ BIN_DIR := ./bin/release
 endif
 OBJ_DIR := $(BIN_DIR)/obj
 
-VPATH := $(SRC_DIR)
+VPATH := $(call list_get,,$(SRC_DIR),)
 
-C_FILES := $(wildcard $(addsuffix /*.c,$(SRC_DIR)))
+C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(SRC_DIR),)))
 O_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(C_FILES:.c=.o)))
 D_FILES := $(O_FILES:.o=.d)
 
-BUILD_CFG := ./.vscode/c_cpp_properties.json
-
 ifeq ($(DEBUG),1)
 BUILD_NAME := Debug
-C_DEFINE += DEBUG
+C_DEFINE += $(call list_add,DEBUG)
 C_FLAGS += -g3
 else
 BUILD_NAME := Release
-C_DEFINE += RELEASE
+C_DEFINE += $(call list_add,RELEASE)
 C_FLAGS += -O3
 endif
-C_DEFINE += APP_NAME="$(APP_NAME)"
 
-C_FLAGS += -c -Wall -Werror $(addprefix -I,$(SRC_DIR)) $(addprefix -D,$(subst ","\",$(C_DEFINE)))
+C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
+C_FLAGS += -c -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+
+BUILD_CFG := ./.vscode/c_cpp_properties.json
+BUILD_DEFINE := $(filter-out $(COMMA)¬,$(call list_get,\",$(call escape,$(C_DEFINE)),\" $(COMMA))¬)
+BUILD_INCLUDE := $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(SRC_DIR) $(call list_add,$${workspaceFolder}/**)," $(COMMA)))¬)
 
 
 APP := $(BIN_DIR)/$(APP_NAME)
@@ -63,9 +87,9 @@ vscode:
 	touch $(BUILD_CFG)
 	cat $(BUILD_CFG) | ./bin/release/jsoncfg /configurations[/name:\"$(BUILD_NAME)\"] \
 	    "{ \
-			\"name\":\"$(BUILD_NAME)\", \
-            \"includePath\":[\"\$${workspaceFolder\}/**\"], \
-            \"defines\":[ $(subst $(SPACE),$(COMMA)$(SPACE),$(patsubst %,\"%\",$(subst ",\\\",$(C_DEFINE)))) ], \
+            \"name\":\"$(BUILD_NAME)\", \
+            \"includePath\":[ $(BUILD_INCLUDE) ], \
+            \"defines\":[ $(BUILD_DEFINE) ], \
             \"compilerPath\":\"/usr/bin/gcc\", \
             \"cStandard\":\"c11\", \
             \"cppStandard\":\"c++17\", \
