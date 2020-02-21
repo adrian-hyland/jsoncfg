@@ -31,11 +31,19 @@ list_add = ¬$(call escape,$(1))¬
 # @brief Gets the text of items that are in an item list
 # @param $(1) The text to prefix each item text
 # @param $(2) The item list
-# @param $(3) The test to suffix each item text
-# @return The list of text items.
-# @note By using list_add() and list_get() you can manipulate text items that have any spaces in them
-# @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item
+# @param $(3) The text to suffix each item text
+# @return The list of text items
+# @note By using list_add() and list_get() you can manipulate text items that have any spaces in them.
+# @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
 list_get = $(patsubst %¬,%$(3),$(patsubst ¬%,$(1)%,$(patsubst ¬%¬,$(1)%$(3),$(2))))
+
+# @brief Gets the comma separated list of text items from an item list
+# @param $(1) The item list
+# @return The comma separated list of text items
+# @note Each text item will be escaped and surrounded by quotes (").
+# @note By using list_add() and list_get() you can manipulate text items that have any spaces in them.
+# @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
+list_get_csv = $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(1)," $(COMMA)))¬)
 
 SRC_DIR := $(call list_add,./source/json)
 ifeq ($(TEST),1)
@@ -71,8 +79,8 @@ C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
 C_FLAGS += -c -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
 
 BUILD_CFG := ./.vscode/c_cpp_properties.json
-BUILD_DEFINE := $(filter-out $(COMMA)¬,$(call list_get,\",$(call escape,$(C_DEFINE)),\" $(COMMA))¬)
-BUILD_INCLUDE := $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(SRC_DIR) $(call list_add,$${workspaceFolder}/**)," $(COMMA)))¬)
+BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
+BUILD_INCLUDE := $(call list_get_csv,$(SRC_DIR) $(call list_add,$${workspaceFolder}/**))
 
 
 APP := $(BIN_DIR)/$(APP_NAME)
