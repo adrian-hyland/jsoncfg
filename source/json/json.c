@@ -62,7 +62,7 @@ int JsonWriteFile(tJsonElement *Root, FILE *Stream)
         {
             if (fputc(Character, Stream) == EOF)
             {
-                Error = -1;
+                Error = JSON_FORMAT_ERROR;
             }
         }
     }
