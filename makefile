@@ -92,6 +92,7 @@ clean:
 	rm -f $(O_FILES) $(D_FILES)
 
 vscode:
+	mkdir -p ./.vscode
 	touch $(BUILD_CFG)
 	cat $(BUILD_CFG) | ./bin/release/jsoncfg /configurations[/name:\"$(BUILD_NAME)\"] \
 	    "{ \
