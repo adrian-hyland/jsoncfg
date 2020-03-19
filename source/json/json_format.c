@@ -202,14 +202,13 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
     }
     else if (Format->Element->Type == json_TypeObject)
     {
+        *Character = '{';
         if (Format->Element->Child == NULL)
         {
-            *Character = '{';
             return json_FormatValueEnd;
         }
         else
         {
-            *Character = '{';
             Format->Element = Format->Element->Child;
             if (Format->Type == json_FormatIndent)
             {

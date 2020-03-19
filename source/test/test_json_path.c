@@ -109,7 +109,7 @@ static int TestJsonPathGetComponent(void)
         { (const uint8_t *)"key/object",                  3,  json_TypeKey,          (const uint8_t *)"key"                    },
         { (const uint8_t *)"key[array]",                  3,  json_TypeKey,          (const uint8_t *)"key"                    },
         { (const uint8_t *)"key:value",                   3,  json_TypeKey,          (const uint8_t *)"key"                    },
-        { (const uint8_t *)"key\\/\\:\\[\\]\\\\",        13, json_TypeKey,           (const uint8_t *)"key\\/\\:\\[\\]\\\\"    },
+        { (const uint8_t *)"key\\/\\:\\[\\]\\\\",        13,  json_TypeKey,          (const uint8_t *)"key\\/\\:\\[\\]\\\\"    },
         { (const uint8_t *)"  key",                       5,  json_TypeKey,          (const uint8_t *)"key"                    },
         { (const uint8_t *)"key  ",                       5,  json_TypeKey,          (const uint8_t *)"key"                    },
         { (const uint8_t *)"  key  ",                     7,  json_TypeKey,          (const uint8_t *)"key"                    },
