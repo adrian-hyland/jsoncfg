@@ -20,6 +20,8 @@ typedef enum
     json_ParseValueStringEscape, /**< Parsing an escaped character in a string value */
     json_ParseValueLiteral,      /**< Parsing a character in a literal value */
     json_ParseValueEnd,          /**< Parsing the end of a value */
+    json_ParseCommentLineStart,  /**< Parsing the start of a line comment */
+    json_ParseCommentLine,       /**< Parsing a character in a line comment */
 } tJsonParseState;
 
 
@@ -30,6 +32,7 @@ typedef struct
 {
     tJsonParseState State;         /**< The current parse state */
     tJsonElement   *Element;       /**< The current element being parsed */
+    tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
     int             AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
 } tJsonParse;
 
