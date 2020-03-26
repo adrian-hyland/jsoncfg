@@ -32,24 +32,6 @@ const char AppName[] = APP_NAME;
 #define JSONCFG_ERROR_WRITE_STDOUT -6
 
 
-static void FileCopy(FILE *To, FILE *From)
-{
-    unsigned char Content[256];
-    size_t Length;
-
-    fseek(From, 0, SEEK_SET);
-    for (;;)
-    {
-        Length = fread(Content, 1, sizeof(Content), From);
-        if (Length == 0)
-        {
-            break;
-        }
-        fwrite(Content, 1, Length, To);
-    }
-}
-
-
 int main(int argc, const char *argv[])
 {
     tJsonElement Root;
@@ -97,11 +79,6 @@ int main(int argc, const char *argv[])
                 Error = JSONCFG_ERROR_WRITE_STDOUT;
             }
         }
-    }
-
-    if (Error != JSONCFG_ERROR_NONE)
-    {
-        FileCopy(stdout, stdin);
     }
 
     JsonElementCleanUp(&Value);
