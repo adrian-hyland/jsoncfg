@@ -300,7 +300,9 @@ int TestJsonFormatIndent(void)
                          "   ]\n"
                          "}",
         (const uint8_t *)"[]",
-        (const uint8_t *)"[ 1 ]",
+        (const uint8_t *)"[\n"
+                         "   1\n"
+                         "]",
         (const uint8_t *)"[\n"
                          "   {}\n"
                          "]",
@@ -313,7 +315,9 @@ int TestJsonFormatIndent(void)
                          "   []\n"
                          "]",
         (const uint8_t *)"[\n"
-                         "   [ 1 ]\n"
+                         "   [\n"
+                         "      1\n"
+                         "   ]\n"
                          "]",
         (const uint8_t *)"[\n"
                          "   [\n"

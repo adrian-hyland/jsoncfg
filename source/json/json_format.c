@@ -52,8 +52,6 @@ static tJsonFormatState JsonFormatKeyEnd(tJsonFormat *Format, uint8_t *Character
 
 static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Character)
 {
-    tJsonType PreviousType;
-    
     if (Format->Element->Next != NULL)
     {
         *Character = ',';
@@ -61,10 +59,6 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
         if (Format->Type == json_FormatIndent)
         {
             Format->NewLine = 1;
-            if (!Format->NewLine)
-            {
-                Format->SpaceCount = 1;
-            }
         }
         else if (Format->Type == json_FormatSpace)
         {
@@ -72,25 +66,21 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
         }
         return json_FormatValueStart;
     }
+    else if (Format->Element->Parent == NULL)
+    {
+        return json_FormatError;
+    }
     else
     {
-        PreviousType = Format->Element->Type;
         Format->Element = Format->Element->Parent;
-        if (Format->Type == json_FormatIndent)
+        if ((Format->Element->Type == json_TypeObject) || (Format->Element->Type == json_TypeArray))
         {
-            if ((Format->Element->Type == json_TypeObject) || (Format->Element->Type == json_TypeArray))
+            if (Format->Type == json_FormatIndent)
             {
                 Format->Indent--;
-                Format->NewLine = (Format->Element->Type == json_TypeObject) || ((Format->Element->Type == json_TypeArray) && ((PreviousType == json_TypeObject) || (PreviousType == json_TypeArray) || (Format->Element->Child->Next != NULL)));
-                if (!Format->NewLine)
-                {
-                    Format->SpaceCount = 1;
-                }
+                Format->NewLine = 1;
             }
-        }
-        else if (Format->Type == json_FormatSpace)
-        {
-            if ((Format->Element->Type == json_TypeObject) || (Format->Element->Type == json_TypeArray))
+            else if (Format->Type == json_FormatSpace)
             {
                 Format->SpaceCount = 1;
             }
@@ -235,11 +225,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
             if (Format->Type == json_FormatIndent)
             {
                 Format->Indent++;
-                Format->NewLine = (Format->Element->Type == json_TypeObject) || (Format->Element->Type == json_TypeArray) || (Format->Element->Next != NULL);
-                if (!Format->NewLine)
-                {
-                    Format->SpaceCount = 1;
-                }
+                Format->NewLine = 1;
             }
             else if (Format->Type == json_FormatSpace)
             {
