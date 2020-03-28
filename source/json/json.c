@@ -1,12 +1,12 @@
 #include "json.h"
 
 
-int JsonReadString(tJsonElement *Root, const char *String)
+int JsonReadString(tJsonElement *Root, int StripComments, const char *String)
 {
     tJsonParse Parse;
     int Error;
 
-    JsonParseSetUp(&Parse, Root);
+    JsonParseSetUp(&Parse, StripComments, Root);
 
     do
     {
@@ -21,13 +21,13 @@ int JsonReadString(tJsonElement *Root, const char *String)
 }
 
 
-int JsonReadFile(tJsonElement *Root, FILE *Stream)
+int JsonReadFile(tJsonElement *Root, int StripComments, FILE *Stream)
 {
     tJsonParse Parse;
     int Character;
     int Error;
 
-    JsonParseSetUp(&Parse, Root);
+    JsonParseSetUp(&Parse, StripComments, Root);
 
     do
     {
@@ -47,13 +47,20 @@ int JsonReadFile(tJsonElement *Root, FILE *Stream)
 }
 
 
-int JsonWriteFile(tJsonElement *Root, FILE *Stream)
+int JsonWriteFile(tJsonElement *Root, size_t IndentSize, int StripComments, FILE *Stream)
 {
     tJsonFormat Format;
     uint8_t Character;
     int Error;
 
-    JsonFormatSetUpIndent(&Format, 3, Root);
+    if (IndentSize == 0)
+    {
+        JsonFormatSetUpSpace(&Format, Root);
+    }
+    else
+    {
+        JsonFormatSetUpIndent(&Format, IndentSize, StripComments, Root);
+    }
 
     do
     {
