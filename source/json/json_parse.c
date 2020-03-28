@@ -42,6 +42,7 @@ static tJsonParseState JsonParseKey(tJsonParse *Parse, uint8_t Character)
     }
     else if (Character == '"')
     {
+        Parse->AllocateChild = 1;
         return json_ParseKeyEnd;
     }
     else if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
@@ -66,6 +67,11 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
     }
     else if (Character == '}')
     {
+        if (Parse->Element->Type != json_TypeObject)
+        {
+            return json_ParseError;
+        }
+
         return json_ParseValueEnd;
     }
     else if (Character == '/')
@@ -86,7 +92,6 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, uint8_t Character)
 {
     if (Character == ':')
     {
-        Parse->AllocateChild = 1;
         return json_ParseValueStart;
     }
     else if (Character == '/')
@@ -137,9 +142,9 @@ static tJsonParseState JsonParseValueString(tJsonParse *Parse, uint8_t Character
 
 static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 {
+    Parse->AllocateChild = 0;
     if (Character == ',')
     {
-        Parse->AllocateChild = 0;
         if (Parse->Element->Parent == NULL)
         {
             return json_ParseError;
@@ -291,12 +296,12 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 
 static tJsonParseState JsonParseCommentLineStart(tJsonParse *Parse, uint8_t Character)
 {
-    if (Character == '/')
+    if ((Character != '/') || (!Parse->StripComments && !JsonParseAllocateElement(Parse, json_TypeComment)))
     {
-        return json_ParseCommentLine;
+        return json_ParseError;
     }
 
-    return json_ParseError;
+    return json_ParseCommentLine;
 }
 
 
@@ -308,19 +313,29 @@ static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, uint8_t Character
     {
         State = Parse->CommentState;
         Parse->CommentState = json_ParseError;
+        if (!Parse->StripComments)
+        {
+            Parse->AllocateChild = 0;
+        }
         return State;
+    }
+
+    if (!Parse->StripComments && !JsonStringAddCharacter(&Parse->Element->Name, Character))
+    {
+        return json_ParseError;
     }
 
     return json_ParseCommentLine;
 }
 
 
-void JsonParseSetUp(tJsonParse *Parse, tJsonElement *RootElement)
+void JsonParseSetUp(tJsonParse *Parse, int StripComments, tJsonElement *RootElement)
 {
     Parse->State = json_ParseValueStart;
     Parse->Element = RootElement;
     Parse->CommentState = json_ParseError;
     Parse->AllocateChild = 1;
+    Parse->StripComments = StripComments;
 }
 
 
@@ -330,6 +345,7 @@ void JsonParseCleanUp(tJsonParse *Parse)
     Parse->Element = NULL;
     Parse->CommentState = json_ParseError;
     Parse->AllocateChild = 0;
+    Parse->StripComments = 0;
 }
 
 
