@@ -38,6 +38,8 @@ int main(int argc, const char *argv[])
     tJsonElement Value;
     tJsonElement *Element;
     tJsonElement *ChildValue;
+    size_t IndentSize = 3;
+    int StripComments = 0;
     int Error;
 
     JsonElementSetUp(&Root);
@@ -47,11 +49,11 @@ int main(int argc, const char *argv[])
     {
         Error = JSONCFG_ERROR_BAD_ARGS;
     }
-    else if (!JsonReadString(&Value, argv[2]))
+    else if (!JsonReadString(&Value, 1, argv[2]))
     {
         Error = JSONCFG_ERROR_READ_VALUE;
     }
-    else if (!JsonReadFile(&Root, stdin))
+    else if (!JsonReadFile(&Root, StripComments, stdin))
     {
         Error = JSONCFG_ERROR_READ_STDIN;
     }
@@ -64,7 +66,7 @@ int main(int argc, const char *argv[])
         }
         else
         {
-            ChildValue = JsonElementGetChild(&Value);
+            ChildValue = JsonElementGetChild(&Value, 1);
             if ((JsonElementGetType(Element) == json_TypeObject) && (JsonElementGetType(ChildValue) == json_TypeObject))
             {
                 Error = (JsonElementMoveChild(Element, ChildValue) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
@@ -74,7 +76,7 @@ int main(int argc, const char *argv[])
                 Error = (JsonElementMoveChild(Element, &Value) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
             }
 
-            if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, stdout))
+            if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, StripComments, stdout))
             {
                 Error = JSONCFG_ERROR_WRITE_STDOUT;
             }
