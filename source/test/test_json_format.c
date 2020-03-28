@@ -14,7 +14,7 @@ static int TestJsonFormatCompressContent(const uint8_t *Content)
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, &Root);
+    JsonParseSetUp(&Parse, 0, &Root);
 
     for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
@@ -57,7 +57,7 @@ static int TestJsonFormatSpaceContent(const uint8_t *Content)
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, &Root);
+    JsonParseSetUp(&Parse, 0, &Root);
 
     for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
@@ -89,7 +89,7 @@ static int TestJsonFormatSpaceContent(const uint8_t *Content)
 }
 
 
-static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize)
+static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize, int StripComments)
 {
     tJsonElement Root;
     tJsonParse Parse;
@@ -100,7 +100,7 @@ static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, &Root);
+    JsonParseSetUp(&Parse, 0, &Root);
 
     for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
@@ -111,7 +111,7 @@ static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize
 
     JsonParseCleanUp(&Parse);
 
-    JsonFormatSetUpIndent(&Format, IndentSize, &Root);
+    JsonFormatSetUpIndent(&Format, IndentSize, StripComments, &Root);
 
     for (Index = 0; ok && (Content[Index] != 0); Index++)
     {
@@ -224,9 +224,9 @@ int TestJsonFormatSpace(void)
                                     "{}, "
                                     "{ \"key\": value }, "
                                     "[], "
-                                    "[ 1, 2, 3 ]"
-                                " ]"
-                            " }",
+                                    "[ 1, 2, 3 ] "
+                                "] "
+                            "}",
         (const uint8_t *)"[ "
                             "true, "
                             "false, "
@@ -357,8 +357,215 @@ int TestJsonFormatIndent(void)
 
     for (ok = 1, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
     {
-        ok = TestJsonFormatIndentContent(Content[n], 3);
+        ok = TestJsonFormatIndentContent(Content[n], 3, 0);
+        ok = ok && TestJsonFormatIndentContent(Content[n], 3, 1);
     }
+
+    return ok;
+}
+
+
+int TestJsonFormatComment(void)
+{
+    static const uint8_t Content[] =
+        "// Comment 1\n"
+        "// Comment 2\n"
+        "{ // Comment 3\n"
+        "  // Comment 4\n"
+        "   \"key1\" // Comment 5\n"
+        "            // Comment 6\n"
+        "   : // Comment 7\n"
+        "     // Comment 8\n"
+        "   \"value1\" // Comment 9\n"
+        "              // Comment 10\n"
+        "   , // Comment 11\n"
+        "     // Comment 12\n"
+        "   \"key2\": [ // Comment 13\n"
+        "               // Comment 14\n"
+        "      \"value2\" // Comment 15\n"
+        "                 // Comment 16\n"
+        "      , // Comment 17\n"
+        "        // Comment 18\n"
+        "      \"value3\" // Comment 19\n"
+        "                 // Comment 20\n"
+        "   ] // Comment 21\n"
+        "     // Comment 22\n"
+        "   , // Comment 23\n"
+        "     // Comment 24\n"
+        "   \"key3\": { // Comment 25\n"
+        "               // Comment 26\n"
+        "      \"key4\": \"value4\", // Comment 27\n"
+        "                            // Comment 28\n"
+        "      \"key5\": [] // Comment 29\n"
+        "                   // Comment 30\n"
+        "   } // Comment 31\n"
+        "     // Comment 32\n"
+        "} // Comment 33\n"
+        "// Comment 34\n";
+    static const uint8_t ContentIndentComment[] =
+        "// Comment 1\n"
+        "// Comment 2\n"
+        "{\n"
+        "   // Comment 3\n"
+        "   // Comment 4\n"
+        "   \"key1\":\n"
+        "   // Comment 5\n"
+        "   // Comment 6\n"
+        "   // Comment 7\n"
+        "   // Comment 8\n"
+        "   \"value1\",\n"
+        "   // Comment 9\n"
+        "   // Comment 10\n"
+        "   // Comment 11\n"
+        "   // Comment 12\n"
+        "   \"key2\": [\n"
+        "      // Comment 13\n"
+        "      // Comment 14\n"
+        "      \"value2\",\n"
+        "      // Comment 15\n"
+        "      // Comment 16\n"
+        "      // Comment 17\n"
+        "      // Comment 18\n"
+        "      \"value3\"\n"
+        "      // Comment 19\n"
+        "      // Comment 20\n"
+        "   ],\n"
+        "   // Comment 21\n"
+        "   // Comment 22\n"
+        "   // Comment 23\n"
+        "   // Comment 24\n"
+        "   \"key3\": {\n"
+        "      // Comment 25\n"
+        "      // Comment 26\n"
+        "      \"key4\": \"value4\",\n"
+        "      // Comment 27\n"
+        "      // Comment 28\n"
+        "      \"key5\": []\n"
+        "      // Comment 29\n"
+        "      // Comment 30\n"
+        "   }\n"
+        "   // Comment 31\n"
+        "   // Comment 32\n"
+        "}\n"
+        "// Comment 33\n"
+        "// Comment 34";
+    static const uint8_t ContentIndent[] =
+        "{\n"
+        "   \"key1\": \"value1\",\n"
+        "   \"key2\": [\n"
+        "      \"value2\",\n"
+        "      \"value3\"\n"
+        "   ],\n"
+        "   \"key3\": {\n"
+        "      \"key4\": \"value4\",\n"
+        "      \"key5\": []\n"
+        "   }\n"
+        "}";
+    static const uint8_t ContentSpace[] =
+        "{ "
+           "\"key1\": \"value1\", "
+           "\"key2\": [ "
+           "\"value2\", "
+           "\"value3\" "
+           "], "
+           "\"key3\": { "
+           "\"key4\": \"value4\", "
+           "\"key5\": [] "
+           "} "
+        "}";
+    static const uint8_t ContentCompress[] =
+        "{"
+           "\"key1\":\"value1\","
+           "\"key2\":["
+           "\"value2\","
+           "\"value3\""
+           "],"
+           "\"key3\":{"
+           "\"key4\":\"value4\","
+           "\"key5\":[]"
+           "}"
+        "}";
+    tJsonElement Root;
+    tJsonParse Parse;
+    tJsonFormat Format;
+    size_t Index;
+    uint8_t Character;
+    int ok;
+
+    JsonElementSetUp(&Root);
+
+    JsonParseSetUp(&Parse, 0, &Root);
+
+    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    {
+        ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+    }
+
+    ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+
+    JsonParseCleanUp(&Parse);
+
+    JsonFormatSetUpIndent(&Format, 3, 0, &Root);
+
+    for (Index = 0; ok && (ContentIndentComment[Index] != 0); Index++)
+    {
+        ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+
+        ok = ok && (Character == ContentIndentComment[Index]);
+    }
+
+    ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+
+    ok = ok && (Character == ContentIndentComment[Index]);
+
+    JsonFormatCleanUp(&Format);
+
+    JsonFormatSetUpIndent(&Format, 3, 1, &Root);
+
+    for (Index = 0; ok && (ContentIndent[Index] != 0); Index++)
+    {
+        ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+
+        ok = ok && (Character == ContentIndent[Index]);
+    }
+
+    ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+
+    ok = ok && (Character == ContentIndent[Index]);
+
+    JsonFormatCleanUp(&Format);
+
+    JsonFormatSetUpSpace(&Format, &Root);
+
+    for (Index = 0; ok && (ContentSpace[Index] != 0); Index++)
+    {
+        ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+
+        ok = ok && (Character == ContentSpace[Index]);
+    }
+
+    ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+
+    ok = ok && (Character == ContentSpace[Index]);
+
+    JsonFormatCleanUp(&Format);
+
+    JsonFormatSetUpCompress(&Format, &Root);
+
+    for (Index = 0; ok && (ContentCompress[Index] != 0); Index++)
+    {
+        ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+
+        ok = ok && (Character == ContentCompress[Index]);
+    }
+
+    ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+
+    ok = ok && (Character == ContentCompress[Index]);
+
+    JsonFormatCleanUp(&Format);
+
+    JsonElementCleanUp(&Root);
 
     return ok;
 }
@@ -369,6 +576,7 @@ static const tTestCase TestCaseJsonFormat[] =
     { "JsonFormatCompress", TestJsonFormatCompress },
     { "JsonFormatSpace",    TestJsonFormatSpace    },
     { "JsonFormatIndent",   TestJsonFormatIndent   },
+    { "JsonFormatComment",  TestJsonFormatComment  }
 };
 
 

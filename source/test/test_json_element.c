@@ -11,9 +11,9 @@ static int TestJsonElementSetUp(void)
 
     ok = (JsonElementGetType(&Element) == json_TypeRoot);
 
-    ok = ok && (JsonElementGetChild(&Element) == NULL);
+    ok = ok && (JsonElementGetChild(&Element, 0) == NULL);
 
-    ok = ok && (JsonElementGetNext(&Element) == NULL);
+    ok = ok && (JsonElementGetNext(&Element, 0) == NULL);
 
     JsonElementCleanUp(&Element);
 
@@ -32,17 +32,17 @@ static int TestJsonElementCleanUp(void)
 
     ok = ok && (JsonElementGetType(&Element) == json_TypeRoot);
 
-    ok = ok && (JsonElementGetChild(&Element) != NULL);
+    ok = ok && (JsonElementGetChild(&Element, 0) != NULL);
 
-    ok = ok && (JsonElementGetNext(&Element) == NULL);
+    ok = ok && (JsonElementGetNext(&Element, 0) == NULL);
 
     JsonElementCleanUp(&Element);
 
     ok = ok && (JsonElementGetType(&Element) == json_TypeRoot);
 
-    ok = ok && (JsonElementGetChild(&Element) == NULL);
+    ok = ok && (JsonElementGetChild(&Element, 0) == NULL);
 
-    ok = ok && (JsonElementGetNext(&Element) == NULL);
+    ok = ok && (JsonElementGetNext(&Element, 0) == NULL);
 
     return ok;
 }
@@ -63,36 +63,49 @@ static int TestJsonElementAllocateChild(void)
         { json_TypeRoot,         json_TypeKey,          1 },
         { json_TypeRoot,         json_TypeValueString,  1 },
         { json_TypeRoot,         json_TypeValueLiteral, 1 },
+        { json_TypeRoot,         json_TypeComment,      1 },
         { json_TypeObject,       json_TypeRoot,         0 },
         { json_TypeObject,       json_TypeObject,       0 },
         { json_TypeObject,       json_TypeArray,        0 },
         { json_TypeObject,       json_TypeKey,          1 },
         { json_TypeObject,       json_TypeValueString,  0 },
         { json_TypeObject,       json_TypeValueLiteral, 0 },
+        { json_TypeObject,       json_TypeComment,      1 },
         { json_TypeArray,        json_TypeRoot,         0 },
         { json_TypeArray,        json_TypeObject,       1 },
         { json_TypeArray,        json_TypeArray,        1 },
         { json_TypeArray,        json_TypeKey,          0 },
         { json_TypeArray,        json_TypeValueString,  1 },
         { json_TypeArray,        json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeComment,      1 },
         { json_TypeKey,          json_TypeRoot,         0 },
         { json_TypeKey,          json_TypeObject,       1 },
         { json_TypeKey,          json_TypeArray,        1 },
         { json_TypeKey,          json_TypeKey,          0 },
         { json_TypeKey,          json_TypeValueString,  1 },
         { json_TypeKey,          json_TypeValueLiteral, 1 },
+        { json_TypeKey,          json_TypeComment,      1 },
         { json_TypeValueString,  json_TypeRoot,         0 },
         { json_TypeValueString,  json_TypeObject,       0 },
         { json_TypeValueString,  json_TypeArray,        0 },
         { json_TypeValueString,  json_TypeKey,          0 },
         { json_TypeValueString,  json_TypeValueString,  0 },
         { json_TypeValueString,  json_TypeValueLiteral, 0 },
+        { json_TypeValueString,  json_TypeComment,      0 },
         { json_TypeValueLiteral, json_TypeRoot,         0 },
         { json_TypeValueLiteral, json_TypeObject,       0 },
         { json_TypeValueLiteral, json_TypeArray,        0 },
         { json_TypeValueLiteral, json_TypeKey,          0 },
         { json_TypeValueLiteral, json_TypeValueString,  0 },
         { json_TypeValueLiteral, json_TypeValueLiteral, 0 },
+        { json_TypeValueLiteral, json_TypeComment,      0 },
+        { json_TypeComment,      json_TypeRoot,         0 },
+        { json_TypeComment,      json_TypeObject,       0 },
+        { json_TypeComment,      json_TypeArray,        0 },
+        { json_TypeComment,      json_TypeKey,          0 },
+        { json_TypeComment,      json_TypeValueString,  0 },
+        { json_TypeComment,      json_TypeValueLiteral, 0 },
+        { json_TypeComment,      json_TypeComment,      0 }
     };
     tJsonElement Root;
     tJsonElement *Parent;
@@ -114,28 +127,28 @@ static int TestJsonElementAllocateChild(void)
         {
             ok = JsonElementAllocateChild(&Root, TestAllocations[n].ParentType);
 
-            Parent = JsonElementGetChild(&Root);
+            Parent = JsonElementGetChild(&Root, 0);
 
             ok = ok && (Parent != NULL);
 
             ok = ok && (JsonElementGetType(Parent) == TestAllocations[n].ParentType);
 
-            ok = ok && (JsonElementGetChild(Parent) == NULL);
+            ok = ok && (JsonElementGetChild(Parent, 0) == NULL);
 
-            ok = ok && (JsonElementGetNext(Parent) == NULL);
+            ok = ok && (JsonElementGetNext(Parent, 0) == NULL);
 
             ok = ok && !(!JsonElementAllocateChild(Parent, TestAllocations[n].ChildType) ^ !TestAllocations[n].Valid);
         }
 
-        Child = JsonElementGetChild(Parent);
+        Child = JsonElementGetChild(Parent, 0);
 
         if (Child != NULL)
         {
             ok = ok && (JsonElementGetType(Child) == TestAllocations[n].ChildType);
 
-            ok = ok && (JsonElementGetChild(Child) == NULL);
+            ok = ok && (JsonElementGetChild(Child, 0) == NULL);
 
-            ok = ok && (JsonElementGetNext(Child) == NULL);
+            ok = ok && (JsonElementGetNext(Child, 0) == NULL);
         }
     }
 
@@ -161,84 +174,126 @@ static int TestJsonElementAllocateNext(void)
         { json_TypeRoot,         json_TypeObject,       json_TypeKey,          0 },
         { json_TypeRoot,         json_TypeObject,       json_TypeValueString,  0 },
         { json_TypeRoot,         json_TypeObject,       json_TypeValueLiteral, 0 },
+        { json_TypeRoot,         json_TypeObject,       json_TypeComment,      1 },
         { json_TypeRoot,         json_TypeArray,        json_TypeRoot,         0 },
         { json_TypeRoot,         json_TypeArray,        json_TypeObject,       0 },
         { json_TypeRoot,         json_TypeArray,        json_TypeArray,        0 },
         { json_TypeRoot,         json_TypeArray,        json_TypeKey,          0 },
         { json_TypeRoot,         json_TypeArray,        json_TypeValueString,  0 },
         { json_TypeRoot,         json_TypeArray,        json_TypeValueLiteral, 0 },
+        { json_TypeRoot,         json_TypeArray,        json_TypeComment,      1 },
         { json_TypeRoot,         json_TypeKey,          json_TypeRoot,         0 },
         { json_TypeRoot,         json_TypeKey,          json_TypeObject,       0 },
         { json_TypeRoot,         json_TypeKey,          json_TypeArray,        0 },
         { json_TypeRoot,         json_TypeKey,          json_TypeKey,          0 },
         { json_TypeRoot,         json_TypeKey,          json_TypeValueString,  0 },
         { json_TypeRoot,         json_TypeKey,          json_TypeValueLiteral, 0 },
+        { json_TypeRoot,         json_TypeKey,          json_TypeComment,      1 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeRoot,         0 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeObject,       0 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeArray,        0 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeKey,          0 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeValueString,  0 },
         { json_TypeRoot,         json_TypeValueString,  json_TypeValueLiteral, 0 },
+        { json_TypeRoot,         json_TypeValueString,  json_TypeComment,      1 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeRoot,         0 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeObject,       0 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeArray,        0 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeKey,          0 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeValueString,  0 },
         { json_TypeRoot,         json_TypeValueLiteral, json_TypeValueLiteral, 0 },
+        { json_TypeRoot,         json_TypeValueLiteral, json_TypeComment,      1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeRoot,         0 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeObject,       1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeArray,        1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeKey,          1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeValueString,  1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeValueLiteral, 1 },
+        { json_TypeRoot,         json_TypeComment,      json_TypeComment,      1 },
         { json_TypeObject,       json_TypeKey,          json_TypeRoot,         0 },
         { json_TypeObject,       json_TypeKey,          json_TypeObject,       0 },
         { json_TypeObject,       json_TypeKey,          json_TypeArray,        0 },
         { json_TypeObject,       json_TypeKey,          json_TypeKey,          1 },
         { json_TypeObject,       json_TypeKey,          json_TypeValueString,  0 },
         { json_TypeObject,       json_TypeKey,          json_TypeValueLiteral, 0 },
+        { json_TypeObject,       json_TypeKey,          json_TypeComment,      1 },
+        { json_TypeObject,       json_TypeComment,      json_TypeRoot,         0 },
+        { json_TypeObject,       json_TypeComment,      json_TypeObject,       0 },
+        { json_TypeObject,       json_TypeComment,      json_TypeArray,        0 },
+        { json_TypeObject,       json_TypeComment,      json_TypeKey,          1 },
+        { json_TypeObject,       json_TypeComment,      json_TypeValueString,  0 },
+        { json_TypeObject,       json_TypeComment,      json_TypeValueLiteral, 0 },
+        { json_TypeObject,       json_TypeComment,      json_TypeComment,      1 },
         { json_TypeArray,        json_TypeObject,       json_TypeRoot,         0 },
         { json_TypeArray,        json_TypeObject,       json_TypeObject,       1 },
         { json_TypeArray,        json_TypeObject,       json_TypeArray,        1 },
         { json_TypeArray,        json_TypeObject,       json_TypeKey,          0 },
         { json_TypeArray,        json_TypeObject,       json_TypeValueString,  1 },
         { json_TypeArray,        json_TypeObject,       json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeObject,       json_TypeComment,      1 },
         { json_TypeArray,        json_TypeArray,        json_TypeRoot,         0 },
         { json_TypeArray,        json_TypeArray,        json_TypeObject,       1 },
         { json_TypeArray,        json_TypeArray,        json_TypeArray,        1 },
         { json_TypeArray,        json_TypeArray,        json_TypeKey,          0 },
         { json_TypeArray,        json_TypeArray,        json_TypeValueString,  1 },
         { json_TypeArray,        json_TypeArray,        json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeArray,        json_TypeComment,      1 },
         { json_TypeArray,        json_TypeValueString,  json_TypeRoot,         0 },
         { json_TypeArray,        json_TypeValueString,  json_TypeObject,       1 },
         { json_TypeArray,        json_TypeValueString,  json_TypeArray,        1 },
         { json_TypeArray,        json_TypeValueString,  json_TypeKey,          0 },
         { json_TypeArray,        json_TypeValueString,  json_TypeValueString,  1 },
         { json_TypeArray,        json_TypeValueString,  json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeValueString,  json_TypeComment,      1 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeRoot,         0 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeObject,       1 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeArray,        1 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeKey,          0 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeValueString,  1 },
         { json_TypeArray,        json_TypeValueLiteral, json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeValueLiteral, json_TypeComment,      1 },
+        { json_TypeArray,        json_TypeComment,      json_TypeRoot,         0 },
+        { json_TypeArray,        json_TypeComment,      json_TypeObject,       1 },
+        { json_TypeArray,        json_TypeComment,      json_TypeArray,        1 },
+        { json_TypeArray,        json_TypeComment,      json_TypeKey,          0 },
+        { json_TypeArray,        json_TypeComment,      json_TypeValueString,  1 },
+        { json_TypeArray,        json_TypeComment,      json_TypeValueLiteral, 1 },
+        { json_TypeArray,        json_TypeComment,      json_TypeComment,      1 },
         { json_TypeKey,          json_TypeObject,       json_TypeRoot,         0 },
         { json_TypeKey,          json_TypeObject,       json_TypeObject,       0 },
         { json_TypeKey,          json_TypeObject,       json_TypeArray,        0 },
         { json_TypeKey,          json_TypeObject,       json_TypeKey,          0 },
         { json_TypeKey,          json_TypeObject,       json_TypeValueString,  0 },
         { json_TypeKey,          json_TypeObject,       json_TypeValueLiteral, 0 },
+        { json_TypeKey,          json_TypeObject,       json_TypeComment,      1 },
         { json_TypeKey,          json_TypeArray,        json_TypeRoot,         0 },
         { json_TypeKey,          json_TypeArray,        json_TypeObject,       0 },
         { json_TypeKey,          json_TypeArray,        json_TypeArray,        0 },
         { json_TypeKey,          json_TypeArray,        json_TypeKey,          0 },
         { json_TypeKey,          json_TypeArray,        json_TypeValueString,  0 },
         { json_TypeKey,          json_TypeArray,        json_TypeValueLiteral, 0 },
+        { json_TypeKey,          json_TypeArray,        json_TypeComment,      1 },
         { json_TypeKey,          json_TypeValueString,  json_TypeRoot,         0 },
         { json_TypeKey,          json_TypeValueString,  json_TypeObject,       0 },
         { json_TypeKey,          json_TypeValueString,  json_TypeArray,        0 },
         { json_TypeKey,          json_TypeValueString,  json_TypeKey,          0 },
         { json_TypeKey,          json_TypeValueString,  json_TypeValueString,  0 },
         { json_TypeKey,          json_TypeValueString,  json_TypeValueLiteral, 0 },
+        { json_TypeKey,          json_TypeValueString,  json_TypeComment,      1 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeRoot,         0 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeObject,       0 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeArray,        0 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeKey,          0 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeValueString,  0 },
         { json_TypeKey,          json_TypeValueLiteral, json_TypeValueLiteral, 0 },
+        { json_TypeKey,          json_TypeValueLiteral, json_TypeComment,      1 },
+        { json_TypeKey,          json_TypeComment,      json_TypeRoot,         0 },
+        { json_TypeKey,          json_TypeComment,      json_TypeObject,       1 },
+        { json_TypeKey,          json_TypeComment,      json_TypeArray,        1 },
+        { json_TypeKey,          json_TypeComment,      json_TypeKey,          0 },
+        { json_TypeKey,          json_TypeComment,      json_TypeValueString,  1 },
+        { json_TypeKey,          json_TypeComment,      json_TypeValueLiteral, 1 },
+        { json_TypeKey,          json_TypeComment,      json_TypeComment,      1 }
     };
     tJsonElement Root;
     tJsonElement *Parent;
@@ -259,30 +314,109 @@ static int TestJsonElementAllocateNext(void)
         {
             ok = JsonElementAllocateChild(&Root, TestAllocations[n].ParentType);
 
-            Parent = JsonElementGetChild(&Root);
+            Parent = JsonElementGetChild(&Root, 0);
         }
 
         ok = ok && (Parent != NULL);
 
         ok = ok && JsonElementAllocateChild(Parent, TestAllocations[n].ChildType);
 
-        Child = (Parent != NULL) ? JsonElementGetChild(Parent) : NULL;
+        Child = (Parent != NULL) ? JsonElementGetChild(Parent, 0) : NULL;
 
         ok = ok && (Child != NULL);
 
         ok = ok && !(!JsonElementAllocateNext(Child, TestAllocations[n].SiblingType) ^ !TestAllocations[n].Valid);
 
-        Sibling = JsonElementGetNext(Child);
+        Sibling = JsonElementGetNext(Child, 0);
 
         if (Sibling != NULL)
         {
             ok = ok && (JsonElementGetType(Sibling) == TestAllocations[n].SiblingType);
 
-            ok = ok && (JsonElementGetChild(Sibling) == NULL);
+            ok = ok && (JsonElementGetChild(Sibling, 0) == NULL);
 
-            ok = ok && (JsonElementGetNext(Sibling) == NULL);
+            ok = ok && (JsonElementGetNext(Sibling, 0) == NULL);
         }
     }
+
+    JsonElementCleanUp(&Root);
+
+    return ok;
+}
+
+
+static int TestJsonElementGetChild(void)
+{
+    tJsonElement Root;
+    tJsonElement *Element;
+    int ok;
+
+    JsonElementSetUp(&Root);
+
+    ok = (JsonElementGetChild(&Root, 0) == NULL) && (JsonElementGetChild(&Root, 1) == NULL);
+
+    ok = ok && JsonElementAllocateChild(&Root, json_TypeComment);
+
+    Element = JsonElementGetChild(&Root, 0);
+
+    ok = ok && (Element != NULL) && (Element->Type == json_TypeComment);
+
+    ok = ok && (JsonElementGetChild(&Root, 1) == NULL);
+
+    ok = ok && JsonElementAllocateNext(Element, json_TypeObject);
+
+    Element = JsonElementGetChild(&Root, 0);
+
+    ok = ok && (Element != NULL) && (Element->Type == json_TypeComment);
+
+    Element = JsonElementGetChild(&Root, 1);
+
+    ok = ok && (Element != NULL) && (Element->Type == json_TypeObject);
+
+    JsonElementCleanUp(&Root);
+
+    return ok;
+}
+
+
+static int TestJsonElementGetNext(void)
+{
+    tJsonElement Root;
+    tJsonElement *ChildElement;
+    tJsonElement *NextElement;
+    int ok;
+
+    JsonElementSetUp(&Root);
+
+    ok = JsonElementAllocateChild(&Root, json_TypeObject);
+
+    ChildElement = JsonElementGetChild(&Root, 0);
+
+    ok = ok && (ChildElement != NULL);
+
+    ok = ok && JsonElementAllocateChild(ChildElement, json_TypeKey);
+
+    ChildElement = JsonElementGetChild(ChildElement, 0);
+
+    ok = ok && (JsonElementGetNext(ChildElement, 0) == NULL) && (JsonElementGetNext(ChildElement, 1) == NULL);
+
+    ok = ok && JsonElementAllocateNext(ChildElement, json_TypeComment);
+
+    NextElement = JsonElementGetNext(ChildElement, 0);
+
+    ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeComment);
+
+    ok = ok && (JsonElementGetNext(ChildElement, 1) == NULL);
+
+    ok = ok && JsonElementAllocateNext(NextElement, json_TypeKey);
+
+    NextElement = JsonElementGetNext(ChildElement, 0);
+
+    ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeComment);
+
+    NextElement = JsonElementGetNext(ChildElement, 1);
+
+    ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeKey);
 
     JsonElementCleanUp(&Root);
 
@@ -362,6 +496,8 @@ static const tTestCase TestCaseJsonElement[] =
     { "JsonElementCleanUp",       TestJsonElementCleanUp       },
     { "JsonElementAllocateChild", TestJsonElementAllocateChild },
     { "JsonElementAllocateNext",  TestJsonElementAllocateNext  },
+    { "JsonElementGetChild",      TestJsonElementGetChild      },
+    { "JsonElementGetNext",       TestJsonElementGetNext       },
     { "JsonElementFind",          TestJsonElementFind          },
 };
 
