@@ -14,7 +14,8 @@ typedef enum
     json_TypeValueString,  /**< String value element */
     json_TypeValueLiteral, /**< Literal value element (for \a null, \a boolean or \a numeric values) */
     json_TypeObject,       /**< Object element */
-    json_TypeArray         /**< Array element */
+    json_TypeArray,        /**< Array element */
+    json_TypeComment,      /**< Comment element */
 } tJsonType;
 
 
@@ -79,18 +80,20 @@ tJsonType JsonElementGetType(tJsonElement *Element);
 
 /**
  * @brief Gets the child of a JSON element
- * @param Element The element
+ * @param Element        The element
+ * @param IgnoreComments Indicates whether to disregard any \a 'Comment' child elements 
  * @return The child element
  */
-tJsonElement *JsonElementGetChild(tJsonElement *Element);
+tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments);
 
 
 /**
  * @brief Gets the next sibling of a JSON element
- * @param Element The element
+ * @param Element        The element
+ * @param IgnoreComments Indicates whether to disregard any \a 'Comment' sibling elements 
  * @return The next sibling element
  */
-tJsonElement *JsonElementGetNext(tJsonElement *Element);
+tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments);
 
 
 /**

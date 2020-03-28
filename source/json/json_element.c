@@ -28,7 +28,9 @@ static int JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
         
         ok = ok && (ParentType != json_TypeValueString);
         
-        ok = ok && ((ParentType != json_TypeObject) || (ChildType == json_TypeKey));
+        ok = ok && (ParentType != json_TypeComment);
+        
+        ok = ok && ((ParentType != json_TypeObject) || (ChildType == json_TypeKey) || (ChildType == json_TypeComment));
         
         ok = ok && ((ParentType != json_TypeArray) || (ChildType != json_TypeKey));
     }
@@ -95,9 +97,12 @@ int JsonElementAllocateNext(tJsonElement *Element, tJsonType Type)
 {
     JsonElementFree(&Element->Next);
 
-    if ((Element->Parent != NULL) && ((Element->Parent->Type == json_TypeObject) || (Element->Parent->Type == json_TypeArray)))
+    if (Element->Parent != NULL)
     {
-        Element->Next = JsonElementAllocate(Type, Element->Parent);
+        if ((Type == json_TypeComment) || ((Element->Parent->Type != json_TypeRoot) && (Element->Parent->Type != json_TypeKey)) || (JsonElementGetChild(Element->Parent, 1) == NULL))
+        {
+            Element->Next = JsonElementAllocate(Type, Element->Parent);
+        }
     }
 
     return Element->Next != NULL;
@@ -110,15 +115,33 @@ tJsonType JsonElementGetType(tJsonElement *Element)
 }
 
 
-tJsonElement *JsonElementGetChild(tJsonElement *Element)
+tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments)
 {
-    return (Element != NULL) ? Element->Child : NULL;
+    if (Element != NULL)
+    {
+        Element = Element->Child;
+        while (IgnoreComments && (Element != NULL) && (Element->Type == json_TypeComment))
+        {
+            Element = Element->Next;
+        }
+    }
+
+    return Element;
 }
 
 
-tJsonElement *JsonElementGetNext(tJsonElement *Element)
+tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments)
 {
-    return (Element != NULL) ? Element->Next : NULL;
+    if (Element != NULL)
+    {
+        do
+        {
+            Element = Element->Next;
+        }
+        while (IgnoreComments && (Element != NULL) && (Element->Type == json_TypeComment));
+    }
+
+    return Element;
 }
 
 
@@ -164,6 +187,11 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 
     for (;;)
     {
+        while ((*Element != NULL) && ((*Element)->Type == json_TypeComment))
+        {
+            Element = &(*Element)->Next;
+        }
+
         Length = JsonPathGetComponent(&Path[PathIndex], PathLength - PathIndex, &ComponentType, &Component, &ComponentLength);
         if (Length == 0)
         {
@@ -197,7 +225,11 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
                     break;
                 }
 
-                Element = &(*Element)->Next;
+                do
+                {
+                    Element = &(*Element)->Next;
+                }
+                while ((*Element != NULL) && ((*Element)->Type == json_TypeComment));
             }
 
             if ((*Element == NULL) && Create)
@@ -217,7 +249,11 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
                     break;
                 }
 
-                Element = &(*Element)->Next;
+                do
+                {
+                    Element = &(*Element)->Next;
+                }
+                while ((*Element != NULL) && ((*Element)->Type == json_TypeComment));
             }
 
             if ((*Element == NULL) && Create)
