@@ -88,7 +88,7 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"
 ### Known Limitations
 
 - The JSON content should be encoded using UTF-8 (without a byte order mark)
-- The JSON content should not contain any embedded comments as these are not currently supported by the parsing functionality
+- Although *line* comments *are* supported, the JSON content *should not* contain any *block* comments as these are not currently supported by the parsing functionality
 - The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are also not yet supported by the parsing functionality
 - The parsing functionality does not check the validity of any literals that are contained in the JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
 
