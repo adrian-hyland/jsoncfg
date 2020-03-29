@@ -43,9 +43,12 @@ The JSON content is provided using the input stream. The modified JSON content i
 
 ***Description***
 - `-s`\
-Strip comments from the JSON content
+Strip comments from the JSON content.\
+This parameter is optional - if it is not given then comments will not be stripped from the JSON content.
 - `-i{0-9}`\
-Set the indentation size (to a value between 0 and 9). A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments)
+Set the indentation size (to a value between 0 and 9).\
+A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments).\
+This parameter is optional - if it is not given then an indentation size of 3 will be used.
 - `<key>`\
 Provides the path of the key that you want to set (see below for a description of the path format)
 - `<value>`\
@@ -113,7 +116,7 @@ $ cat c_cpp_properties.json | jsoncfg -s -i4
 
 ## Adding build configurations to the VS Code project
 
-To add a 'Relase' build configuration to the VS Code project
+To add a 'Release' build configuration to the VS Code project
 ```bash
 $ make vscode
 ```
