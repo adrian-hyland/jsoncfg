@@ -32,14 +32,27 @@ To clean the debug version of the utility:
 $ make clean DEBUG=1
 ```
 
-
-
 ## Using jsoncfg
 
 The JSON content is provided using the input stream. The modified JSON content is provided using the output stream.
 
-The 1st parameter provides the path of the key that you want to set \
-The 2nd parameter provides the JSON content value for the key
+***Parameters***
+```
+[-s] [-i{0-9}] [<path> <value>]*
+```
+
+***Description***
+- `-s`\
+Strip comments from the JSON content
+- `-i{0-9}`\
+Set the indentation size (to a value between 0 and 9). A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments)
+- `<path>`\
+Provides the path of the key that you want to set (see below for a description of the path format)
+- `<value>`\
+Provides the JSON content value for the key
+
+***Notes***
+- There can be any number of <path> <value> pairs provided in the parameters
 
 ***Path Format***\
 The path used to identify the key in the JSON content should have the following format (note that this format, although similar, is **not** intended to conform to RFC6901)
@@ -69,30 +82,34 @@ path = key [array] [path]
 ```
 
 ***Example 1***\
-The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)`
+The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)` (in the c_cpp_properties.json file)
 ```bash
 $ touch c_cpp_properties.json
 $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
 "[\"-g3\",\"-DDEBUG\"]"
 ```
 
-
 ***Example 2***\
-The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)`
+The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)` (in the c_cpp_properties.json file)
 ```bash
 $ touch c_cpp_properties.json
 $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
 "{\"name\":\"Linux (Release)\",\"defines\":[\"-O3\",\"-DRELEASE\"]}"
 ```
 
+***Example 3***\
+The following will reformat the c_cpp_properties.json file content so that it does not have any comments and uses an indentation size of 4
+```bash
+$ touch c_cpp_properties.json
+$ cat c_cpp_properties.json | jsoncfg -s -i4
+```
+
 ### Known Limitations
 
 - The JSON content should be encoded using UTF-8 (without a byte order mark)
-- Although *line* comments *are* supported, the JSON content *should not* contain any *block* comments as these are not currently supported by the parsing functionality
+- Although **line** comments **are** supported, the JSON content **should not** contain any **block** comments as these are not currently supported by the parsing functionality
 - The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are also not yet supported by the parsing functionality
 - The parsing functionality does not check the validity of any literals that are contained in the JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
-
-
 
 ## Adding build configurations to the VS Code project
 
@@ -105,8 +122,6 @@ To add a 'Debug' build configuration to the VS Code project
 ```bash
 $ make vscode DEBUG=1
 ```
-
-
 
 ## Building the unit test harness
 
@@ -130,7 +145,7 @@ To clean the debug version of the unit test harness:
 $ make clean TEST=1 DEBUG=1
 ```
 
-***Note:***\
+***Notes***\
 The debug version of the unit test harness has malloc tracing enabled. To produce the malloc trace and check for any memory issues during testing, you can do the following:
 ```bash
 $ export MALLOC_TRACE=./malloc-trace

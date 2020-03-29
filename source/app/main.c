@@ -38,6 +38,7 @@ int main(int argc, const char *argv[])
     tJsonElement Value;
     tJsonElement *Element;
     tJsonElement *ChildValue;
+    size_t Argument;
     size_t IndentSize = 3;
     int StripComments = 0;
     int Error;
@@ -45,41 +46,61 @@ int main(int argc, const char *argv[])
     JsonElementSetUp(&Root);
     JsonElementSetUp(&Value);
 
-    if (argc < 3)
+    for (Error = JSONCFG_ERROR_NONE, Argument = 1; (Error == JSONCFG_ERROR_NONE) && (Argument < argc) && (argv[Argument][0] == '-'); Argument++)
     {
-        Error = JSONCFG_ERROR_BAD_ARGS;
-    }
-    else if (!JsonReadString(&Value, 1, argv[2]))
-    {
-        Error = JSONCFG_ERROR_READ_VALUE;
-    }
-    else if (!JsonReadFile(&Root, StripComments, stdin))
-    {
-        Error = JSONCFG_ERROR_READ_STDIN;
-    }
-    else
-    {
-        Element = JsonElementFind(&Root, (const uint8_t *)argv[1], 1);
-        if (Element == NULL)
+        if ((argv[Argument][1] == 's') && (argv[Argument][2] == '\0'))
         {
-            Error = JSONCFG_ERROR_NO_PATH;
+            StripComments = 1;
+        }
+        else if ((argv[Argument][1] == 'i') && (argv[Argument][2] >= '0') && (argv[Argument][2] <= '9') && (argv[Argument][3] == '\0'))
+        {
+            IndentSize = argv[Argument][2] - '0';
         }
         else
         {
-            ChildValue = JsonElementGetChild(&Value, 1);
-            if ((JsonElementGetType(Element) == json_TypeObject) && (JsonElementGetType(ChildValue) == json_TypeObject))
+            Error = JSONCFG_ERROR_BAD_ARGS;
+        }
+    }
+
+    if (Error == JSONCFG_ERROR_NONE)
+    {
+        if ((argc - Argument) % 2)
+        {
+            Error = JSONCFG_ERROR_BAD_ARGS;
+        }
+        else if (!JsonReadFile(&Root, StripComments, stdin))
+        {
+            Error = JSONCFG_ERROR_READ_STDIN;
+        }
+
+        for (; (Error == JSONCFG_ERROR_NONE) && (Argument < argc); Argument = Argument + 2)
+        {
+            Element = JsonElementFind(&Root, (const uint8_t *)argv[Argument], 1);
+            if (Element == NULL)
             {
-                Error = (JsonElementMoveChild(Element, ChildValue) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+                Error = JSONCFG_ERROR_NO_PATH;
+            }
+            else if (!JsonReadString(&Value, 1, argv[Argument + 1]))
+            {
+                Error = JSONCFG_ERROR_READ_VALUE;
             }
             else
             {
-                Error = (JsonElementMoveChild(Element, &Value) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+                ChildValue = JsonElementGetChild(&Value, 1);
+                if ((JsonElementGetType(Element) == json_TypeObject) && (JsonElementGetType(ChildValue) == json_TypeObject))
+                {
+                    Error = (JsonElementMoveChild(Element, ChildValue) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+                }
+                else
+                {
+                    Error = (JsonElementMoveChild(Element, &Value) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;
+                }
             }
+        }
 
-            if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, StripComments, stdout))
-            {
-                Error = JSONCFG_ERROR_WRITE_STDOUT;
-            }
+        if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, StripComments, stdout))
+        {
+            Error = JSONCFG_ERROR_WRITE_STDOUT;
         }
     }
 
