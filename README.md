@@ -38,7 +38,7 @@ The JSON content is provided using the input stream. The modified JSON content i
 
 ***Parameters***
 ```
-[-s] [-i{0-9}] [<path> <value>]*
+[-s] [-i{0-9}] [<key> <value>]*
 ```
 
 ***Description***
@@ -46,15 +46,15 @@ The JSON content is provided using the input stream. The modified JSON content i
 Strip comments from the JSON content
 - `-i{0-9}`\
 Set the indentation size (to a value between 0 and 9). A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments)
-- `<path>`\
+- `<key>`\
 Provides the path of the key that you want to set (see below for a description of the path format)
 - `<value>`\
 Provides the JSON content value for the key
 
 ***Notes***
-- There can be any number of <path> <value> pairs provided in the parameters
+- There can be any number of `<key>` `<value>` pairs provided in the parameters
 
-***Path Format***\
+***Key Path Format***\
 The path used to identify the key in the JSON content should have the following format (note that this format, although similar, is **not** intended to conform to RFC6901)
 ```abnf
 quotation-mark = %x22 ; "
@@ -82,7 +82,7 @@ path = key [array] [path]
 ```
 
 ***Example 1***\
-The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)` (in the c_cpp_properties.json file)
+The following will set the `defines` key value to `["-g3","-DDEBUG"]` in an object of the array `configurations` that has the `name` key set as `Linux (Debug)` (in the `c_cpp_properties.json` file)
 ```bash
 $ touch c_cpp_properties.json
 $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/defines" \
@@ -90,7 +90,7 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Debug)\"]/
 ```
 
 ***Example 2***\
-The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)` (in the c_cpp_properties.json file)
+The following will replace an object in the array `configurations` that has the `name` key set as `Linux (Release)` (in the `c_cpp_properties.json` file)
 ```bash
 $ touch c_cpp_properties.json
 $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"]" \
@@ -98,7 +98,7 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"
 ```
 
 ***Example 3***\
-The following will reformat the c_cpp_properties.json file content so that it does not have any comments and uses an indentation size of 4
+The following will reformat the `c_cpp_properties.json` file content so that it does not have any comments and uses an indentation size of 4
 ```bash
 $ touch c_cpp_properties.json
 $ cat c_cpp_properties.json | jsoncfg -s -i4
