@@ -38,13 +38,16 @@ The JSON content is provided using the input stream. The modified JSON content i
 
 ***Parameters***
 ```
-[-s] [-i{0-9}] [<key> <value>]*
+[-c{n|l|b}] [-i{0-9}] [<key> <value>]*
 ```
 
 ***Description***
-- `-s`\
-Strip comments from the JSON content.\
-This parameter is optional - if it is not given then comments will not be stripped from the JSON content.
+- `-c{n|l|b}`\
+Set the type of formatting for comments in the JSON content.\
+`-cn` will strip comments from the JSON content.\
+`-cl` will use line comments in the JSON content.\
+`-cb` will use block comments in the JSON content.\
+This parameter is optional - if it is not given then line comments will be used in the JSON content.
 - `-i{0-9}`\
 Set the indentation size (to a value between 0 and 9).\
 A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments).\
@@ -104,14 +107,14 @@ $ cat c_cpp_properties.json | jsoncfg "/configurations[/name:\"Linux (Release)\"
 The following will reformat the `c_cpp_properties.json` file content so that it does not have any comments and uses an indentation size of 4
 ```bash
 $ touch c_cpp_properties.json
-$ cat c_cpp_properties.json | jsoncfg -s -i4
+$ cat c_cpp_properties.json | jsoncfg -cn -i4
 ```
 
-### Known Limitations
+### Known Limitations and Exceptions
 
-- The JSON content should be encoded using UTF-8 (without a byte order mark)
-- Although **line** comments **are** supported, the JSON content **should not** contain any **block** comments as these are not currently supported by the parsing functionality
-- The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are also not yet supported by the parsing functionality
+- The JSON content should be encoded using UTF-8 (without a byte order mark).
+- The JSON content may contain any line or block comments.
+- The JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are not yet supported by the parsing functionality.
 - The parsing functionality does not check the validity of any literals that are contained in the JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
 
 ## Adding build configurations to the VS Code project
