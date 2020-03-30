@@ -43,7 +43,7 @@ static tJsonFormatState JsonFormatKeyEnd(tJsonFormat *Format, uint8_t *Character
 {
     tJsonElement *Child;
 
-    Child = JsonElementGetChild(Format->Element, Format->StripComments);
+    Child = JsonElementGetChild(Format->Element, Format->CommentType == json_CommentNone);
     if (Child == NULL)
     {
         return json_FormatError;
@@ -76,7 +76,7 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
         return json_FormatError;
     }
 
-    NextElement = JsonElementGetNext(Format->Element, Format->StripComments);
+    NextElement = JsonElementGetNext(Format->Element, Format->CommentType == json_CommentNone);
     if (NextElement != NULL)
     {
         if (Format->Type == json_FormatIndent)
@@ -174,7 +174,7 @@ static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, uint8_t *Charact
     {
         *Character = '/';
         Format->NameIndex = 0;
-        return json_FormatCommentLineStart;
+        return json_FormatCommentStart;
     }
 
     return json_FormatError;
@@ -246,7 +246,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
     else if (Format->Element->Type == json_TypeObject)
     {
         *Character = '{';
-        Child = JsonElementGetChild(Format->Element, Format->StripComments);
+        Child = JsonElementGetChild(Format->Element, Format->CommentType == json_CommentNone);
         if (Child == NULL)
         {
             return json_FormatValueEnd;
@@ -269,7 +269,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
     else if (Format->Element->Type == json_TypeArray)
     {
         *Character = '[';
-        Child = JsonElementGetChild(Format->Element, Format->StripComments);
+        Child = JsonElementGetChild(Format->Element, Format->CommentType == json_CommentNone);
         if (Child == NULL)
         {
             return json_FormatValueEnd;
@@ -310,27 +310,71 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
     {
         *Character = '/';
         Format->NameIndex = 0;
-        return json_FormatCommentLineStart;
+        return json_FormatCommentStart;
     }
 
     return json_FormatError;
 }
 
 
-static tJsonFormatState JsonFormatCommentLineStart(tJsonFormat *Format, uint8_t *Character)
+static tJsonFormatState JsonFormatCommentStart(tJsonFormat *Format, uint8_t *Character)
 {
-    *Character = '/';
-    return json_FormatCommentLine;
+    *Character = (Format->CommentType == json_CommentLine) ? '/' : '*';
+    Format->SpaceCount = 0;
+    return json_FormatComment;
 }
 
 
-static tJsonFormatState JsonFormatCommentLine(tJsonFormat *Format, uint8_t *Character)
+static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Character)
 {
-    if (Format->NameIndex < Format->Element->Name.Length)
+    tJsonElement *NextElement;
+
+    if (Format->SpaceCount > 0)
+    {
+        *Character = ' ';
+        Format->SpaceCount--;
+        return json_FormatComment;
+    }
+    else if (Format->NameIndex < Format->Element->Name.Length)
     {
         *Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
         Format->NameIndex++;
-        return json_FormatCommentLine;
+        if (Format->NameIndex == Format->Element->Name.Length)
+        {
+            if (Format->CommentType == json_CommentBlock)
+            {
+                NextElement = JsonElementGetNext(Format->Element, 0);
+                if ((NextElement == NULL) || (NextElement->Type != json_TypeComment))
+                {
+                    if ((*Character != '*') && !JsonCharacterIsWhitespace(*Character))
+                    {
+                        Format->SpaceCount = 1;
+                    }
+                }
+            }
+        }
+        return json_FormatComment;
+    }
+    else if (Format->CommentType == json_CommentBlock)
+    {
+        NextElement = JsonElementGetNext(Format->Element, 0);
+        if ((NextElement != NULL) && (NextElement->Type == json_TypeComment))
+        {
+            *Character = '\n';
+            Format->Element = NextElement;
+            Format->NameIndex = 0;
+            Format->SpaceCount = Format->Indent * Format->IndentSize + 1;
+            if ((JsonStringGetLength(&NextElement->Name) != 0) && (JsonStringGetCharacter(&NextElement->Name, 0) != '*'))
+            {
+                Format->SpaceCount++;
+            }
+            return json_FormatComment;
+        }
+        else
+        {
+            *Character = '*';
+            return json_FormatCommentBlockEnd;
+        }
     }
     else
     {
@@ -339,35 +383,42 @@ static tJsonFormatState JsonFormatCommentLine(tJsonFormat *Format, uint8_t *Char
 }
 
 
-static void JsonFormatSetUp(tJsonFormat *Format, tJsonFormatType Type, size_t IndentSize, int StripComments, tJsonElement *RootElement)
+static tJsonFormatState JsonFormatCommentBlockEnd(tJsonFormat *Format, uint8_t *Character)
+{
+    *Character = '/';
+    return json_FormatValueNext;
+}
+
+
+static void JsonFormatSetUp(tJsonFormat *Format, tJsonFormatType Type, size_t IndentSize, tJsonCommentType CommentType, tJsonElement *RootElement)
 {
     Format->Type = Type;
     Format->State = json_FormatValueStart;
-    Format->Element = JsonElementGetChild(RootElement, StripComments);
+    Format->Element = JsonElementGetChild(RootElement, CommentType == json_CommentNone);
+    Format->CommentType = CommentType;
     Format->NameIndex = 0;
     Format->Indent = 0;
     Format->IndentSize = IndentSize;
     Format->SpaceCount = 0;
     Format->NewLine = 0;
-    Format->StripComments = StripComments;
 }
 
 
 void JsonFormatSetUpCompress(tJsonFormat *Format, tJsonElement *RootElement)
 {
-    JsonFormatSetUp(Format, json_FormatCompress, 0, 1, RootElement);
+    JsonFormatSetUp(Format, json_FormatCompress, 0, json_CommentNone, RootElement);
 }
 
 
 void JsonFormatSetUpSpace(tJsonFormat *Format, tJsonElement *RootElement)
 {
-    JsonFormatSetUp(Format, json_FormatSpace, 0, 1, RootElement);
+    JsonFormatSetUp(Format, json_FormatSpace, 0, json_CommentNone, RootElement);
 }
 
 
-void JsonFormatSetUpIndent(tJsonFormat *Format, size_t IndentSize, int StripComments, tJsonElement *RootElement)
+void JsonFormatSetUpIndent(tJsonFormat *Format, size_t IndentSize, tJsonCommentType CommentType, tJsonElement *RootElement)
 {
-    JsonFormatSetUp(Format, json_FormatIndent, (IndentSize == 0) ? JSON_FORMAT_INDENT_SPACE_COUNT : IndentSize, StripComments, RootElement);
+    JsonFormatSetUp(Format, json_FormatIndent, (IndentSize == 0) ? JSON_FORMAT_INDENT_SPACE_COUNT : IndentSize, CommentType, RootElement);
 }
 
 
@@ -376,12 +427,12 @@ void JsonFormatCleanUp(tJsonFormat *Format)
     Format->Type = json_FormatCompress;
     Format->State = json_FormatComplete;
     Format->Element = NULL;
+    Format->CommentType = json_CommentNone;
     Format->NameIndex = 0;
     Format->Indent = 0;
     Format->IndentSize = 0;
     Format->SpaceCount = 0;
     Format->NewLine = 0;
-    Format->StripComments = 0;
 }
 
 
@@ -435,12 +486,16 @@ int JsonFormat(tJsonFormat *Format, uint8_t *Character)
                     Format->State = JsonFormatValueEnd(Format, Character);
                 break;
 
-                case json_FormatCommentLineStart:
-                    Format->State = JsonFormatCommentLineStart(Format, Character);
+                case json_FormatCommentStart:
+                    Format->State = JsonFormatCommentStart(Format, Character);
                 break;
 
-                case json_FormatCommentLine:
-                    Format->State = JsonFormatCommentLine(Format, Character);
+                case json_FormatComment:
+                    Format->State = JsonFormatComment(Format, Character);
+                break;
+
+                case json_FormatCommentBlockEnd:
+                    Format->State = JsonFormatCommentBlockEnd(Format, Character);
                 break;
 
                 default:

@@ -20,8 +20,11 @@ typedef enum
     json_ParseValueStringEscape, /**< Parsing an escaped character in a string value */
     json_ParseValueLiteral,      /**< Parsing a character in a literal value */
     json_ParseValueEnd,          /**< Parsing the end of a value */
-    json_ParseCommentLineStart,  /**< Parsing the start of a line comment */
+    json_ParseCommentStart,      /**< Parsing the start of a comment */
     json_ParseCommentLine,       /**< Parsing a character in a line comment */
+    json_ParseCommentBlock,      /**< Parsing a character in a block comment */
+    json_ParseCommentBlockLine,  /**< Parsing a new line in a block comment */
+    json_ParseCommentBlockEnd,   /**< Parsing the end of a block comment */
 } tJsonParseState;
 
 

@@ -47,7 +47,7 @@ int JsonReadFile(tJsonElement *Root, int StripComments, FILE *Stream)
 }
 
 
-int JsonWriteFile(tJsonElement *Root, size_t IndentSize, int StripComments, FILE *Stream)
+int JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream)
 {
     tJsonFormat Format;
     uint8_t Character;
@@ -59,7 +59,7 @@ int JsonWriteFile(tJsonElement *Root, size_t IndentSize, int StripComments, FILE
     }
     else
     {
-        JsonFormatSetUpIndent(&Format, IndentSize, StripComments, Root);
+        JsonFormatSetUpIndent(&Format, IndentSize, CommentType, Root);
     }
 
     do

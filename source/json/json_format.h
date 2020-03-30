@@ -20,8 +20,10 @@ typedef enum
     json_FormatValueLiteral,      /**< Formatting a character in a literal value */
     json_FormatValueNext,         /**< Formatting the next element */
     json_FormatValueEnd,          /**< Formatting the end of a value */
-    json_FormatCommentLineStart,  /**< Formatting the start of a comment line */
-    json_FormatCommentLine,       /**< Formatting a character in a comment line */
+    json_FormatCommentStart,      /**< Formatting the start of a comment */
+    json_FormatComment,           /**< Formatting a character in a comment */
+    json_FormatCommentBlock,      /**< Formatting a character in a comment block */
+    json_FormatCommentBlockEnd,   /**< Formatting the end of a comment block */
 } tJsonFormatState;
 
 
@@ -37,19 +39,30 @@ typedef enum
 
 
 /**
+ * @brief Enumeration used to define different JSON comment types
+ */
+typedef enum
+{
+    json_CommentNone, /**< No comments */
+    json_CommentLine, /**< Line comments */
+    json_CommentBlock /**< Block comments */
+} tJsonCommentType;
+
+
+/**
  * @brief Type used for formatting JSON content
  */
 typedef struct
 {
-    tJsonFormatType  Type;          /**< The type of formatting to use */
-    tJsonFormatState State;         /**< The current format state */
-    tJsonElement    *Element;       /**< The current element being formatted */
-    size_t           NameIndex;     /**< Index into the element name */
-    size_t           Indent;        /**< The current level of indentation */
-    size_t           IndentSize;    /**< The number of spaces to use for an indentation */
-    size_t           SpaceCount;    /**< The current number of spaces required in the format */
-    int              NewLine;       /**< Indicates if a new line is required in the format */
-    int              StripComments; /**< Indicates if comments should be stripped from the content */
+    tJsonFormatType  Type;        /**< The type of formatting to use */
+    tJsonFormatState State;       /**< The current format state */
+    tJsonElement    *Element;     /**< The current element being formatted */
+    tJsonCommentType CommentType; /**< Indicates how to format comments */
+    size_t           NameIndex;   /**< Index into the element name */
+    size_t           Indent;      /**< The current level of indentation */
+    size_t           IndentSize;  /**< The number of spaces to use for an indentation */
+    size_t           SpaceCount;  /**< The current number of spaces required in the format */
+    int              NewLine;     /**< Indicates if a new line is required in the format */
 } tJsonFormat;
 
 
@@ -83,13 +96,13 @@ void JsonFormatSetUpSpace(tJsonFormat *Format, tJsonElement *RootElement);
 
 /**
  * @brief Sets up a JSON content formatter (using a indented format)
- * @param Format        The JSON content formatter to set up
- * @param IndentSize    The number of spaces to use for each indentation
- * @param StripComments Indicates whether comments should be stripped from the JSON content
- * @param RootElement   The elements to use for formatting the JSON content
+ * @param Format      The JSON content formatter to set up
+ * @param IndentSize  The number of spaces to use for each indentation
+ * @param CommentType Indicates how to format any comments
+ * @param RootElement The elements to use for formatting the JSON content
  * @return None
  */
-void JsonFormatSetUpIndent(tJsonFormat *Format, size_t IndentSize, int StripComments, tJsonElement *RootElement);
+void JsonFormatSetUpIndent(tJsonFormat *Format, size_t IndentSize, tJsonCommentType CommentType, tJsonElement *RootElement);
 
 
 /**
