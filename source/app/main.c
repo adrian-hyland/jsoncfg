@@ -38,9 +38,9 @@ int main(int argc, const char *argv[])
     tJsonElement Value;
     tJsonElement *Element;
     tJsonElement *ChildValue;
-    size_t Argument;
+    tJsonCommentType CommentType = json_CommentLine;
     size_t IndentSize = 3;
-    int StripComments = 0;
+    size_t Argument;
     int Error;
 
     JsonElementSetUp(&Root);
@@ -48,9 +48,20 @@ int main(int argc, const char *argv[])
 
     for (Error = JSONCFG_ERROR_NONE, Argument = 1; (Error == JSONCFG_ERROR_NONE) && (Argument < argc) && (argv[Argument][0] == '-'); Argument++)
     {
-        if ((argv[Argument][1] == 's') && (argv[Argument][2] == '\0'))
+        if ((argv[Argument][1] == 'c') && ((argv[Argument][2] == 'n') || (argv[Argument][2] == 'l') || (argv[Argument][2] == 'b')) && (argv[Argument][3] == '\0'))
         {
-            StripComments = 1;
+            if (argv[Argument][2] == 'l')
+            {
+                CommentType = json_CommentLine;
+            }
+            else if (argv[Argument][2] == 'b')
+            {
+                CommentType = json_CommentBlock;
+            }
+            else
+            {
+                CommentType = json_CommentNone;
+            }
         }
         else if ((argv[Argument][1] == 'i') && (argv[Argument][2] >= '0') && (argv[Argument][2] <= '9') && (argv[Argument][3] == '\0'))
         {
@@ -68,7 +79,7 @@ int main(int argc, const char *argv[])
         {
             Error = JSONCFG_ERROR_BAD_ARGS;
         }
-        else if (!JsonReadFile(&Root, StripComments, stdin))
+        else if (!JsonReadFile(&Root, CommentType == json_CommentNone, stdin))
         {
             Error = JSONCFG_ERROR_READ_STDIN;
         }
@@ -80,7 +91,7 @@ int main(int argc, const char *argv[])
             {
                 Error = JSONCFG_ERROR_NO_PATH;
             }
-            else if (!JsonReadString(&Value, 1, argv[Argument + 1]))
+            else if (!JsonReadString(&Value, 0, argv[Argument + 1]))
             {
                 Error = JSONCFG_ERROR_READ_VALUE;
             }
@@ -98,7 +109,7 @@ int main(int argc, const char *argv[])
             }
         }
 
-        if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, StripComments, stdout))
+        if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, CommentType, stdout))
         {
             Error = JSONCFG_ERROR_WRITE_STDOUT;
         }
