@@ -72,7 +72,7 @@ C_FLAGS += -g3
 else
 BUILD_NAME := Release
 C_DEFINE += $(call list_add,RELEASE)
-C_FLAGS += -O3
+C_FLAGS += -O2
 endif
 
 C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
