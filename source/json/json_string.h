@@ -12,7 +12,6 @@ typedef struct
 {
     uint8_t *Content;   /**< The content of the string (null terminated) */
     size_t   Length;    /**< The length of the string */
-    size_t   MaxLength; /**< The maximum length that the string can currently have */
 } tJsonString;
 
 

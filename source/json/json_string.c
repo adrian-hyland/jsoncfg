@@ -1,15 +1,16 @@
 #include <stdlib.h>
+#include <string.h>
 #include "json_string.h"
 
 
-#define JSON_STRING_INITIAL_MAX_LENGTH 32
+#define JSON_STRING_SENTINEL       0xFF
+#define JSON_STRING_INITIAL_LENGTH 32
 
 
 void JsonStringSetUp(tJsonString *String)
 {
     String->Content = NULL;
     String->Length = 0;
-    String->MaxLength = 0;
 }
 
 
@@ -27,7 +28,6 @@ void JsonStringClear(tJsonString *String)
         String->Content = NULL;
     }
     String->Length = 0;
-    String->MaxLength = 0;
 }
 
 
@@ -47,27 +47,28 @@ int JsonStringAddCharacter(tJsonString *String, uint8_t Character)
         return 0;
     }
 
-    if (String->Length >= String->MaxLength)
+    if ((String->Content == NULL) || (String->Content[String->Length + 1] == JSON_STRING_SENTINEL))
     {
-        NewLength = (String->MaxLength == 0) ? JSON_STRING_INITIAL_MAX_LENGTH : String->MaxLength + String->MaxLength / 2;
-        if (NewLength < String->MaxLength)
+        NewLength = (String->Content == NULL) ? JSON_STRING_INITIAL_LENGTH : String->Length + String->Length / 2;
+        if (NewLength < String->Length)
         {
             return 0;
         }
 
-        NewContent = realloc(String->Content, NewLength + 1);
+        NewContent = realloc(String->Content, NewLength + 2);
         if (NewContent == NULL)
         {
             return 0;
         }
 
+        memset(&NewContent[String->Length + 1], 0, NewLength - String->Length);
+        NewContent[NewLength + 1] = JSON_STRING_SENTINEL;
+
         String->Content = NewContent;
-        String->MaxLength = NewLength;
     }
 
     String->Content[String->Length] = Character;
     String->Length++;
-    String->Content[String->Length] = '\0';
 
     return 1;
 }
