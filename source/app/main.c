@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
     tJsonElement *ChildValue;
     tJsonCommentType CommentType = json_CommentLine;
     size_t IndentSize = 3;
-    size_t Argument;
+    int Argument;
     int Error;
 
     JsonElementSetUp(&Root);
