@@ -55,7 +55,7 @@ int JsonStringAddCharacter(tJsonString *String, uint8_t Character)
             return 0;
         }
 
-        NewContent = realloc(String->Content, NewLength + 2);
+        NewContent = (uint8_t *)realloc(String->Content, NewLength + 2);
         if (NewContent == NULL)
         {
             return 0;

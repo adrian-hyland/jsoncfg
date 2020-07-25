@@ -48,7 +48,7 @@ static tJsonElement *JsonElementAllocate(tJsonType Type, tJsonElement *Parent)
         return NULL;
     }
 
-    Element = malloc(sizeof(tJsonElement));
+    Element = (tJsonElement *)malloc(sizeof(tJsonElement));
     if (Element != NULL)
     {
         JsonElementSetUpType(Element, Type, Parent);
