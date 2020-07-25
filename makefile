@@ -82,6 +82,9 @@ BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
 BUILD_INCLUDE := $(call list_get_csv,$(SRC_DIR) $(call list_add,$${workspaceFolder}/**))
 
+ifeq ($(CC),cc)
+CC := gcc
+endif
 
 APP := $(BIN_DIR)/$(APP_NAME)
 
