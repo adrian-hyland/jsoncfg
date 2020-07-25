@@ -98,11 +98,7 @@ vscode:
 	    "{ \
             \"name\":\"$(BUILD_NAME)\", \
             \"includePath\":[ $(BUILD_INCLUDE) ], \
-            \"defines\":[ $(BUILD_DEFINE) ], \
-            \"compilerPath\":\"/usr/bin/gcc\", \
-            \"cStandard\":\"c11\", \
-            \"cppStandard\":\"c++17\", \
-            \"intelliSenseMode\":\"clang-x64\" \
+            \"defines\":[ $(BUILD_DEFINE) ] \
         }" >$(BUILD_CFG).tmp
 	mv $(BUILD_CFG).tmp $(BUILD_CFG)
 
