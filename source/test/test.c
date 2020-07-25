@@ -26,7 +26,7 @@ void TestRun(const tTest *Test[], size_t TestCount)
             }
             else
             {
-                printf("\"Test %lu\",", TestIndex + 1);
+                printf("\"Test %zu\",", TestIndex + 1);
             }
             if (Test[TestIndex]->Case[CaseIndex].Name != NULL)
             {
@@ -34,7 +34,7 @@ void TestRun(const tTest *Test[], size_t TestCount)
             }
             else
             {
-                printf("\"Case %lu\",", CaseIndex + 1);
+                printf("\"Case %zu\",", CaseIndex + 1);
             }
             printf("%s\n", Result ? "PASS" : "FAIL");
 
@@ -46,7 +46,7 @@ void TestRun(const tTest *Test[], size_t TestCount)
         }
     }
 
-    printf("\nTests Run : %lu", RunCount);
-    printf("\nPasses    : %lu", PassCount);
-    printf("\nFailures  : %lu\n", RunCount - PassCount);
+    printf("\nTests Run : %zu", RunCount);
+    printf("\nPasses    : %zu", PassCount);
+    printf("\nFailures  : %zu\n", RunCount - PassCount);
 }
