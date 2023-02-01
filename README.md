@@ -50,7 +50,7 @@ Set the type of formatting for comments in the JSON content.\
 This parameter is optional - if it is not given then line comments will be used in the JSON content.
 - `-i{0-9}`\
 Set the indentation size (to a value between 0 and 9).\
-A value of zero will turn off indentation - this cause the JSON content use a 'spaced' format (without any comments).\
+A value of zero will turn off indentation - the JSON content will be formatted using just spaces (without any comments).\
 This parameter is optional - if it is not given then an indentation size of 3 will be used.
 - `<key>`\
 Provides the path of the key that you want to set (see below for a description of the path format)
