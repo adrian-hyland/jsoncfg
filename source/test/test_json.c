@@ -6,22 +6,22 @@
 
 static const tTest *Tests[] =
 {
-    &TestJsonCharacter,
-    &TestJsonString,
-    &TestJsonPath,
-    &TestJsonElement,
-    &TestJsonParse,
-    &TestJsonFormat
+	&TestJsonCharacter,
+	&TestJsonString,
+	&TestJsonPath,
+	&TestJsonElement,
+	&TestJsonParse,
+	&TestJsonFormat
 };
 
 
 int main()
 {
 #ifdef DEBUG
-    mtrace();
+	mtrace();
 #endif
 
-    TestRun(Tests, sizeof(Tests) / sizeof(Tests[0]));
+	TestRun(Tests, sizeof(Tests) / sizeof(Tests[0]));
 
-    return 0;
+	return 0;
 }

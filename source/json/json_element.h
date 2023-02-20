@@ -9,13 +9,13 @@
  */
 typedef enum
 {
-    json_TypeRoot,         /**< Root element */
-    json_TypeKey,          /**< Key element*/
-    json_TypeValueString,  /**< String value element */
-    json_TypeValueLiteral, /**< Literal value element (for \a null, \a boolean or \a numeric values) */
-    json_TypeObject,       /**< Object element */
-    json_TypeArray,        /**< Array element */
-    json_TypeComment,      /**< Comment element */
+	json_TypeRoot,         /**< Root element */
+	json_TypeKey,          /**< Key element*/
+	json_TypeValueString,  /**< String value element */
+	json_TypeValueLiteral, /**< Literal value element (for \a null, \a boolean or \a numeric values) */
+	json_TypeObject,       /**< Object element */
+	json_TypeArray,        /**< Array element */
+	json_TypeComment,      /**< Comment element */
 } tJsonType;
 
 
@@ -24,11 +24,11 @@ typedef enum
  */
 typedef struct tJsonElement
 {
-    tJsonType            Type;   /**< The element type */
-    struct tJsonElement *Parent; /**< The parent element */
-    struct tJsonElement *Next;   /**< The next (sibling) element */
-    struct tJsonElement *Child;  /**< The child element */
-    tJsonString          Name;   /**< The element name */
+	tJsonType            Type;   /**< The element type */
+	struct tJsonElement *Parent; /**< The parent element */
+	struct tJsonElement *Next;   /**< The next (sibling) element */
+	struct tJsonElement *Child;  /**< The child element */
+	tJsonString          Name;   /**< The element name */
 } tJsonElement;
 
 

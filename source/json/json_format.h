@@ -9,21 +9,21 @@
  */
 typedef enum
 {
-    json_FormatComplete,          /**< Formatting is complete */
-    json_FormatError,             /**< A parsing error has occurred */
-    json_FormatKey,               /**< Formatting a character in a key string */
-    json_FormatKeyEscape,         /**< Formatting an escaped character in a key string */
-    json_FormatKeyEnd,            /**< Formatting the end of a key string */
-    json_FormatValueStart,        /**< Formatting the start of a value */
-    json_FormatValueString,       /**< Formatting a character in a string value */
-    json_FormatValueStringEscape, /**< Formatting an escaped character in a string value */
-    json_FormatValueLiteral,      /**< Formatting a character in a literal value */
-    json_FormatValueNext,         /**< Formatting the next element */
-    json_FormatValueEnd,          /**< Formatting the end of a value */
-    json_FormatCommentStart,      /**< Formatting the start of a comment */
-    json_FormatComment,           /**< Formatting a character in a comment */
-    json_FormatCommentBlock,      /**< Formatting a character in a comment block */
-    json_FormatCommentBlockEnd,   /**< Formatting the end of a comment block */
+	json_FormatComplete,          /**< Formatting is complete */
+	json_FormatError,             /**< A parsing error has occurred */
+	json_FormatKey,               /**< Formatting a character in a key string */
+	json_FormatKeyEscape,         /**< Formatting an escaped character in a key string */
+	json_FormatKeyEnd,            /**< Formatting the end of a key string */
+	json_FormatValueStart,        /**< Formatting the start of a value */
+	json_FormatValueString,       /**< Formatting a character in a string value */
+	json_FormatValueStringEscape, /**< Formatting an escaped character in a string value */
+	json_FormatValueLiteral,      /**< Formatting a character in a literal value */
+	json_FormatValueNext,         /**< Formatting the next element */
+	json_FormatValueEnd,          /**< Formatting the end of a value */
+	json_FormatCommentStart,      /**< Formatting the start of a comment */
+	json_FormatComment,           /**< Formatting a character in a comment */
+	json_FormatCommentBlock,      /**< Formatting a character in a comment block */
+	json_FormatCommentBlockEnd,   /**< Formatting the end of a comment block */
 } tJsonFormatState;
 
 
@@ -32,9 +32,9 @@ typedef enum
  */
 typedef enum
 {
-    json_FormatCompress, /**< Compressed format - no spaces or new lines are used */
-    json_FormatSpace,    /**< Spaced format - elements are separated with a space; no new lines are used */
-    json_FormatIndent    /**< Indent format - object elements are indented on new lines */
+	json_FormatCompress, /**< Compressed format - no spaces or new lines are used */
+	json_FormatSpace,    /**< Spaced format - elements are separated with a space; no new lines are used */
+	json_FormatIndent    /**< Indent format - object elements are indented on new lines */
 } tJsonFormatType;
 
 
@@ -43,9 +43,9 @@ typedef enum
  */
 typedef enum
 {
-    json_CommentNone, /**< No comments */
-    json_CommentLine, /**< Line comments */
-    json_CommentBlock /**< Block comments */
+	json_CommentNone, /**< No comments */
+	json_CommentLine, /**< Line comments */
+	json_CommentBlock /**< Block comments */
 } tJsonCommentType;
 
 
@@ -54,15 +54,15 @@ typedef enum
  */
 typedef struct
 {
-    tJsonFormatType  Type;        /**< The type of formatting to use */
-    tJsonFormatState State;       /**< The current format state */
-    tJsonElement    *Element;     /**< The current element being formatted */
-    tJsonCommentType CommentType; /**< Indicates how to format comments */
-    size_t           NameIndex;   /**< Index into the element name */
-    size_t           Indent;      /**< The current level of indentation */
-    size_t           IndentSize;  /**< The number of spaces to use for an indentation */
-    size_t           SpaceCount;  /**< The current number of spaces required in the format */
-    bool             NewLine;     /**< Indicates if a new line is required in the format */
+	tJsonFormatType  Type;        /**< The type of formatting to use */
+	tJsonFormatState State;       /**< The current format state */
+	tJsonElement    *Element;     /**< The current element being formatted */
+	tJsonCommentType CommentType; /**< Indicates how to format comments */
+	size_t           NameIndex;   /**< Index into the element name */
+	size_t           Indent;      /**< The current level of indentation */
+	size_t           IndentSize;  /**< The number of spaces to use for an indentation */
+	size_t           SpaceCount;  /**< The current number of spaces required in the format */
+	bool             NewLine;     /**< Indicates if a new line is required in the format */
 } tJsonFormat;
 
 

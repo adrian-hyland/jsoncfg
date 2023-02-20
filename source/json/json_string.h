@@ -11,8 +11,8 @@
  */
 typedef struct
 {
-    uint8_t *Content;   /**< The content of the string (null terminated) */
-    size_t   Length;    /**< The length of the string */
+	uint8_t *Content;   /**< The content of the string (null terminated) */
+	size_t   Length;    /**< The length of the string */
 } tJsonString;
 
 

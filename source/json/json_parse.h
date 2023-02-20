@@ -9,22 +9,22 @@
  */
 typedef enum
 {
-    json_ParseComplete,          /**< Parsing is complete */
-    json_ParseError,             /**< A parsing error has occurred */
-    json_ParseKeyStart,          /**< Parsing the start of a key string */
-    json_ParseKey,               /**< Parsing a character in a key string */
-    json_ParseKeyEscape,         /**< Parsing an escaped character in a key string */
-    json_ParseKeyEnd,            /**< Parsing the end of a key string */
-    json_ParseValueStart,        /**< Parsing the start of a value */
-    json_ParseValueString,       /**< Parsing a character in a string value */
-    json_ParseValueStringEscape, /**< Parsing an escaped character in a string value */
-    json_ParseValueLiteral,      /**< Parsing a character in a literal value */
-    json_ParseValueEnd,          /**< Parsing the end of a value */
-    json_ParseCommentStart,      /**< Parsing the start of a comment */
-    json_ParseCommentLine,       /**< Parsing a character in a line comment */
-    json_ParseCommentBlock,      /**< Parsing a character in a block comment */
-    json_ParseCommentBlockLine,  /**< Parsing a new line in a block comment */
-    json_ParseCommentBlockEnd,   /**< Parsing the end of a block comment */
+	json_ParseComplete,          /**< Parsing is complete */
+	json_ParseError,             /**< A parsing error has occurred */
+	json_ParseKeyStart,          /**< Parsing the start of a key string */
+	json_ParseKey,               /**< Parsing a character in a key string */
+	json_ParseKeyEscape,         /**< Parsing an escaped character in a key string */
+	json_ParseKeyEnd,            /**< Parsing the end of a key string */
+	json_ParseValueStart,        /**< Parsing the start of a value */
+	json_ParseValueString,       /**< Parsing a character in a string value */
+	json_ParseValueStringEscape, /**< Parsing an escaped character in a string value */
+	json_ParseValueLiteral,      /**< Parsing a character in a literal value */
+	json_ParseValueEnd,          /**< Parsing the end of a value */
+	json_ParseCommentStart,      /**< Parsing the start of a comment */
+	json_ParseCommentLine,       /**< Parsing a character in a line comment */
+	json_ParseCommentBlock,      /**< Parsing a character in a block comment */
+	json_ParseCommentBlockLine,  /**< Parsing a new line in a block comment */
+	json_ParseCommentBlockEnd,   /**< Parsing the end of a block comment */
 } tJsonParseState;
 
 
@@ -33,11 +33,11 @@ typedef enum
  */
 typedef struct
 {
-    tJsonParseState State;         /**< The current parse state */
-    tJsonElement   *Element;       /**< The current element being parsed */
-    tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
-    bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
-    bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
+	tJsonParseState State;         /**< The current parse state */
+	tJsonElement   *Element;       /**< The current element being parsed */
+	tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
+	bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
+	bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
 } tJsonParse;
 
 

@@ -18,8 +18,8 @@ typedef bool (* tTestFunction)(void);
  */
 typedef struct
 {
-    const char         *Name;     /**< The name of the test case */
-    const tTestFunction Function; /**< The test case function */
+	const char         *Name;     /**< The name of the test case */
+	const tTestFunction Function; /**< The test case function */
 } tTestCase;
 
 
@@ -28,9 +28,9 @@ typedef struct
  */
 typedef struct
 {
-    const char       *Name;      /**< The name of the test */
-    const tTestCase  *Case;      /**< Array of test cases */
-    size_t            CaseCount; /**< The number of test cases */
+	const char       *Name;      /**< The name of the test */
+	const tTestCase  *Case;      /**< Array of test cases */
+	size_t            CaseCount; /**< The number of test cases */
 } tTest;
 
 
