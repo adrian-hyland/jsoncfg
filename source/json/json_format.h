@@ -117,10 +117,10 @@ void JsonFormatCleanUp(tJsonFormat *Format);
  * @brief Formats the next character in the JSON content
  * @param Format    The JSON content formatter
  * @param Character Used to return the next character in the JSON content
- * @return \a `JSON_PARSE_ERROR`      is returned if there was a formatting error
- * @return \a `JSON_PARSE_COMPLETE`   is returned if the formatting is complete
- * @return \a `JSON_PARSE_INCOMPLETE` is returned if formatting is not yet complete
- * @note if the function returns \a `JSON_PARSE_COMPLETE` then a null character will be returned in \a `Character`
+ * @return \a `JSON_FORMAT_ERROR`      is returned if there was a formatting error
+ * @return \a `JSON_FORMAT_COMPLETE`   is returned if the formatting is complete
+ * @return \a `JSON_FORMAT_INCOMPLETE` is returned if formatting is not yet complete
+ * @note if the function returns \a `JSON_FORMAT_COMPLETE` then a null character will be returned in \a `Character`
  */
 int JsonFormat(tJsonFormat *Format, uint8_t *Character);
 
