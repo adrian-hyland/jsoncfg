@@ -2,14 +2,15 @@
 #define TEST_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 
 /**
  * @brief Type used for a test case function
- * @return The test case function should return a non-zero (true) value if the test case passed 
- * @return The test case function should return a zero (false) value if the test case failed 
+ * @return The test case function should return a true value if the test case passed 
+ * @return The test case function should return a false value if the test case failed 
  */
-typedef int (* tTestFunction)(void);
+typedef bool (* tTestFunction)(void);
 
 
 /**

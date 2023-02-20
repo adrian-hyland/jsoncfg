@@ -14,9 +14,9 @@ static void JsonElementSetUpType(tJsonElement *Element, tJsonType Type, tJsonEle
 }
 
 
-static int JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
+static bool JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
 {
-    int ok;
+    bool ok;
 
     ok = (ChildType != json_TypeRoot);
 
@@ -83,7 +83,7 @@ void JsonElementCleanUp(tJsonElement *Element)
 }
 
 
-int JsonElementAllocateChild(tJsonElement *Element, tJsonType Type)
+bool JsonElementAllocateChild(tJsonElement *Element, tJsonType Type)
 {
     JsonElementFree(&Element->Child);
 
@@ -93,13 +93,13 @@ int JsonElementAllocateChild(tJsonElement *Element, tJsonType Type)
 }
 
 
-int JsonElementAllocateNext(tJsonElement *Element, tJsonType Type)
+bool JsonElementAllocateNext(tJsonElement *Element, tJsonType Type)
 {
     JsonElementFree(&Element->Next);
 
     if (Element->Parent != NULL)
     {
-        if ((Type == json_TypeComment) || ((Element->Parent->Type != json_TypeRoot) && (Element->Parent->Type != json_TypeKey)) || (JsonElementGetChild(Element->Parent, 1) == NULL))
+        if ((Type == json_TypeComment) || ((Element->Parent->Type != json_TypeRoot) && (Element->Parent->Type != json_TypeKey)) || (JsonElementGetChild(Element->Parent, true) == NULL))
         {
             Element->Next = JsonElementAllocate(Type, Element->Parent);
         }
@@ -115,7 +115,7 @@ tJsonType JsonElementGetType(tJsonElement *Element)
 }
 
 
-tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments)
+tJsonElement *JsonElementGetChild(tJsonElement *Element, bool IgnoreComments)
 {
     if (Element != NULL)
     {
@@ -130,7 +130,7 @@ tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments)
 }
 
 
-tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments)
+tJsonElement *JsonElementGetNext(tJsonElement *Element, bool IgnoreComments)
 {
     if (Element != NULL)
     {
@@ -145,7 +145,7 @@ tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments)
 }
 
 
-static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, int Create);
+static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, bool Create);
 
 
 static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent, const uint8_t *Path, size_t PathLength)
@@ -164,7 +164,7 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
         }
         else if (Type == json_TypeArray)
         {
-            if (JsonElementFindSubPath(&Element->Child, Element, Path, PathLength, 1) == NULL)
+            if (JsonElementFindSubPath(&Element->Child, Element, Path, PathLength, true) == NULL)
             {
                 JsonElementFree(&Element);
             }
@@ -175,7 +175,7 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
 }
 
 
-static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, int Create)
+static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, const uint8_t *Path, size_t PathLength, bool Create)
 {
     tJsonType ComponentType;
     const uint8_t *Component;
@@ -220,7 +220,7 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 
             while (*Element != NULL)
             {
-                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, 0) != NULL)
+                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, false) != NULL)
                 {
                     break;
                 }
@@ -234,7 +234,7 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 
             if ((*Element == NULL) && Create)
             {
-                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, 1) == NULL)
+                if (JsonElementFindSubPath(Element, Parent, Component, ComponentLength, true) == NULL)
                 {
                     JsonElementFree(Element);
                 }
@@ -291,7 +291,7 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 }
 
 
-tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create)
+tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, bool Create)
 {
     tJsonElement **ElementReference;
 

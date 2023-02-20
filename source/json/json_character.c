@@ -1,7 +1,7 @@
 #include "json_character.h"
 
 
-int JsonCharacterIsLiteral(uint8_t Character)
+bool JsonCharacterIsLiteral(uint8_t Character)
 {
     return ((Character >= '0') && (Character <= '9')) ||
            ((Character >= 'a') && (Character <= 'z')) ||
@@ -12,13 +12,13 @@ int JsonCharacterIsLiteral(uint8_t Character)
 }
 
 
-int JsonCharacterIsWhitespace(uint8_t Character)
+bool JsonCharacterIsWhitespace(uint8_t Character)
 {
     return (Character == ' ') || (Character == '\t') || (Character == '\r') || (Character == '\n');
 }
 
 
-int JsonCharacterIsEscapable(uint8_t Character)
+bool JsonCharacterIsEscapable(uint8_t Character)
 {
     return (Character == '\b') || (Character == '\f') || (Character == '\n') || (Character == '\r') || (Character == '\t') || (Character == '"') || (Character == '\\');
 }

@@ -3,20 +3,20 @@
 #include "test_json.h"
 
 
-static int TestJsonFormatCompressContent(const uint8_t *Content)
+static bool TestJsonFormatCompressContent(const uint8_t *Content)
 {
     tJsonElement Root;
     tJsonParse Parse;
     tJsonFormat Format;
     size_t Index;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, 0, &Root);
+    JsonParseSetUp(&Parse, false, &Root);
 
-    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
         ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
     }
@@ -46,20 +46,20 @@ static int TestJsonFormatCompressContent(const uint8_t *Content)
 }
 
 
-static int TestJsonFormatSpaceContent(const uint8_t *Content)
+static bool TestJsonFormatSpaceContent(const uint8_t *Content)
 {
     tJsonElement Root;
     tJsonParse Parse;
     tJsonFormat Format;
     size_t Index;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, 0, &Root);
+    JsonParseSetUp(&Parse, false, &Root);
 
-    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
         ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
     }
@@ -89,20 +89,20 @@ static int TestJsonFormatSpaceContent(const uint8_t *Content)
 }
 
 
-static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize, tJsonCommentType CommentType)
+static bool TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize, tJsonCommentType CommentType)
 {
     tJsonElement Root;
     tJsonParse Parse;
     tJsonFormat Format;
     size_t Index;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, 0, &Root);
+    JsonParseSetUp(&Parse, false, &Root);
 
-    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
         ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
     }
@@ -132,7 +132,7 @@ static int TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize
 }
 
 
-static int TestJsonFormatCompress(void)
+static bool TestJsonFormatCompress(void)
 {
     static const uint8_t *Content[] =
     {
@@ -185,9 +185,9 @@ static int TestJsonFormatCompress(void)
         (const uint8_t *)"1.234567890e-99"
     };
     size_t n;
-    int ok;
+    bool ok;
 
-    for (ok = 1, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+    for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
     {
         ok = TestJsonFormatCompressContent(Content[n]);
     }
@@ -196,7 +196,7 @@ static int TestJsonFormatCompress(void)
 }
 
 
-static int TestJsonFormatSpace(void)
+static bool TestJsonFormatSpace(void)
 {
     static const uint8_t *Content[] =
     {
@@ -249,9 +249,9 @@ static int TestJsonFormatSpace(void)
         (const uint8_t *)"1.234567890e-99"
     };
     size_t n;
-    int ok;
+    bool ok;
 
-    for (ok = 1, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+    for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
     {
         ok = TestJsonFormatSpaceContent(Content[n]);
     }
@@ -260,7 +260,7 @@ static int TestJsonFormatSpace(void)
 }
 
 
-static int TestJsonFormatIndent(void)
+static bool TestJsonFormatIndent(void)
 {
     static const uint8_t *Content[] =
     {
@@ -353,9 +353,9 @@ static int TestJsonFormatIndent(void)
         (const uint8_t *)"1.234567890e-99"
     };
     size_t n;
-    int ok;
+    bool ok;
 
-    for (ok = 1, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+    for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
     {
         ok = TestJsonFormatIndentContent(Content[n], 3, json_CommentNone);
         ok = ok && TestJsonFormatIndentContent(Content[n], 3, json_CommentLine);
@@ -366,7 +366,7 @@ static int TestJsonFormatIndent(void)
 }
 
 
-static int TestJsonFormatCommentLine(void)
+static bool TestJsonFormatCommentLine(void)
 {
     static const uint8_t Content[] =
         "// Comment 1\n"
@@ -538,13 +538,13 @@ static int TestJsonFormatCommentLine(void)
     tJsonFormat Format;
     size_t Index;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, 0, &Root);
+    JsonParseSetUp(&Parse, false, &Root);
 
-    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
         ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
     }
@@ -634,7 +634,7 @@ static int TestJsonFormatCommentLine(void)
 }
 
 
-static int TestJsonFormatCommentBlock(void)
+static bool TestJsonFormatCommentBlock(void)
 {
     static const uint8_t Content[] =
         "/* Comment 1\n"
@@ -806,13 +806,13 @@ static int TestJsonFormatCommentBlock(void)
     tJsonFormat Format;
     size_t Index;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
 
-    JsonParseSetUp(&Parse, 0, &Root);
+    JsonParseSetUp(&Parse, false, &Root);
 
-    for (ok = 1, Index = 0; ok && (Content[Index] != '\0'); Index++)
+    for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
     {
         ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
     }

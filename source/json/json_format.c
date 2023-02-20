@@ -52,7 +52,7 @@ static tJsonFormatState JsonFormatKeyEnd(tJsonFormat *Format, uint8_t *Character
     Format->Element = Child;
     if (Format->Element->Type == json_TypeComment)
     {
-        Format->NewLine = 1;
+        Format->NewLine = true;
     }
     else if (Format->Type != json_FormatCompress)
     {
@@ -81,14 +81,14 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
     {
         if (Format->Type == json_FormatIndent)
         {
-            Format->NewLine = 1;
+            Format->NewLine = true;
         }
         else if (Format->Type == json_FormatSpace)
         {
             Format->SpaceCount = 1;
         }
 
-        if ((CurrentType != json_TypeComment) && (CurrentType != json_TypeKey) && (JsonElementGetNext(Format->Element->Parent->Type == json_TypeKey ? Format->Element->Parent : Format->Element, 1) != NULL))
+        if ((CurrentType != json_TypeComment) && (CurrentType != json_TypeKey) && (JsonElementGetNext(Format->Element->Parent->Type == json_TypeKey ? Format->Element->Parent : Format->Element, true) != NULL))
         {
             Format->Element = NextElement;
             *Character = ',';
@@ -113,7 +113,7 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
             if (Format->Type == json_FormatIndent)
             {
                 Format->Indent--;
-                Format->NewLine = 1;
+                Format->NewLine = true;
             }
             else if (Format->Type == json_FormatSpace)
             {
@@ -123,7 +123,7 @@ static tJsonFormatState JsonFormatValueNext(tJsonFormat *Format, uint8_t *Charac
         }
         else if (Format->Element->Type == json_TypeKey)
         {
-            if ((CurrentType != json_TypeComment) && (JsonElementGetNext(Format->Element, 1) != NULL))
+            if ((CurrentType != json_TypeComment) && (JsonElementGetNext(Format->Element, true) != NULL))
             {
                 *Character = ',';
                 return json_FormatValueNext;
@@ -146,7 +146,7 @@ static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, uint8_t *Charact
     if (Format->NewLine)
     {
         *Character = '\n';
-        Format->NewLine = 0;
+        Format->NewLine = false;
         Format->SpaceCount = Format->Indent * Format->IndentSize;
         return json_FormatValueEnd;
     }
@@ -233,7 +233,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
     if (Format->NewLine)
     {
         *Character = '\n';
-        Format->NewLine = 0;
+        Format->NewLine = false;
         Format->SpaceCount = Format->Indent * Format->IndentSize;
         return json_FormatValueStart;
     }
@@ -256,7 +256,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
             Format->Element = Child;
             if (Format->Type == json_FormatIndent)
             {
-                Format->NewLine = 1;
+                Format->NewLine = true;
                 Format->Indent++;
             }
             else if (Format->Type == json_FormatSpace)
@@ -280,7 +280,7 @@ static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, uint8_t *Chara
             if (Format->Type == json_FormatIndent)
             {
                 Format->Indent++;
-                Format->NewLine = 1;
+                Format->NewLine = true;
             }
             else if (Format->Type == json_FormatSpace)
             {
@@ -343,7 +343,7 @@ static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Characte
         {
             if (Format->CommentType == json_CommentBlock)
             {
-                NextElement = JsonElementGetNext(Format->Element, 0);
+                NextElement = JsonElementGetNext(Format->Element, false);
                 if ((NextElement == NULL) || (NextElement->Type != json_TypeComment))
                 {
                     if ((*Character != '*') && !JsonCharacterIsWhitespace(*Character))
@@ -357,7 +357,7 @@ static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Characte
     }
     else if (Format->CommentType == json_CommentBlock)
     {
-        NextElement = JsonElementGetNext(Format->Element, 0);
+        NextElement = JsonElementGetNext(Format->Element, false);
         if ((NextElement != NULL) && (NextElement->Type == json_TypeComment))
         {
             *Character = '\n';
@@ -400,7 +400,7 @@ static void JsonFormatSetUp(tJsonFormat *Format, tJsonFormatType Type, size_t In
     Format->Indent = 0;
     Format->IndentSize = IndentSize;
     Format->SpaceCount = 0;
-    Format->NewLine = 0;
+    Format->NewLine = false;
 }
 
 
@@ -432,7 +432,7 @@ void JsonFormatCleanUp(tJsonFormat *Format)
     Format->Indent = 0;
     Format->IndentSize = 0;
     Format->SpaceCount = 0;
-    Format->NewLine = 0;
+    Format->NewLine = false;
 }
 
 

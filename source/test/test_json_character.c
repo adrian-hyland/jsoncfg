@@ -2,13 +2,13 @@
 #include "test_json.h"
 
 
-static int TestJsonCharacterIsLiteral(void)
+static bool TestJsonCharacterIsLiteral(void)
 {
     unsigned int Character;
-    int IsLiteral;
-    int ok;
+    bool IsLiteral;
+    bool ok;
 
-    for (ok = 1, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
     {
         IsLiteral = JsonCharacterIsLiteral(Character);
         if (((Character >= '0') && (Character <= '9')) ||
@@ -28,13 +28,13 @@ static int TestJsonCharacterIsLiteral(void)
 }
 
 
-static int TestJsonCharacterIsWhitespace(void)
+static bool TestJsonCharacterIsWhitespace(void)
 {
     unsigned int Character;
-    int IsWhitespace;
-    int ok;
+    bool IsWhitespace;
+    bool ok;
 
-    for (ok = 1, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
     {
         IsWhitespace = JsonCharacterIsWhitespace(Character);
         if ((Character == ' ') || (Character == '\t') || (Character == '\r') || (Character == '\n'))
@@ -51,13 +51,13 @@ static int TestJsonCharacterIsWhitespace(void)
 }
 
 
-static int TestJsonCharacterIsEscapable(void)
+static bool TestJsonCharacterIsEscapable(void)
 {
     unsigned int Character;
-    int IsEscapable;
-    int ok;
+    bool IsEscapable;
+    bool ok;
 
-    for (ok = 1, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
     {
         IsEscapable = JsonCharacterIsEscapable(Character);
         if ((Character == '\b') || (Character == '\f') || (Character == '\t') || (Character == '\r') || (Character == '\n') || (Character == '"') || (Character == '\\'))
@@ -74,13 +74,13 @@ static int TestJsonCharacterIsEscapable(void)
 }
 
 
-static int TestJsonCharacterToEscape(void)
+static bool TestJsonCharacterToEscape(void)
 {
     unsigned int Character;
     uint8_t EscapedCharacter;
-    int ok;
+    bool ok;
 
-    for (ok = 1, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
     {
         EscapedCharacter = JsonCharacterToEscape(Character);
         if (Character == '\b')
@@ -113,13 +113,13 @@ static int TestJsonCharacterToEscape(void)
 }
 
 
-static int TestJsonCharacterFromEscape(void)
+static bool TestJsonCharacterFromEscape(void)
 {
     unsigned int Character;
     uint8_t UnescapedCharacter;
-    int ok;
+    bool ok;
 
-    for (ok = 1, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
     {
         UnescapedCharacter = JsonCharacterFromEscape(Character);
         if (Character == 'b')

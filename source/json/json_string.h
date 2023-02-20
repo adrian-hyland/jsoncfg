@@ -2,6 +2,7 @@
 #define JSON_STRING_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 
@@ -52,10 +53,10 @@ size_t JsonStringGetLength(tJsonString *String);
  * @brief Adds a character to the end of a string
  * @param String    The string
  * @param Character The character to add to the string
- * @return A non-zero (true) value is returned if the character was added to the string ok
- * @return A zero (false) value is returned if the character could not be added to the string (out of memory)
+ * @return A true value is returned if the character was added to the string ok
+ * @return A false value is returned if the character could not be added to the string (out of memory)
  */
-int JsonStringAddCharacter(tJsonString *String, uint8_t Character);
+bool JsonStringAddCharacter(tJsonString *String, uint8_t Character);
 
 
 /**

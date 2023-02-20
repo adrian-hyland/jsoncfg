@@ -8,7 +8,7 @@ void TestRun(const tTest *Test[], size_t TestCount)
     size_t CaseIndex;
     size_t RunCount;
     size_t PassCount;
-    int Result;
+    bool Result;
 
     printf("Test,Case,Result\n");
 

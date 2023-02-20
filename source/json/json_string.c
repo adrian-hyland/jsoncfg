@@ -37,14 +37,14 @@ size_t JsonStringGetLength(tJsonString *String)
 }
 
 
-int JsonStringAddCharacter(tJsonString *String, uint8_t Character)
+bool JsonStringAddCharacter(tJsonString *String, uint8_t Character)
 {
     uint8_t *NewContent;
     size_t NewLength;
 
     if (Character == '\0')
     {
-        return 0;
+        return false;
     }
 
     if ((String->Content == NULL) || (String->Content[String->Length + 1] == JSON_STRING_SENTINEL))
@@ -52,13 +52,13 @@ int JsonStringAddCharacter(tJsonString *String, uint8_t Character)
         NewLength = 2 + ((String->Content == NULL) ? JSON_STRING_INITIAL_LENGTH : String->Length + String->Length / 2);
         if (NewLength < String->Length)
         {
-            return 0;
+            return false;
         }
 
         NewContent = (uint8_t *)realloc(String->Content, NewLength);
         if (NewContent == NULL)
         {
-            return 0;
+            return false;
         }
 
         memset(&NewContent[String->Length + 1], 0, NewLength - String->Length - 2);
@@ -70,7 +70,7 @@ int JsonStringAddCharacter(tJsonString *String, uint8_t Character)
     String->Content[String->Length] = Character;
     String->Length++;
 
-    return 1;
+    return true;
 }
 
 

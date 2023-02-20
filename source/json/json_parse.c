@@ -2,9 +2,9 @@
 #include "json_parse.h"
 
 
-static int JsonParseAllocateElement(tJsonParse *Parse, tJsonType Type)
+static bool JsonParseAllocateElement(tJsonParse *Parse, tJsonType Type)
 {
-    int ok;
+    bool ok;
 
     if (Parse->AllocateChild)
     {
@@ -42,7 +42,7 @@ static tJsonParseState JsonParseKey(tJsonParse *Parse, uint8_t Character)
     }
     else if (Character == '"')
     {
-        Parse->AllocateChild = 1;
+        Parse->AllocateChild = true;
         return json_ParseKeyEnd;
     }
     else if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
@@ -142,7 +142,7 @@ static tJsonParseState JsonParseValueString(tJsonParse *Parse, uint8_t Character
 
 static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 {
-    Parse->AllocateChild = 0;
+    Parse->AllocateChild = false;
     if (Character == ',')
     {
         if (Parse->Element->Parent == NULL)
@@ -233,7 +233,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
             return json_ParseError;
         }
 
-        Parse->AllocateChild = 1;
+        Parse->AllocateChild = true;
         return json_ParseKeyStart;
     }
     else if (Character == '[')
@@ -243,7 +243,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
             return json_ParseError;
         }
 
-        Parse->AllocateChild = 1;
+        Parse->AllocateChild = true;
         return json_ParseValueStart;
     }
     else if (Character == ']')
@@ -313,7 +313,7 @@ static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, uint8_t Character
         Parse->CommentState = json_ParseError;
         if (!Parse->StripComments)
         {
-            Parse->AllocateChild = 0;
+            Parse->AllocateChild = false;
         }
         return State;
     }
@@ -351,7 +351,7 @@ static tJsonParseState JsonParseCommentBlockLine(tJsonParse *Parse, uint8_t Char
     {
         if (!Parse->StripComments)
         {
-            Parse->AllocateChild = 0;
+            Parse->AllocateChild = false;
             if (!JsonParseAllocateElement(Parse, json_TypeComment))
             {
                 return json_ParseError;
@@ -375,7 +375,7 @@ static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, uint8_t Chara
         Parse->CommentState = json_ParseError;
         if (!Parse->StripComments)
         {
-            Parse->AllocateChild = 0;
+            Parse->AllocateChild = false;
         }
         return State;
     }
@@ -388,12 +388,12 @@ static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, uint8_t Chara
 }
 
 
-void JsonParseSetUp(tJsonParse *Parse, int StripComments, tJsonElement *RootElement)
+void JsonParseSetUp(tJsonParse *Parse, bool StripComments, tJsonElement *RootElement)
 {
     Parse->State = json_ParseValueStart;
     Parse->Element = RootElement;
     Parse->CommentState = json_ParseError;
-    Parse->AllocateChild = 1;
+    Parse->AllocateChild = true;
     Parse->StripComments = StripComments;
 }
 
@@ -403,8 +403,8 @@ void JsonParseCleanUp(tJsonParse *Parse)
     Parse->State = json_ParseComplete;
     Parse->Element = NULL;
     Parse->CommentState = json_ParseError;
-    Parse->AllocateChild = 0;
-    Parse->StripComments = 0;
+    Parse->AllocateChild = false;
+    Parse->StripComments = false;
 }
 
 

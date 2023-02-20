@@ -86,18 +86,18 @@ int main(int argc, const char *argv[])
 
         for (; (Error == JSONCFG_ERROR_NONE) && (Argument < argc); Argument = Argument + 2)
         {
-            Element = JsonElementFind(&Root, (const uint8_t *)argv[Argument], 1);
+            Element = JsonElementFind(&Root, (const uint8_t *)argv[Argument], true);
             if (Element == NULL)
             {
                 Error = JSONCFG_ERROR_NO_PATH;
             }
-            else if (!JsonReadString(&Value, 0, argv[Argument + 1]))
+            else if (!JsonReadString(&Value, false, argv[Argument + 1]))
             {
                 Error = JSONCFG_ERROR_READ_VALUE;
             }
             else
             {
-                ChildValue = JsonElementGetChild(&Value, 1);
+                ChildValue = JsonElementGetChild(&Value, true);
                 if ((JsonElementGetType(Element) == json_TypeObject) && (JsonElementGetType(ChildValue) == json_TypeObject))
                 {
                     Error = (JsonElementMoveChild(Element, ChildValue) != NULL) ? JSONCFG_ERROR_NONE : JSONCFG_ERROR_SET_VALUE;

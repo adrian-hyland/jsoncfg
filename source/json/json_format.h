@@ -62,7 +62,7 @@ typedef struct
     size_t           Indent;      /**< The current level of indentation */
     size_t           IndentSize;  /**< The number of spaces to use for an indentation */
     size_t           SpaceCount;  /**< The current number of spaces required in the format */
-    int              NewLine;     /**< Indicates if a new line is required in the format */
+    bool             NewLine;     /**< Indicates if a new line is required in the format */
 } tJsonFormat;
 
 

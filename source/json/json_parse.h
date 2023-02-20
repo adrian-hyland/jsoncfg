@@ -36,8 +36,8 @@ typedef struct
     tJsonParseState State;         /**< The current parse state */
     tJsonElement   *Element;       /**< The current element being parsed */
     tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
-    int             AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
-    int             StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
+    bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
+    bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
 } tJsonParse;
 
 
@@ -58,7 +58,7 @@ typedef struct
  * @param RootElement   Used to return the elements parsed from the JSON content
  * @return None
  */
-void JsonParseSetUp(tJsonParse *Parse, int StripComments, tJsonElement *RootElement);
+void JsonParseSetUp(tJsonParse *Parse, bool StripComments, tJsonElement *RootElement);
 
 
 /**

@@ -2,14 +2,14 @@
 #include "json_path.h"
 
 
-int JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *String)
+bool JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *String)
 {
     uint8_t Character;
     size_t PathIndex;
-    int Escape;
+    bool Escape;
 
     JsonStringClear(String);
-    Escape = 0;
+    Escape = false;
 
     for (PathIndex = 0; (PathIndex < PathLength); PathIndex++)
     {
@@ -27,12 +27,12 @@ int JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *Strin
             }
             else if ((Path[PathIndex] == '/') || (Path[PathIndex] == ':') || (Path[PathIndex] == '[') || (Path[PathIndex] == ']'))
             {
-                return 0;
+                return false;
             }
 
             if (!JsonStringAddCharacter(String, Character))
             {
-                return 0;
+                return false;
             }
         }
     }
@@ -41,16 +41,16 @@ int JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *Strin
 }
 
 
-int JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String)
+bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String)
 {
     uint8_t Character;
     size_t StringIndex;
     size_t StringLength;
     size_t PathIndex;
-    int Escape;
+    bool Escape;
 
     StringLength = JsonStringGetLength(String);
-    Escape = 0;
+    Escape = false;
 
     for (StringIndex = 0, PathIndex = 0; (StringIndex < StringLength) && (PathIndex < PathLength); PathIndex++)
     {
@@ -68,12 +68,12 @@ int JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *S
             }
             else if ((Path[PathIndex] == '/') || (Path[PathIndex] == ':') || (Path[PathIndex] == '[') || (Path[PathIndex] == ']'))
             {
-                return 0;
+                return false;
             }
 
             if (Character != JsonStringGetCharacter(String, StringIndex))
             {
-                return 0;
+                return false;
             }
 
             StringIndex++;
@@ -122,9 +122,9 @@ static size_t JsonPathTrimSpace(const uint8_t **Path, size_t *PathLength)
 static size_t JsonPathGetName(const uint8_t *Path, size_t PathLength, const uint8_t **Name, size_t *NameLength)
 {
     size_t Length;
-    int Escape;
+    bool Escape;
 
-    Escape = 0;
+    Escape = false;
 
     for (Length = 0; Length < PathLength; Length++)
     {
@@ -154,16 +154,16 @@ static size_t JsonPathGetName(const uint8_t *Path, size_t PathLength, const uint
 }
 
 
-static int JsonPathNameCheckQuote(const uint8_t *Path, size_t PathLength, int *IsQuoted)
+static bool JsonPathNameCheckQuote(const uint8_t *Path, size_t PathLength, bool *IsQuoted)
 {
-    int Escape;
+    bool Escape;
     size_t Index;
 
     *IsQuoted = (PathLength >= 2) && (Path[0] == '"') && (Path[PathLength - 1] == '"');
 
     if (*IsQuoted)
     {
-        Escape = 0;
+        Escape = false;
         for (Index = PathLength - 1; (Index > 0) && (Path[Index - 1] == '\\'); Index--)
         {
             Escape = !Escape;
@@ -171,18 +171,18 @@ static int JsonPathNameCheckQuote(const uint8_t *Path, size_t PathLength, int *I
 
         if (Escape)
         {
-            return 0;
+            return false;
         }
     }
     else if (PathLength > 0)
     {
         if (*Path == '"')
         {
-            return 0;
+            return false;
         }
         else if (Path[PathLength - 1] == '"')
         {
-            Escape = 0;
+            Escape = false;
             for (Index = PathLength - 1; (Index > 0) && (Path[Index - 1] == '\\'); Index--)
             {
                 Escape = !Escape;
@@ -190,12 +190,12 @@ static int JsonPathNameCheckQuote(const uint8_t *Path, size_t PathLength, int *I
 
             if (!Escape)
             {
-                return 0;
+                return false;
             }
         }
     }
 
-    return 1;
+    return true;
 }
 
 
@@ -207,7 +207,7 @@ size_t JsonPathGetComponent(const uint8_t *Path, size_t PathLength, tJsonType *C
     size_t PathIndex;
     size_t NestedCount;
     size_t SpaceCount;
-    int IsQuoted;
+    bool IsQuoted;
 
     SpaceCount = JsonPathTrimSpace(&Path, &PathLength);
 

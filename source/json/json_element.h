@@ -54,20 +54,20 @@ void JsonElementCleanUp(tJsonElement *Element);
  * @brief Allocates a child for an element
  * @param Element The element to allocate a child for
  * @param Type    The type of child to allocate
- * @return A non-zero (true) value is returned if a child was successfully allocated for the element
- * @return A zero (false) value is returned if a child could not be allocated for the element
+ * @return A true value is returned if a child was successfully allocated for the element
+ * @return A false value is returned if a child could not be allocated for the element
  */
-int JsonElementAllocateChild(tJsonElement *Element, tJsonType Type);
+bool JsonElementAllocateChild(tJsonElement *Element, tJsonType Type);
 
 
 /**
  * @brief Allocates a sibling for an element
  * @param Element The element to allocate a sibling for
  * @param Type    The type of sibling to allocate
- * @return A non-zero (true) value is returned if a sibling was successfully allocated for the element
- * @return A zero (false) value is returned if a sibling could not be allocated for the element
+ * @return A true value is returned if a sibling was successfully allocated for the element
+ * @return A false value is returned if a sibling could not be allocated for the element
  */
-int JsonElementAllocateNext(tJsonElement *Element, tJsonType Type);
+bool JsonElementAllocateNext(tJsonElement *Element, tJsonType Type);
 
 
 /**
@@ -84,7 +84,7 @@ tJsonType JsonElementGetType(tJsonElement *Element);
  * @param IgnoreComments Indicates whether to disregard any \a 'Comment' child elements 
  * @return The child element
  */
-tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments);
+tJsonElement *JsonElementGetChild(tJsonElement *Element, bool IgnoreComments);
 
 
 /**
@@ -93,7 +93,7 @@ tJsonElement *JsonElementGetChild(tJsonElement *Element, int IgnoreComments);
  * @param IgnoreComments Indicates whether to disregard any \a 'Comment' sibling elements 
  * @return The next sibling element
  */
-tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments);
+tJsonElement *JsonElementGetNext(tJsonElement *Element, bool IgnoreComments);
 
 
 /**
@@ -105,7 +105,7 @@ tJsonElement *JsonElementGetNext(tJsonElement *Element, int IgnoreComments);
  * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is zero) or created (if \a `Create` is non-zero)
  * @note The type of parameter \a `Element` must be equal to \a `json_TypeRoot` - use \a `JsonElementSetUp()` to set up an appropriate element
  */
-tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, int Create);
+tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, bool Create);
 
 
 /**

@@ -4,16 +4,16 @@
 #include "test_json.h"
 
 
-static int TestJsonParseComplete(const uint8_t *Content, int StripComments)
+static bool TestJsonParseComplete(const uint8_t *Content, bool StripComments)
 {
     tJsonElement Root;
     tJsonParse Parse;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
     JsonParseSetUp(&Parse, StripComments, &Root);
 
-    for (ok = 1; ok && (*Content != '\0'); Content++)
+    for (ok = true; ok && (*Content != '\0'); Content++)
     {
         ok = (JsonParse(&Parse, *Content) == JSON_PARSE_INCOMPLETE);
     }
@@ -27,15 +27,15 @@ static int TestJsonParseComplete(const uint8_t *Content, int StripComments)
 }
 
 
-static int TestJsonParseIncomplete(const uint8_t *Content, int StripComments)
+static bool TestJsonParseIncomplete(const uint8_t *Content, bool StripComments)
 {
     tJsonElement Root;
     tJsonParse Parse;
     size_t Length;
     size_t Index;
-    int ok;
+    bool ok;
 
-    ok = 1;
+    ok = true;
     Length = strlen((const char *)Content);
 
     while (ok && (Length > 1))
@@ -60,16 +60,16 @@ static int TestJsonParseIncomplete(const uint8_t *Content, int StripComments)
 }
 
 
-static int TestJsonParseError(const uint8_t *Content)
+static bool TestJsonParseError(const uint8_t *Content)
 {
     tJsonElement Root;
     tJsonParse Parse;
-    int ok;
+    bool ok;
 
     JsonElementSetUp(&Root);
-    JsonParseSetUp(&Parse, 1, &Root);
+    JsonParseSetUp(&Parse, true, &Root);
 
-    for (ok = 1; ok && (Content[0] != '\0') && (Content[1] != '\0'); Content++)
+    for (ok = true; ok && (Content[0] != '\0') && (Content[1] != '\0'); Content++)
     {
         ok = (JsonParse(&Parse, *Content) == JSON_PARSE_INCOMPLETE);
     }
@@ -83,7 +83,7 @@ static int TestJsonParseError(const uint8_t *Content)
 }
 
 
-static int TestJsonParseContent(void)
+static bool TestJsonParseContent(void)
 {
     static const uint8_t *ValidContent[] =
     {
@@ -217,20 +217,20 @@ static int TestJsonParseContent(void)
         (const uint8_t *)"123 ,",
     };
     size_t n;
-    int ok;
+    bool ok;
 
-    for (ok = 1, n = 0; ok && (n < sizeof(ValidContent) / sizeof(ValidContent[0])); n++)
+    for (ok = true, n = 0; ok && (n < sizeof(ValidContent) / sizeof(ValidContent[0])); n++)
     {
-        ok = TestJsonParseComplete(ValidContent[n], 0);
-        ok = ok && TestJsonParseComplete(ValidContent[n], 1);
+        ok = TestJsonParseComplete(ValidContent[n], false);
+        ok = ok && TestJsonParseComplete(ValidContent[n], true);
     }
 
     for (n = 0; ok && (n < sizeof(ValidContent) / sizeof(ValidContent[0])); n++)
     {
         if (!JsonCharacterIsLiteral(*ValidContent[n]) && (*ValidContent[n] != '/'))
         {
-            ok = TestJsonParseIncomplete(ValidContent[n], 0);
-            ok = ok && TestJsonParseIncomplete(ValidContent[n], 1);
+            ok = TestJsonParseIncomplete(ValidContent[n], false);
+            ok = ok && TestJsonParseIncomplete(ValidContent[n], true);
         }
     }
 

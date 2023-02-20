@@ -1,7 +1,7 @@
 #include "json.h"
 
 
-int JsonReadString(tJsonElement *Root, int StripComments, const char *String)
+bool JsonReadString(tJsonElement *Root, bool StripComments, const char *String)
 {
     tJsonParse Parse;
     int Error;
@@ -21,7 +21,7 @@ int JsonReadString(tJsonElement *Root, int StripComments, const char *String)
 }
 
 
-int JsonReadFile(tJsonElement *Root, int StripComments, FILE *Stream)
+bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream)
 {
     tJsonParse Parse;
     int Character;
@@ -47,7 +47,7 @@ int JsonReadFile(tJsonElement *Root, int StripComments, FILE *Stream)
 }
 
 
-int JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream)
+bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream)
 {
     tJsonFormat Format;
     uint8_t Character;

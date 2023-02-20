@@ -9,10 +9,10 @@
  * @param Path       The path name
  * @param PathLength The length of the path name
  * @param String     The string
- * @return A non-zero (true) value is returned if the string was successfully set to the path name
- * @return A zero (false) value is returned if the string could not be set to the path name
+ * @return A true value is returned if the string was successfully set to the path name
+ * @return A false value is returned if the string could not be set to the path name
  */
-int JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *String);
+bool JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *String);
 
 
 /**
@@ -20,10 +20,10 @@ int JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *Strin
  * @param Path       The path name
  * @param PathLength The length of the path name
  * @param String     The string
- * @return A non-zero (true) value is returned if the path name and string are equal
- * @return A zero (false) value is returned if the path name and string are not equal
+ * @return A true value is returned if the path name and string are equal
+ * @return A false value is returned if the path name and string are not equal
  */
-int JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String);
+bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String);
 
 
 /**

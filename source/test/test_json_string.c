@@ -2,10 +2,10 @@
 #include "test_json.h"
 
 
-static int TestJsonStringSetUp(void)
+static bool TestJsonStringSetUp(void)
 {
     tJsonString String;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
@@ -19,10 +19,10 @@ static int TestJsonStringSetUp(void)
 }
 
 
-static int TestJsonStringCleanUp(void)
+static bool TestJsonStringCleanUp(void)
 {
     tJsonString String;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
@@ -42,10 +42,10 @@ static int TestJsonStringCleanUp(void)
 }
 
 
-static int TestJsonStringClear(void)
+static bool TestJsonStringClear(void)
 {
     tJsonString String;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
@@ -67,15 +67,15 @@ static int TestJsonStringClear(void)
 }
 
 
-static int TestJsonStringGetLength(void)
+static bool TestJsonStringGetLength(void)
 {
     tJsonString String;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
-    for (ok = 1, Character = 0; ok && (Character < UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character < UINT8_MAX); Character++)
     {
         ok = JsonStringAddCharacter(&String, Character + 1);
 
@@ -88,15 +88,15 @@ static int TestJsonStringGetLength(void)
 }
 
 
-static int TestJsonStringAddCharacter(void)
+static bool TestJsonStringAddCharacter(void)
 {
     tJsonString String;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
-    for (ok = 1, Character = 0; ok && (Character < UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character < UINT8_MAX); Character++)
     {
         ok = JsonStringAddCharacter(&String, Character + 1);
     }
@@ -114,15 +114,15 @@ static int TestJsonStringAddCharacter(void)
 }
 
 
-static int TestJsonStringGetCharacter(void)
+static bool TestJsonStringGetCharacter(void)
 {
     tJsonString String;
     uint8_t Character;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
-    for (ok = 1, Character = 0; ok && (Character < UINT8_MAX); Character++)
+    for (ok = true, Character = 0; ok && (Character < UINT8_MAX); Character++)
     {
         ok = (JsonStringGetCharacter(&String, Character) == '\0');
 

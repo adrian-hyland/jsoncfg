@@ -3,7 +3,7 @@
 #include "test_json.h"
 
 
-static int TestJsonPathSetString(void)
+static bool TestJsonPathSetString(void)
 {
     static const char *ValidPaths[] =
     {
@@ -23,11 +23,11 @@ static int TestJsonPathSetString(void)
     size_t PathLength;
     size_t PathIndex;
     size_t n;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
-    for (ok = 1, n = 0; n < sizeof(ValidPaths) / sizeof(ValidPaths[0]); n++)
+    for (ok = true, n = 0; n < sizeof(ValidPaths) / sizeof(ValidPaths[0]); n++)
     {
         PathLength = strlen(ValidPaths[n]);
         ok = JsonPathSetString((const uint8_t *)ValidPaths[n], PathLength, &String);
@@ -54,7 +54,7 @@ static int TestJsonPathSetString(void)
 }
 
 
-static int TestJsonPathCompareString(void)
+static bool TestJsonPathCompareString(void)
 {
     static const char *Paths[] =
     {
@@ -64,11 +64,11 @@ static int TestJsonPathCompareString(void)
     tJsonString String;
     size_t PathLength;
     size_t n;
-    int ok;
+    bool ok;
 
     JsonStringSetUp(&String);
 
-    for (ok = 1, n = 0; n < sizeof(Paths) / sizeof(Paths[0]); n++)
+    for (ok = true, n = 0; n < sizeof(Paths) / sizeof(Paths[0]); n++)
     {
         PathLength = strlen(Paths[n]) - 1;
 
@@ -87,7 +87,7 @@ static int TestJsonPathCompareString(void)
 }
 
 
-static int TestJsonPathGetComponent(void)
+static bool TestJsonPathGetComponent(void)
 {
     static const struct
     {
@@ -236,9 +236,9 @@ static int TestJsonPathGetComponent(void)
     size_t ComponentLength;
     size_t Length;
     size_t n;
-    int ok;
+    bool ok;
 
-    for (ok = 1, n = 0; ok && (n < sizeof(TestPaths) / sizeof(TestPaths[0])); n++)
+    for (ok = true, n = 0; ok && (n < sizeof(TestPaths) / sizeof(TestPaths[0])); n++)
     {
         Length = JsonPathGetComponent(TestPaths[n].Path, strlen((const char *)TestPaths[n].Path), &ComponentType, &Component, &ComponentLength);
 
