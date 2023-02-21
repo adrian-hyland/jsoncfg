@@ -22,6 +22,8 @@ static bool TestJsonPathSetString(void)
 	size_t StringIndex;
 	size_t PathLength;
 	size_t PathIndex;
+	uint8_t Character;
+	size_t CharacterLength;
 	size_t n;
 	bool ok;
 
@@ -36,8 +38,10 @@ static bool TestJsonPathSetString(void)
 		{
 			if (ValidPaths[n][PathIndex] != '\\')
 			{
-				ok = (JsonStringGetCharacter(&String, StringIndex) == ValidPaths[n][PathIndex]);
-				StringIndex++;
+				CharacterLength = JsonStringGetCharacter(&String, StringIndex, &Character);
+				ok = (CharacterLength != 0);
+				ok = ok && (Character == ValidPaths[n][PathIndex]);
+				StringIndex = StringIndex + CharacterLength;
 			}
 		}
 	}

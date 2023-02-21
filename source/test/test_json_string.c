@@ -5,13 +5,16 @@
 static bool TestJsonStringSetUp(void)
 {
 	tJsonString String;
+	uint8_t Character;
 	bool ok;
 
 	JsonStringSetUp(&String);
 
 	ok = (JsonStringGetLength(&String) == 0);
 
-	ok = ok && (JsonStringGetCharacter(&String, 0) == '\0');
+	ok = ok && (JsonStringGetCharacter(&String, 0, &Character) == 0);
+	
+	ok = ok && (Character == '\0');
 
 	JsonStringCleanUp(&String);
 
@@ -22,6 +25,7 @@ static bool TestJsonStringSetUp(void)
 static bool TestJsonStringCleanUp(void)
 {
 	tJsonString String;
+	uint8_t Character;
 	bool ok;
 
 	JsonStringSetUp(&String);
@@ -30,13 +34,17 @@ static bool TestJsonStringCleanUp(void)
 
 	ok = ok && (JsonStringGetLength(&String) == 1);
 
-	ok = ok && (JsonStringGetCharacter(&String, 0) == 'a');
+	ok = ok && (JsonStringGetCharacter(&String, 0, &Character) == 1);
+	
+	ok = ok && (Character == 'a');
 
 	JsonStringCleanUp(&String);
 
 	ok = ok && (JsonStringGetLength(&String) == 0);
 
-	ok = ok && (JsonStringGetCharacter(&String, 0) == '\0');
+	ok = ok && (JsonStringGetCharacter(&String, 0, &Character) == 0);
+	
+	ok = ok && (Character == '\0');
 
 	return ok;
 }
@@ -45,6 +53,7 @@ static bool TestJsonStringCleanUp(void)
 static bool TestJsonStringClear(void)
 {
 	tJsonString String;
+	uint8_t Character;
 	bool ok;
 
 	JsonStringSetUp(&String);
@@ -53,13 +62,17 @@ static bool TestJsonStringClear(void)
 
 	ok = ok && (JsonStringGetLength(&String) == 1);
 
-	ok = ok && (JsonStringGetCharacter(&String, 0) == 'a');
+	ok = ok && (JsonStringGetCharacter(&String, 0, &Character) == 1);
+	
+	ok = ok && (Character == 'a');
 
 	JsonStringClear(&String);
 
 	ok = ok && (JsonStringGetLength(&String) == 0);
 
-	ok = ok && (JsonStringGetCharacter(&String, 0) == '\0');
+	ok = ok && (JsonStringGetCharacter(&String, 0, &Character) == 0);
+	
+	ok = ok && (Character == '\0');
 
 	JsonStringCleanUp(&String);
 
@@ -92,20 +105,23 @@ static bool TestJsonStringAddCharacter(void)
 {
 	tJsonString String;
 	uint8_t Character;
+	uint8_t n;
 	bool ok;
 
 	JsonStringSetUp(&String);
 
-	for (ok = true, Character = 0; ok && (Character < UINT8_MAX); Character++)
+	for (ok = true, n = 0; ok && (n < UINT8_MAX); n++)
 	{
-		ok = JsonStringAddCharacter(&String, Character + 1);
+		ok = JsonStringAddCharacter(&String, n + 1);
 	}
 
-	ok = ok && (JsonStringGetLength(&String) == Character);
+	ok = ok && (JsonStringGetLength(&String) == n);
 
-	for (Character = 0; ok && (Character < UINT8_MAX); Character++)
+	for (n = 0; ok && (n < UINT8_MAX); n++)
 	{
-		ok = ok && (JsonStringGetCharacter(&String, Character) == Character + 1);
+		ok = ok && (JsonStringGetCharacter(&String, n, &Character) == 1);
+		
+		ok = ok && (Character == n + 1);
 	}
 
 	JsonStringCleanUp(&String);
@@ -118,17 +134,22 @@ static bool TestJsonStringGetCharacter(void)
 {
 	tJsonString String;
 	uint8_t Character;
+	uint8_t n;
 	bool ok;
 
 	JsonStringSetUp(&String);
 
-	for (ok = true, Character = 0; ok && (Character < UINT8_MAX); Character++)
+	for (ok = true, n = 0; ok && (n < UINT8_MAX); n++)
 	{
-		ok = (JsonStringGetCharacter(&String, Character) == '\0');
+		ok = (JsonStringGetCharacter(&String, n, &Character) == 0);
+		
+		ok = ok && (Character == '\0');
 
-		ok = ok && JsonStringAddCharacter(&String, Character + 1);
+		ok = ok && JsonStringAddCharacter(&String, n + 1);
 
-		ok = ok && (JsonStringGetCharacter(&String, Character) == Character + 1);
+		ok = ok && (JsonStringGetCharacter(&String, n, &Character) == 1);
+		
+		ok = ok && (Character == n + 1);
 	}
 
 	JsonStringCleanUp(&String);

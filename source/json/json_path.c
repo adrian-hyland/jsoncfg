@@ -43,7 +43,9 @@ bool JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *Stri
 
 bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String)
 {
-	uint8_t Character;
+	uint8_t PathCharacter;
+	uint8_t StringCharacter;
+	size_t StringCharacterLength;
 	size_t StringIndex;
 	size_t StringLength;
 	size_t PathIndex;
@@ -54,8 +56,8 @@ bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *
 
 	for (StringIndex = 0, PathIndex = 0; (StringIndex < StringLength) && (PathIndex < PathLength); PathIndex++)
 	{
-		Character = Path[PathIndex];
-		if (!Escape && (Character == '\\'))
+		PathCharacter = Path[PathIndex];
+		if (!Escape && (PathCharacter == '\\'))
 		{
 			Escape = !Escape;
 		}
@@ -63,20 +65,22 @@ bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *
 		{
 			if (Escape)
 			{
-				Character = JsonCharacterFromEscape(Character);
+				PathCharacter = JsonCharacterFromEscape(PathCharacter);
 				Escape = !Escape;
 			}
-			else if ((Path[PathIndex] == '/') || (Path[PathIndex] == ':') || (Path[PathIndex] == '[') || (Path[PathIndex] == ']'))
+			else if ((PathCharacter == '/') || (PathCharacter == ':') || (PathCharacter == '[') || (PathCharacter == ']'))
 			{
 				return false;
 			}
 
-			if (Character != JsonStringGetCharacter(String, StringIndex))
+			StringCharacterLength = JsonStringGetCharacter(String, StringIndex, &StringCharacter);
+
+			if ((StringCharacterLength == 0) || (PathCharacter != StringCharacter))
 			{
 				return false;
 			}
 
-			StringIndex++;
+			StringIndex = StringIndex + StringCharacterLength;
 		}
 	}
 

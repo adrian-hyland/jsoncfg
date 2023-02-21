@@ -40,4 +40,10 @@ extern const tTest TestJsonParse;
 extern const tTest TestJsonFormat;
 
 
+/**
+ * @brief Contains test cases for UTF-8 encoded string values
+ */
+extern const tTest TestJsonValueUtf8;
+
+
 #endif

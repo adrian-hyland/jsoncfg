@@ -11,24 +11,35 @@ static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, uint8_t *Charact
 
 static tJsonFormatState JsonFormatKeyEscape(tJsonFormat *Format, uint8_t *Character)
 {
-	*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
+	size_t CharacterLength;
+
+	CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+	if (CharacterLength == 0)
+	{
+		return json_FormatError;
+	}
 	*Character = JsonCharacterToEscape(*Character);
-	Format->NameIndex++;
+	Format->NameIndex = Format->NameIndex + CharacterLength;
 	return json_FormatKey;
 }
 
 
 static tJsonFormatState JsonFormatKey(tJsonFormat *Format, uint8_t *Character)
 {
+	size_t CharacterLength;
 	if (Format->NameIndex < Format->Element->Name.Length)
 	{
-		*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
+		CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+		if (CharacterLength == 0)
+		{
+			return json_FormatError;
+		}
 		if (JsonCharacterIsEscapable(*Character))
 		{
 			*Character = '\\';
 			return json_FormatKeyEscape;
 		}
-		Format->NameIndex++;
+		Format->NameIndex = Format->NameIndex + CharacterLength;
 		return json_FormatKey;
 	}
 	else
@@ -183,24 +194,36 @@ static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, uint8_t *Charact
 
 static tJsonFormatState JsonFormatValueStringEscape(tJsonFormat *Format, uint8_t *Character)
 {
-	*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
+	size_t CharacterLength;
+
+	CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+	if (CharacterLength == 0)
+	{
+		return json_FormatError;
+	}
 	*Character = JsonCharacterToEscape(*Character);
-	Format->NameIndex++;
+	Format->NameIndex = Format->NameIndex + CharacterLength;
 	return json_FormatValueString;
 }
 
 
 static tJsonFormatState JsonFormatValueString(tJsonFormat *Format, uint8_t *Character)
 {
+	size_t CharacterLength;
+
 	if (Format->NameIndex < Format->Element->Name.Length)
 	{
-		*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
+		CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+		if (CharacterLength == 0)
+		{
+			return json_FormatError;
+		}
 		if (JsonCharacterIsEscapable(*Character))
 		{
 			*Character = '\\';
 			return json_FormatValueStringEscape;
 		}
-		Format->NameIndex++;
+		Format->NameIndex = Format->NameIndex + CharacterLength;
 		return json_FormatValueString;
 	}
 	else
@@ -213,10 +236,16 @@ static tJsonFormatState JsonFormatValueString(tJsonFormat *Format, uint8_t *Char
 
 static tJsonFormatState JsonFormatValueLiteral(tJsonFormat *Format, uint8_t *Character)
 {
+	size_t CharacterLength;
+
 	if (Format->NameIndex < Format->Element->Name.Length)
 	{
-		*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
-		Format->NameIndex++;
+		CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+		if (CharacterLength == 0)
+		{
+			return json_FormatError;
+		}
+		Format->NameIndex = Format->NameIndex + CharacterLength;
 		return json_FormatValueLiteral;
 	}
 	else
@@ -328,6 +357,8 @@ static tJsonFormatState JsonFormatCommentStart(tJsonFormat *Format, uint8_t *Cha
 static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Character)
 {
 	tJsonElement *NextElement;
+	uint8_t NextCharacter;
+	size_t CharacterLength;
 
 	if (Format->SpaceCount > 0)
 	{
@@ -337,8 +368,8 @@ static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Characte
 	}
 	else if (Format->NameIndex < Format->Element->Name.Length)
 	{
-		*Character = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex);
-		Format->NameIndex++;
+		CharacterLength = JsonStringGetCharacter(&Format->Element->Name, Format->NameIndex, Character);
+		Format->NameIndex = Format->NameIndex + CharacterLength;
 		if (Format->NameIndex == Format->Element->Name.Length)
 		{
 			if (Format->CommentType == json_CommentBlock)
@@ -364,7 +395,7 @@ static tJsonFormatState JsonFormatComment(tJsonFormat *Format, uint8_t *Characte
 			Format->Element = NextElement;
 			Format->NameIndex = 0;
 			Format->SpaceCount = Format->Indent * Format->IndentSize + 1;
-			if ((JsonStringGetLength(&NextElement->Name) != 0) && (JsonStringGetCharacter(&NextElement->Name, 0) != '*'))
+			if ((JsonStringGetCharacter(&NextElement->Name, 0, &NextCharacter) != 0) && (NextCharacter != '*'))
 			{
 				Format->SpaceCount++;
 			}

@@ -31,7 +31,7 @@ void JsonStringClear(tJsonString *String)
 }
 
 
-size_t JsonStringGetLength(tJsonString *String)
+size_t JsonStringGetLength(const tJsonString *String)
 {
 	return String->Length;
 }
@@ -74,7 +74,16 @@ bool JsonStringAddCharacter(tJsonString *String, uint8_t Character)
 }
 
 
-uint8_t JsonStringGetCharacter(tJsonString *String, size_t Index)
+size_t JsonStringGetCharacter(const tJsonString *String, size_t Index, uint8_t *Character)
 {
-	return (Index < String->Length) ? String->Content[Index] : '\0';
+	if (Index < String->Length)
+	{
+		*Character = String->Content[Index];
+		return 1;
+	}
+	else
+	{
+		*Character = '\0';
+		return 0;
+	}
 }

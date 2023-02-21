@@ -11,7 +11,8 @@ static const tTest *Tests[] =
 	&TestJsonPath,
 	&TestJsonElement,
 	&TestJsonParse,
-	&TestJsonFormat
+	&TestJsonFormat,
+	&TestJsonValueUtf8
 };
 
 
