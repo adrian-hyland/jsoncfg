@@ -1,28 +1,51 @@
+#include <string.h>
 #include "json_character.h"
 #include "json_path.h"
 
 
-static size_t JsonPathGetNextCharacter(const uint8_t *Path, size_t PathLength, size_t PathIndex, bool *IsEscaped, uint8_t *Character)
+tJsonPath JsonPathUtf8(const uint8_t *PathString)
 {
-	size_t Index = PathIndex;
+	tJsonPath Path;
 
-	if (Index < PathLength)
+	Path.Value = PathString;
+	Path.Length = (PathString != NULL) ? strlen((const char *)PathString) : 0;
+
+	return Path;
+}
+
+
+tJsonPath JsonPathAscii(const char *PathString)
+{
+	tJsonPath Path;
+
+	Path.Value = (const uint8_t *)PathString;
+	Path.Length = (PathString != NULL) ? strlen(PathString) : 0;
+
+	return Path;
+}
+
+
+size_t JsonPathGetNextCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, uint8_t *Character)
+{
+	size_t PathOffset = Offset;
+
+	if (PathOffset < Path.Length)
 	{
-		*Character = Path[Index];
-		Index++;
+		*Character = Path.Value[PathOffset];
+		PathOffset++;
 		if (*Character != '\\')
 		{
 			*IsEscaped = false;
-			return Index - PathIndex;
+			return PathOffset - Offset;
 		}
 		
-		if (Index < PathLength)
+		if (PathOffset < Path.Length)
 		{
 			*IsEscaped = true;
-			*Character = Path[Index];
+			*Character = Path.Value[PathOffset];
 			*Character = JsonCharacterFromEscape(*Character);
-			Index++;
-			return Index - PathIndex;
+			PathOffset++;
+			return PathOffset - Offset;
 		}
 	}
 
@@ -32,25 +55,29 @@ static size_t JsonPathGetNextCharacter(const uint8_t *Path, size_t PathLength, s
 }
 
 
-static size_t JsonPathGetPreviousCharacter(const uint8_t *Path, size_t PathLength, size_t PathIndex, bool *IsEscaped, uint8_t *Character)
+size_t JsonPathGetPreviousCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, uint8_t *Character)
 {
-	size_t PreviousIndex;
-	size_t Index = PathIndex;
+	size_t PreviousOffset;
+	size_t PathOffset = Offset;
 
-	if ((Index > 0) && (Index <= PathLength))
+	if ((PathOffset > 0) && (PathOffset <= Path.Length))
 	{
-		Index--;
-		*Character = Path[Index];
-		if ((Index == 0) || (Path[Index - 1] != '\\'))
+		PathOffset--;
+		*Character = Path.Value[PathOffset];
+		if ((PathOffset == 0) || (Path.Value[PathOffset - 1] != '\\'))
 		{
 			*IsEscaped = false;
 		}
 		else
 		{
 			*IsEscaped = true;
-			for (PreviousIndex = Index - 1; (PreviousIndex > 0) && (Path[PreviousIndex - 1] == '\\'); PreviousIndex--)
+			for (PreviousOffset = PathOffset - 1; (PreviousOffset > 0) && (Path.Value[PreviousOffset - 1] == '\\'); PreviousOffset--)
 			{
 				*IsEscaped = !*IsEscaped;
+			}
+			if (*IsEscaped)
+			{
+				PathOffset--;
 			}
 		}
 	}
@@ -62,7 +89,7 @@ static size_t JsonPathGetPreviousCharacter(const uint8_t *Path, size_t PathLengt
 			*Character = JsonCharacterFromEscape(*Character);
 		}
 		
-		return PathIndex - Index;
+		return Offset - PathOffset;
 	}
 
 	*IsEscaped = false;
@@ -71,24 +98,80 @@ static size_t JsonPathGetPreviousCharacter(const uint8_t *Path, size_t PathLengt
 }
 
 
-bool JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *String)
+tJsonPath JsonPathLeft(tJsonPath Path, size_t ToOffset)
+{
+	tJsonPath SubPath;
+
+	if (ToOffset > Path.Length)
+	{
+		ToOffset = Path.Length;
+	}
+
+	SubPath.Value = Path.Value;
+	SubPath.Length = ToOffset;
+
+	return SubPath;
+}
+
+
+tJsonPath JsonPathRight(tJsonPath Path, size_t FromOffset)
+{
+	tJsonPath SubPath;
+
+	if (FromOffset > Path.Length)
+	{
+		FromOffset = Path.Length;
+	}
+
+	SubPath.Value = &Path.Value[FromOffset];
+	SubPath.Length = Path.Length - FromOffset;
+
+	return SubPath;
+}
+
+
+tJsonPath JsonPathMiddle(tJsonPath Path, size_t FromOffset, size_t ToOffset)
+{
+	tJsonPath SubPath;
+
+	if (FromOffset > Path.Length)
+	{
+		FromOffset = Path.Length;
+	}
+	if (ToOffset > Path.Length)
+	{
+		ToOffset = Path.Length;
+	}
+	if (FromOffset > ToOffset)
+	{
+		ToOffset = FromOffset;
+	}
+
+	SubPath.Value = &Path.Value[FromOffset];
+	SubPath.Length = ToOffset - FromOffset;
+
+	return SubPath;
+}
+
+
+bool JsonPathSetString(tJsonPath Path, tJsonString *String)
 {
 	uint8_t Character;
 	size_t CharacterLength;
-	size_t PathIndex;
+	size_t PathOffset;
 	bool IsEscaped;
 
 	JsonStringClear(String);
 
-	for (PathIndex = 0; (PathIndex < PathLength); PathIndex = PathIndex + CharacterLength)
+	for (PathOffset = 0; (PathOffset < Path.Length); PathOffset = PathOffset + CharacterLength)
 	{
-		CharacterLength = JsonPathGetNextCharacter(Path, PathLength, PathIndex, &IsEscaped, &Character);
+		CharacterLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &Character);
 		if (CharacterLength == 0)
 		{
 			return false;
 		}
 
-		if (!IsEscaped && ((Path[PathIndex] == '/') || (Path[PathIndex] == ':') || (Path[PathIndex] == '[') || (Path[PathIndex] == ']')))
+		if (!IsEscaped && ((Character == '/') || (Character == ':') || (Character == '[') || (Character == ']')))
 		{
 			return false;
 		}
@@ -103,22 +186,22 @@ bool JsonPathSetString(const uint8_t *Path, size_t PathLength, tJsonString *Stri
 }
 
 
-bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *String)
+bool JsonPathCompareString(tJsonPath Path, tJsonString *String)
 {
 	uint8_t PathCharacter;
 	uint8_t StringCharacter;
 	size_t PathCharacterLength;
 	size_t StringCharacterLength;
-	size_t StringIndex;
+	size_t StringOffset;
 	size_t StringLength;
-	size_t PathIndex;
+	size_t PathOffset;
 	bool IsEscaped;
 
 	StringLength = JsonStringGetLength(String);
 
-	for (StringIndex = 0, PathIndex = 0; (StringIndex < StringLength) && (PathIndex < PathLength); PathIndex = PathIndex + PathCharacterLength, StringIndex = StringIndex + StringCharacterLength)
+	for (StringOffset = 0, PathOffset = 0; (StringOffset < StringLength) && (PathOffset < Path.Length); StringOffset = StringOffset + StringCharacterLength, PathOffset = PathOffset + PathCharacterLength)
 	{
-		PathCharacterLength = JsonPathGetNextCharacter(Path, PathLength, PathIndex, &IsEscaped, &PathCharacter);
+		PathCharacterLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &PathCharacter);
 		if (PathCharacterLength == 0)
 		{
 			return false;
@@ -129,84 +212,91 @@ bool JsonPathCompareString(const uint8_t *Path, size_t PathLength, tJsonString *
 			return false;
 		}
 
-		StringCharacterLength = JsonStringGetCharacter(String, StringIndex, &StringCharacter);
+		StringCharacterLength = JsonStringGetCharacter(String, StringOffset, &StringCharacter);
 		if ((StringCharacterLength == 0) || (PathCharacter != StringCharacter))
 		{
 			return false;
 		}
 	}
 
-	return (StringIndex == StringLength) && (PathIndex == PathLength);
+	return (StringOffset == StringLength) && (PathOffset == Path.Length);
 }
 
 
-static size_t JsonPathTrimSpaces(const uint8_t *Path, size_t PathLength, const uint8_t **TrimmedPath, size_t *TrimmedPathLength)
+static size_t JsonPathSkipSpaceLeft(tJsonPath Path)
+{
+	uint8_t Character;
+	size_t CharacterLength;
+	size_t Offset;
+	bool IsEscaped;
+
+	for (Offset = 0; Offset < Path.Length; Offset = Offset + CharacterLength)
+	{
+		CharacterLength = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
+		if ((CharacterLength == 0) || IsEscaped || (Character != ' '))
+		{
+			break;
+		}
+	}
+
+	return Offset;
+}
+
+
+static size_t JsonPathSkipSpaceRight(tJsonPath Path)
+{
+	uint8_t Character;
+	size_t CharacterLength;
+	size_t Offset;
+	bool IsEscaped;
+
+	for (Offset = Path.Length; Offset > 0; Offset = Offset - CharacterLength)
+	{
+		CharacterLength = JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character);
+		if ((CharacterLength == 0) || IsEscaped || (Character != ' '))
+		{
+			break;
+		}
+	}
+
+	return Offset;
+}
+
+
+static tJsonPath JsonPathTrimSpaces(tJsonPath Path)
+{
+	return JsonPathMiddle(Path, JsonPathSkipSpaceLeft(Path), JsonPathSkipSpaceRight(Path));
+}
+
+
+static size_t JsonPathGetName(tJsonPath Path, tJsonPath *Name)
 {
 	uint8_t Character;
 	size_t CharacterLength;
 	size_t Length;
 	bool IsEscaped;
 
-	Length = 0;
-
-	for (;;)
+	for (Length = 0; Length < Path.Length; Length = Length + CharacterLength)
 	{
-		CharacterLength = JsonPathGetNextCharacter(Path, PathLength, 0, &IsEscaped, &Character);
-		if ((CharacterLength == 0) || IsEscaped || (Character != ' '))
-		{
-			break;
-		}
-		Path = Path + CharacterLength;
-		PathLength = PathLength - CharacterLength;
-		Length = Length + CharacterLength;
-	}
-
-	for (;;)
-	{
-		CharacterLength = JsonPathGetPreviousCharacter(Path, PathLength, PathLength, &IsEscaped, &Character);
-		if ((CharacterLength == 0) || IsEscaped || (Character != ' '))
-		{
-			break;
-		}
-		PathLength = PathLength - CharacterLength;
-		Length = Length + CharacterLength;
-	}
-
-	*TrimmedPath = Path;
-	*TrimmedPathLength = PathLength;
-
-	return Length;
-}
-
-
-static size_t JsonPathGetName(const uint8_t *Path, size_t PathLength, const uint8_t **Name, size_t *NameLength)
-{
-	uint8_t Character;
-	size_t CharacterLength;
-	size_t Length;
-	bool IsEscaped;
-
-	for (Length = 0; Length < PathLength; Length = Length + CharacterLength)
-	{
-		CharacterLength = JsonPathGetNextCharacter(Path, PathLength, Length, &IsEscaped, &Character);
+		CharacterLength = JsonPathGetNextCharacter(Path, Length, &IsEscaped, &Character);
 		if (CharacterLength == 0)
 		{
 			return 0;
 		}
 
-		if (!IsEscaped && ((Path[Length] == '/') || (Path[Length] == ':') || (Path[Length] == '[') || (Path[Length] == ']')))
+		if (!IsEscaped && ((Character == '/') || (Character == ':') || (Character == '[') || (Character == ']')))
 		{
 			break;
 		}
 	}
 
-	JsonPathTrimSpaces(Path, Length, Name, NameLength);
+	*Name = JsonPathTrimSpaces(JsonPathLeft(Path, Length));
 
 	return Length;
 }
 
 
-static bool JsonPathTrimQuotes(const uint8_t *Path, size_t PathLength, const uint8_t **UnquotedPath, size_t *UnquotedPathLength)
+static bool JsonPathTrimQuotes(tJsonPath Path, tJsonPath *UnquotedPath)
 {
 	uint8_t FirstCharacter;
 	uint8_t LastCharacter;
@@ -216,25 +306,24 @@ static bool JsonPathTrimQuotes(const uint8_t *Path, size_t PathLength, const uin
 	bool LastIsEscaped;
 
 	*UnquotedPath = Path;
-	*UnquotedPathLength = PathLength;
 
-	if (PathLength == 0)
+	if (Path.Length == 0)
 	{
 		return true;
 	}
 
-	FirstCharacterLength = JsonPathGetNextCharacter(Path, PathLength, 0, &FirstIsEscaped, &FirstCharacter);
+	FirstCharacterLength = JsonPathGetNextCharacter(Path, 0, &FirstIsEscaped, &FirstCharacter);
 	if (FirstCharacterLength == 0)
 	{
 		return false;
 	}
 
-	if (FirstCharacterLength == PathLength)
+	if (FirstCharacterLength == Path.Length)
 	{
 		return FirstCharacter != '"';
 	}
 
-	LastCharacterLength = JsonPathGetPreviousCharacter(&Path[FirstCharacterLength], PathLength - FirstCharacterLength, PathLength - FirstCharacterLength, &LastIsEscaped, &LastCharacter);
+	LastCharacterLength = JsonPathGetPreviousCharacter(Path, Path.Length, &LastIsEscaped, &LastCharacter);
 	if (LastCharacterLength == 0)
 	{
 		return false;
@@ -248,29 +337,27 @@ static bool JsonPathTrimQuotes(const uint8_t *Path, size_t PathLength, const uin
 	{
 		if ((FirstCharacter == '"') && (LastCharacter == '"'))
 		{
-			*UnquotedPath = &Path[FirstCharacterLength];
-			*UnquotedPathLength = PathLength - FirstCharacterLength - LastCharacterLength;
+			*UnquotedPath = JsonPathMiddle(Path, FirstCharacterLength, Path.Length - LastCharacterLength);
 		}
 		return (FirstCharacter == '"') ? (LastCharacter == '"') : (LastCharacter != '"');
 	}
 }
 
 
-size_t JsonPathGetComponent(const uint8_t *Path, size_t PathLength, tJsonType *ComponentType, const uint8_t **Component, size_t *ComponentLength)
+size_t JsonPathGetComponent(tJsonPath Path, tJsonType *ComponentType, tJsonPath *Component)
 {
-	const uint8_t *Name;
+	tJsonPath Name;
 	uint8_t Character;
 	size_t CharacterLength;
-	size_t NameLength;
+	size_t Start;
 	size_t Length;
-	size_t PathIndex;
+	size_t Offset;
 	size_t NestedCount;
-	size_t SpaceCount;
 	bool IsEscaped;
 
-	SpaceCount = JsonPathTrimSpaces(Path, PathLength, &Path, &PathLength);
+	Start = JsonPathSkipSpaceLeft(Path);
 
-	CharacterLength = JsonPathGetNextCharacter(Path, PathLength, 0, &IsEscaped, &Character);
+	CharacterLength = JsonPathGetNextCharacter(Path, Start, &IsEscaped, &Character);
 	if (CharacterLength == 0)
 	{
 		return 0;
@@ -281,17 +368,17 @@ size_t JsonPathGetComponent(const uint8_t *Path, size_t PathLength, tJsonType *C
 		if (Character == '/')
 		{
 			*ComponentType = json_TypeObject;
-			*Component = NULL;
-			*ComponentLength = 0;
-			return SpaceCount + CharacterLength;
+			*Component = JsonPathUtf8(NULL);
+			Offset = Start + CharacterLength;
+			return Offset + JsonPathSkipSpaceLeft(JsonPathRight(Path, Offset));
 		}
 	
 		if (Character == '[')
 		{
 			NestedCount = 0;
-			for (PathIndex = CharacterLength; PathIndex < PathLength; PathIndex = PathIndex + Length)
+			for (Offset = Start + CharacterLength; Offset < Path.Length; Offset = Offset + Length)
 			{
-				Length = JsonPathGetNextCharacter(Path, PathLength, PathIndex, &IsEscaped, &Character);
+				Length = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
 				if (!IsEscaped)
 				{
 					if (Character == ']')
@@ -299,8 +386,9 @@ size_t JsonPathGetComponent(const uint8_t *Path, size_t PathLength, tJsonType *C
 						if (NestedCount == 0)
 						{
 							*ComponentType = json_TypeArray;
-							JsonPathTrimSpaces(&Path[CharacterLength], PathIndex - CharacterLength, Component, ComponentLength);
-							return SpaceCount + PathIndex + Length;
+							*Component = JsonPathTrimSpaces(JsonPathMiddle(Path, Start + CharacterLength, Offset));
+							Offset = Offset + Length;
+							return Offset + JsonPathSkipSpaceLeft(JsonPathRight(Path, Offset));
 						}
 						NestedCount--;
 					}
@@ -321,25 +409,27 @@ size_t JsonPathGetComponent(const uint8_t *Path, size_t PathLength, tJsonType *C
 
 		if (Character == ':')
 		{
-			Length = JsonPathGetName(&Path[CharacterLength], PathLength - CharacterLength, &Name, &NameLength);
-			if ((Length == 0) || !JsonPathTrimQuotes(Name, NameLength, Component, ComponentLength))
+			Offset = Start + CharacterLength;
+
+			Length = JsonPathGetName(JsonPathRight(Path, Offset), &Name);
+			if ((Length == 0) || !JsonPathTrimQuotes(Name, Component))
 			{
 				return 0;
 			}
 
-			*ComponentType = (NameLength == *ComponentLength) ? json_TypeValueLiteral : json_TypeValueString;
+			*ComponentType = (Name.Length == Component->Length) ? json_TypeValueLiteral : json_TypeValueString;
 
-			return SpaceCount + Length + CharacterLength;
+			return Offset + Length;
 		}
 	}
 
-	Length = JsonPathGetName(Path, PathLength, &Name, &NameLength);
-	if ((Length == 0) || !JsonPathTrimQuotes(Name, NameLength, Component, ComponentLength))
+	Length = JsonPathGetName(JsonPathRight(Path, Start), &Name);
+	if ((Length == 0) || !JsonPathTrimQuotes(Name, Component))
 	{
 		return 0;
 	}
 
 	*ComponentType = json_TypeKey;
 
-	return SpaceCount + Length;
+	return Start + Length;
 }
