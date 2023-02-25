@@ -68,10 +68,10 @@ tJsonPath JsonPathMiddle(tJsonPath Path, size_t FromOffset, size_t ToOffset);
  * @brief Gets the next character in a JSON path
  * @param Path      The JSON path
  * @param Offset    The offset of the character to retrieve
- * @param IsEscaped Used to return a boolean value that indciates whether the next character had been escaped or not
+ * @param IsEscaped Used to return a boolean value that indicates whether the next character had been escaped or not
  * @param Character Used to return the next character value
  * @return The length (in bytes) that the encoded character takes up in the path (do not assume a fixed length).
- * @return A zero value is returned if a charcter could not be returned.
+ * @return A zero value is returned if a character could not be returned.
  * @note Add the returned length to the \a `Offset` value to advance it to the next character in the path.
  */
 size_t JsonPathGetNextCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, uint8_t *Character);
@@ -81,12 +81,12 @@ size_t JsonPathGetNextCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, 
  * @brief Gets the previous character in a JSON path
  * @param Path      The JSON path
  * @param Offset    The offset of the character to retrieve
- * @param IsEscaped Used to return a boolean value that indciates whether the previous character had been escaped or not
+ * @param IsEscaped Used to return a boolean value that indicates whether the previous character had been escaped or not
  * @param Character Used to return the previous character value
  * @return The length (in bytes) that the encoded character takes up in the path (do not assume a fixed length).
  * @return A zero value is returned if a character could not be returned.
  * @note Pass \a 'Path.Length' in the \a 'Offset' parameter to get the last character in the path.
- * @note Subtract the returned length to the \a `Offset` value to advance it to the previous character in the path.
+ * @note Subtract the returned length from the \a `Offset` value to advance it to the previous character in the path.
  */
 size_t JsonPathGetPreviousCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, uint8_t *Character);
 
