@@ -7,6 +7,7 @@
 static const tTest *Tests[] =
 {
 	&TestJsonCharacter,
+	&TestJsonUtf8,
 	&TestJsonString,
 	&TestJsonPath,
 	&TestJsonElement,
