@@ -4,7 +4,7 @@
 
 static bool TestJsonCharacterIsLiteral(void)
 {
-	unsigned int Character;
+	tJsonCharacter Character;
 	bool IsLiteral;
 	bool ok;
 
@@ -30,7 +30,7 @@ static bool TestJsonCharacterIsLiteral(void)
 
 static bool TestJsonCharacterIsWhitespace(void)
 {
-	unsigned int Character;
+	tJsonCharacter Character;
 	bool IsWhitespace;
 	bool ok;
 
@@ -53,7 +53,7 @@ static bool TestJsonCharacterIsWhitespace(void)
 
 static bool TestJsonCharacterIsEscapable(void)
 {
-	unsigned int Character;
+	tJsonCharacter Character;
 	bool IsEscapable;
 	bool ok;
 
@@ -76,8 +76,8 @@ static bool TestJsonCharacterIsEscapable(void)
 
 static bool TestJsonCharacterToEscape(void)
 {
-	unsigned int Character;
-	uint8_t EscapedCharacter;
+	tJsonCharacter Character;
+	tJsonCharacter EscapedCharacter;
 	bool ok;
 
 	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
@@ -115,8 +115,8 @@ static bool TestJsonCharacterToEscape(void)
 
 static bool TestJsonCharacterFromEscape(void)
 {
-	unsigned int Character;
-	uint8_t UnescapedCharacter;
+	tJsonCharacter Character;
+	tJsonCharacter UnescapedCharacter;
 	bool ok;
 
 	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)

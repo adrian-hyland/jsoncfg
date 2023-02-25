@@ -6,6 +6,18 @@
 
 
 /**
+ * @brief The value of the unicode replacement character
+ */
+#define JSON_CHARACTER_REPLACEMENT 0xFFFD
+
+
+/**
+ * @brief Type used to hold a unicode character
+ */
+typedef uint32_t tJsonCharacter;
+
+
+/**
  * @brief Checks if a character can be used for a literal value
  * @param Character The character to check
  * @return A true value is returned if the character can be used for a literal value
@@ -15,7 +27,7 @@
  *        - plus/minus characters    '`-`' and '`+`'
  *        - decimal places character '`.`'
  */
-bool JsonCharacterIsLiteral(uint8_t Character);
+bool JsonCharacterIsLiteral(tJsonCharacter Character);
 
 
 /**
@@ -24,7 +36,7 @@ bool JsonCharacterIsLiteral(uint8_t Character);
  * @return A true value is returned if the character is a whitespace character
  * @return A false value is returned of the character is not a whitespace character
  */
-bool JsonCharacterIsWhitespace(uint8_t Character);
+bool JsonCharacterIsWhitespace(tJsonCharacter Character);
 
 
 /**
@@ -33,7 +45,7 @@ bool JsonCharacterIsWhitespace(uint8_t Character);
  * @return A true value is returned if the character needs to be escaped
  * @return A false value is returned of the character does not need to be escaped
  */
-bool JsonCharacterIsEscapable(uint8_t Character);
+bool JsonCharacterIsEscapable(tJsonCharacter Character);
 
 
 /**
@@ -41,7 +53,7 @@ bool JsonCharacterIsEscapable(uint8_t Character);
  * @param Character The character to escape
  * @return The character escape code
  */
-uint8_t JsonCharacterToEscape(uint8_t Character);
+tJsonCharacter JsonCharacterToEscape(tJsonCharacter Character);
 
 
 /**
@@ -49,7 +61,7 @@ uint8_t JsonCharacterToEscape(uint8_t Character);
  * @param Character The character escape code
  * @return The character that corresponds to the escape code
  */
-uint8_t JsonCharacterFromEscape(uint8_t Character);
+tJsonCharacter JsonCharacterFromEscape(tJsonCharacter Character);
 
 
 #endif

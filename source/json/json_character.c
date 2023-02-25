@@ -1,7 +1,7 @@
 #include "json_character.h"
 
 
-bool JsonCharacterIsLiteral(uint8_t Character)
+bool JsonCharacterIsLiteral(tJsonCharacter Character)
 {
 	return ((Character >= '0') && (Character <= '9')) ||
 	       ((Character >= 'a') && (Character <= 'z')) ||
@@ -12,19 +12,19 @@ bool JsonCharacterIsLiteral(uint8_t Character)
 }
 
 
-bool JsonCharacterIsWhitespace(uint8_t Character)
+bool JsonCharacterIsWhitespace(tJsonCharacter Character)
 {
 	return (Character == ' ') || (Character == '\t') || (Character == '\r') || (Character == '\n');
 }
 
 
-bool JsonCharacterIsEscapable(uint8_t Character)
+bool JsonCharacterIsEscapable(tJsonCharacter Character)
 {
 	return (Character == '\b') || (Character == '\f') || (Character == '\n') || (Character == '\r') || (Character == '\t') || (Character == '"') || (Character == '\\');
 }
 
 
-uint8_t JsonCharacterToEscape(uint8_t Character)
+tJsonCharacter JsonCharacterToEscape(tJsonCharacter Character)
 {
 	switch (Character)
 	{
@@ -53,7 +53,7 @@ uint8_t JsonCharacterToEscape(uint8_t Character)
 }
 
 
-uint8_t JsonCharacterFromEscape(uint8_t Character)
+tJsonCharacter JsonCharacterFromEscape(tJsonCharacter Character)
 {
 	switch (Character)
 	{
