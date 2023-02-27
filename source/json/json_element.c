@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "json_path.h"
 #include "json_element.h"
 
 
@@ -292,13 +291,13 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 }
 
 
-tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, bool Create)
+tJsonElement *JsonElementFind(tJsonElement *Element, tJsonPath Path, bool Create)
 {
 	tJsonElement **ElementReference;
 
-	if ((Path != NULL) && (Element != NULL) && (Element->Type == json_TypeRoot))
+	if ((Element != NULL) && (Element->Type == json_TypeRoot))
 	{
-		ElementReference = JsonElementFindSubPath(&Element->Child, Element, JsonPathUtf8(Path), Create);
+		ElementReference = JsonElementFindSubPath(&Element->Child, Element, Path, Create);
 		Element = (ElementReference != NULL) ? *ElementReference : NULL;
 	}
 	else
