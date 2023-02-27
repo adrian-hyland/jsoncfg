@@ -54,15 +54,17 @@ typedef enum
  */
 typedef struct
 {
-	tJsonFormatType  Type;        /**< The type of formatting to use */
-	tJsonFormatState State;       /**< The current format state */
-	tJsonElement    *Element;     /**< The current element being formatted */
-	tJsonCommentType CommentType; /**< Indicates how to format comments */
-	size_t           NameIndex;   /**< Index into the element name */
-	size_t           Indent;      /**< The current level of indentation */
-	size_t           IndentSize;  /**< The number of spaces to use for an indentation */
-	size_t           SpaceCount;  /**< The current number of spaces required in the format */
-	bool             NewLine;     /**< Indicates if a new line is required in the format */
+	tJsonFormatType  Type;          /**< The type of formatting to use */
+	tJsonFormatState State;         /**< The current format state */
+	tJsonElement    *Element;       /**< The current element being formatted */
+	tJsonUtf8Code    Utf8Code;      /**< The current UTF-8 character code being formatted */
+	tJsonCommentType CommentType;   /**< Indicates how to format comments */
+	size_t           Utf8CodeIndex; /**< Index into the current UTF-8 character code */
+	size_t           NameIndex;     /**< Index into the element name */
+	size_t           Indent;        /**< The current level of indentation */
+	size_t           IndentSize;    /**< The number of spaces to use for an indentation */
+	size_t           SpaceCount;    /**< The current number of spaces required in the format */
+	bool             NewLine;       /**< Indicates if a new line is required in the format */
 } tJsonFormat;
 
 
@@ -115,14 +117,14 @@ void JsonFormatCleanUp(tJsonFormat *Format);
 
 /**
  * @brief Formats the next character in the JSON content
- * @param Format    The JSON content formatter
- * @param Character Used to return the next character in the JSON content
+ * @param Format   The JSON content formatter
+ * @param CodeUnit Used to return the next UTF-8 code unit in the JSON content
  * @return \a `JSON_FORMAT_ERROR`      is returned if there was a formatting error
  * @return \a `JSON_FORMAT_COMPLETE`   is returned if the formatting is complete
  * @return \a `JSON_FORMAT_INCOMPLETE` is returned if formatting is not yet complete
  * @note if the function returns \a `JSON_FORMAT_COMPLETE` then a null character will be returned in \a `Character`
  */
-int JsonFormat(tJsonFormat *Format, uint8_t *Character);
+int JsonFormat(tJsonFormat *Format, tJsonUtf8Unit *CodeUnit);
 
 
 #endif
