@@ -6,8 +6,8 @@
 static bool TestJsonPathUtf8(void)
 {
 	tJsonPath Path;
-	const uint8_t *EmptyString = (const uint8_t *)"";
-	const uint8_t *NonEmptyString = (const uint8_t *)"a/b/c";
+	const tJsonUtf8Unit EmptyString[] = "";
+	const tJsonUtf8Unit NonEmptyString[] = "a/b/c";
 	bool ok;
 
 	Path = JsonPathUtf8(NULL);
@@ -29,8 +29,8 @@ static bool TestJsonPathUtf8(void)
 static bool TestJsonPathAscii(void)
 {
 	tJsonPath Path;
-	const char *EmptyString = "";
-	const char *NonEmptyString = "a/b/c";
+	const char EmptyString[] = "";
+	const char NonEmptyString[] = "a/b/c";
 	bool ok;
 
 	Path = JsonPathAscii(NULL);
@@ -39,11 +39,11 @@ static bool TestJsonPathAscii(void)
 
 	Path = JsonPathAscii(EmptyString);
 
-	ok = ok && (Path.Value == (const uint8_t *)EmptyString) && (Path.Length == 0);
+	ok = ok && (Path.Value == (const tJsonUtf8Unit *)EmptyString) && (Path.Length == 0);
 
 	Path = JsonPathAscii(NonEmptyString);
 
-	ok = ok && (Path.Value == (const uint8_t *)NonEmptyString) && (Path.Length == strlen(NonEmptyString));
+	ok = ok && (Path.Value == (const tJsonUtf8Unit *)NonEmptyString) && (Path.Length == strlen(NonEmptyString));
 
 	return ok;
 }
@@ -51,7 +51,7 @@ static bool TestJsonPathAscii(void)
 
 static bool TestJsonPathLeft(void)
 {
-	const uint8_t String[] = "0123456789";
+	const tJsonUtf8Unit String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 	bool ok;
@@ -81,7 +81,7 @@ static bool TestJsonPathLeft(void)
 
 static bool TestJsonPathRight(void)
 {
-	const uint8_t String[] = "0123456789";
+	const tJsonUtf8Unit String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 	bool ok;
@@ -113,7 +113,7 @@ static bool TestJsonPathRight(void)
 
 static bool TestJsonPathMiddle(void)
 {
-	const uint8_t String[] = "0123456789";
+	const tJsonUtf8Unit String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 	bool ok;
@@ -147,75 +147,120 @@ static bool TestJsonPathMiddle(void)
 }
 
 
-static bool TestJsonPathGetNextCharacter(void)
+static bool TestJsonPathGetNextUtf8Code(void)
 {
-	const char Valid[] = "abcdefghijklmnopqrstuvwxyz";
-	const char Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
-	const char Unescaped[] = "\b\f\n\r\t\\\"";
-	const char Invalid[] = "\\";
+	const tJsonUtf8Unit Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
+	const tJsonUtf8Unit Unescaped[] = "\b\f\n\r\t\\\"";
+	const tJsonUtf8Unit Invalid[] = "\\";
+	tJsonUtf8Unit Valid[JSON_UTF8_MAX_SIZE + 1];
 	tJsonPath Path;
+	tJsonCharacter Character;
+	tJsonUtf8Code Code;
 	size_t Offset;
 	size_t Length;
-	uint8_t Character;
 	bool IsEscaped;
 	size_t n;
 	bool ok = true;
 
-	Path = JsonPathAscii(Valid);
-	for (Offset = 0, n = 0; ok && (n < sizeof(Valid) - 1); Offset = Offset + Length, n++)
+	for (Character = 0x20; ok && (Character < 0xD800); Character++)
 	{
-		Length = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
-		ok = (Length != 0) && !IsEscaped && (Character == Valid[n]);
+		if (Character != '\\')
+		{
+			Code = JsonUtf8Code(Character);
+			Length = JsonUtf8CodeGetUnitLength(Code);
+			for (n = 0; ok && (n < Length); n++)
+			{
+				Valid[n] = JsonUtf8CodeGetUnit(Code, n);
+			}
+			Valid[n] = '\0';
+			Length = JsonPathGetNextUtf8Code(JsonPathUtf8(Valid), 0, &IsEscaped, &Code);
+			ok = (Length != 0) && !IsEscaped && (JsonUtf8CodeGetCharacter(Code) == Character);
+		}
 	}
-	ok = ok && (JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character) == 0);
 
-	Path = JsonPathAscii(Escaped);
+	for (Character = 0xE000; ok && (Character < 0x110000); Character++)
+	{
+		Code = JsonUtf8Code(Character);
+		Length = JsonUtf8CodeGetUnitLength(Code);
+		for (n = 0; ok && (n < Length); n++)
+		{
+			Valid[n] = JsonUtf8CodeGetUnit(Code, n);
+		}
+		Valid[n] = '\0';
+		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(Valid), 0, &IsEscaped, &Code);
+		ok = (Length != 0) && !IsEscaped && (JsonUtf8CodeGetCharacter(Code) == Character);
+	}
+
+	Path = JsonPathUtf8(Escaped);
 	for (Offset = 0, n = 0; ok && (n < sizeof(Unescaped) - 1); Offset = Offset + Length, n++)
 	{
-		Length = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
-		ok = (Length != 0) && IsEscaped && (Character == Unescaped[n]);
+		Length = JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Code);
+		ok = (Length != 0) && IsEscaped && (Code == Unescaped[n]);
 	}
-	ok = ok && (JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character) == 0);
+	ok = ok && (JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Code) == 0);
 
-	Path = JsonPathAscii(Invalid);
-	ok = ok && (JsonPathGetNextCharacter(Path, 0, &IsEscaped, &Character) == 0);
+	Path = JsonPathUtf8(Invalid);
+	ok = ok && (JsonPathGetNextUtf8Code(Path, 0, &IsEscaped, &Code) == 0);
 
 	return ok;
 }
 
 
-static bool TestJsonPathGetPreviousCharacter(void)
+static bool TestJsonPathGetPreviousUtf8Code(void)
 {
-	const char Valid[] = "abcdefghijklmnopqrstuvwxyz";
-	const char Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
-	const char Unescaped[] = "\b\f\n\r\t\\\"";
-	const char Invalid[] = "\\";
+	const tJsonUtf8Unit Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
+	const tJsonUtf8Unit Unescaped[] = "\b\f\n\r\t\\\"";
+	const tJsonUtf8Unit Invalid[] = "\\";
+	tJsonUtf8Unit Valid[JSON_UTF8_MAX_SIZE + 1];
 	tJsonPath Path;
+	tJsonCharacter Character;
+	tJsonUtf8Code Code;
 	size_t Offset;
 	size_t Length;
-	uint8_t Character;
 	bool IsEscaped;
 	size_t n;
 	bool ok = true;
 
-	Path = JsonPathAscii(Valid);
-	for (Offset = Path.Length, n = sizeof(Valid) - 1; ok && (n > 0); Offset = Offset - Length, n--)
-	{
-		Length = JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character);
-		ok = (Length != 0) && !IsEscaped && (Character == Valid[n - 1]);
-	}
-	ok = ok && (JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character) == 0);
 
-	Path = JsonPathAscii(Escaped);
+	for (Character = 0x20; ok && (Character < 0xD800); Character++)
+	{
+		if (Character != '\\')
+		{
+			Code = JsonUtf8Code(Character);
+			Length = JsonUtf8CodeGetUnitLength(Code);
+			for (n = 0; ok && (n < Length); n++)
+			{
+				Valid[n] = JsonUtf8CodeGetUnit(Code, n);
+			}
+			Valid[n] = '\0';
+			Length = JsonPathGetPreviousUtf8Code(JsonPathUtf8(Valid), Length, &IsEscaped, &Code);
+			ok = (Length != 0) && !IsEscaped && (JsonUtf8CodeGetCharacter(Code) == Character);
+		}
+	}
+
+	for (Character = 0xE000; ok && (Character < 0x110000); Character++)
+	{
+		Code = JsonUtf8Code(Character);
+		Length = JsonUtf8CodeGetUnitLength(Code);
+		for (n = 0; ok && (n < Length); n++)
+		{
+			Valid[n] = JsonUtf8CodeGetUnit(Code, n);
+		}
+		Valid[n] = '\0';
+		Length = JsonPathGetPreviousUtf8Code(JsonPathUtf8(Valid), Length, &IsEscaped, &Code);
+		ok = (Length != 0) && !IsEscaped && (JsonUtf8CodeGetCharacter(Code) == Character);
+	}
+
+	Path = JsonPathUtf8(Escaped);
 	for (Offset = Path.Length, n = sizeof(Unescaped) - 1; ok && (n > 0); Offset = Offset - Length, n--)
 	{
-		Length = JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character);
-		ok = (Length != 0) && IsEscaped && (Character == Unescaped[n - 1]);
+		Length = JsonPathGetPreviousUtf8Code(Path, Offset, &IsEscaped, &Code);
+		ok = (Length != 0) && IsEscaped && (Code == Unescaped[n - 1]);
 	}
-	ok = ok && (JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character) == 0);
+	ok = ok && (JsonPathGetPreviousUtf8Code(Path, Offset, &IsEscaped, &Code) == 0);
 
-	Path = JsonPathAscii(Invalid);
-	ok = ok && (JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &Character) == 0);
+	Path = JsonPathUtf8(Invalid);
+	ok = ok && (JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Code) == 0);
 
 	return ok;
 }
@@ -238,12 +283,12 @@ static bool TestJsonPathSetString(void)
 	};
 	tJsonString String;
 	tJsonPath Path;
+	tJsonUtf8Code StringCode;
+	tJsonUtf8Code PathCode;
 	size_t StringOffset;
 	size_t PathOffset;
-	uint8_t StringCharacter;
-	uint8_t PathCharacter;
-	size_t StringCharacterLength;
-	size_t PathCharacterLength;
+	size_t StringCodeLength;
+	size_t PathCodeLength;
 	size_t n;
 	bool IsEscaped;
 	bool ok;
@@ -256,13 +301,13 @@ static bool TestJsonPathSetString(void)
 
 		ok = JsonPathSetString(Path, &String);
 
-		for (StringOffset = 0, PathOffset = 0; ok && (PathOffset <= Path.Length); StringOffset = StringOffset + StringCharacterLength, PathOffset = PathOffset + PathCharacterLength)
+		for (StringOffset = 0, PathOffset = 0; ok && (PathOffset <= Path.Length); StringOffset = StringOffset + StringCodeLength, PathOffset = PathOffset + PathCodeLength)
 		{
-			PathCharacterLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &PathCharacter);
-			StringCharacterLength = JsonStringGetCharacter(&String, StringOffset, &StringCharacter);
+			PathCodeLength = JsonPathGetNextUtf8Code(Path, PathOffset, &IsEscaped, &PathCode);
+			StringCodeLength = JsonStringGetNextUtf8Code(&String, StringOffset, &StringCode);
 
-			ok = (PathCharacterLength != 0) && (StringCharacterLength != 0);
-			ok = ok && (StringCharacter == PathCharacter);
+			ok = (PathCodeLength != 0) && (StringCodeLength != 0);
+			ok = ok && (StringCode == PathCode);
 		}
 	}
 
@@ -293,7 +338,7 @@ static bool TestJsonPathCompareString(void)
 
 	for (ok = true, n = 0; n < sizeof(Paths) / sizeof(Paths[0]); n++)
 	{
-		PathLength = strlen((const char *)Paths[n]) - 1;
+		PathLength = strlen(Paths[n]) - 1;
 
 		ok = JsonPathSetString(JsonPathLeft(JsonPathAscii(Paths[n]), PathLength), &String);
 
@@ -517,16 +562,16 @@ static bool TestJsonPathGetComponent(void)
 
 static const tTestCase TestCaseJsonPath[] =
 {
-	{ "JsonPathUtf8",                 TestJsonPathUtf8                 },
-	{ "JsonPathAscii",                TestJsonPathAscii                },
-	{ "JsonPathLeft",                 TestJsonPathLeft                 },
-	{ "JsonPathRight",                TestJsonPathRight                },
-	{ "JsonPathMiddle",               TestJsonPathMiddle               },
-	{ "JsonPathGetNextCharacter",     TestJsonPathGetNextCharacter     },
-	{ "JsonPathGetPreviousCharacter", TestJsonPathGetPreviousCharacter },
-	{ "JsonPathSetString",            TestJsonPathSetString            },
-	{ "JsonPathCompareString",        TestJsonPathCompareString        },
-	{ "JsonPathGetComponent",         TestJsonPathGetComponent         }
+	{ "JsonPathUtf8",                TestJsonPathUtf8                },
+	{ "JsonPathAscii",               TestJsonPathAscii               },
+	{ "JsonPathLeft",                TestJsonPathLeft                },
+	{ "JsonPathRight",               TestJsonPathRight               },
+	{ "JsonPathMiddle",              TestJsonPathMiddle              },
+	{ "JsonPathGetNextUtf8Code",     TestJsonPathGetNextUtf8Code     },
+	{ "JsonPathGetPreviousUtf8Code", TestJsonPathGetPreviousUtf8Code },
+	{ "JsonPathSetString",           TestJsonPathSetString           },
+	{ "JsonPathCompareString",       TestJsonPathCompareString       },
+	{ "JsonPathGetComponent",        TestJsonPathGetComponent        }
 };
 
 
