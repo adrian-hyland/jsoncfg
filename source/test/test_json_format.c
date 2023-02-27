@@ -3,13 +3,13 @@
 #include "test_json.h"
 
 
-static bool TestJsonFormatCompressContent(const uint8_t *Content)
+static bool TestJsonFormatCompressContent(const tJsonUtf8Unit *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
+	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	uint8_t Character;
 	bool ok;
 
 	JsonElementSetUp(&Root);
@@ -29,14 +29,14 @@ static bool TestJsonFormatCompressContent(const uint8_t *Content)
 
 	for (Index = 0; ok && (Content[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == Content[Index]);
+		ok = ok && (CodeUnit == Content[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == Content[Index]);
+	ok = ok && (CodeUnit == Content[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -46,13 +46,13 @@ static bool TestJsonFormatCompressContent(const uint8_t *Content)
 }
 
 
-static bool TestJsonFormatSpaceContent(const uint8_t *Content)
+static bool TestJsonFormatSpaceContent(const tJsonUtf8Unit *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
+	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	uint8_t Character;
 	bool ok;
 
 	JsonElementSetUp(&Root);
@@ -72,14 +72,14 @@ static bool TestJsonFormatSpaceContent(const uint8_t *Content)
 
 	for (Index = 0; ok && (Content[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == Content[Index]);
+		ok = ok && (CodeUnit == Content[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == Content[Index]);
+	ok = ok && (CodeUnit == Content[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -89,13 +89,13 @@ static bool TestJsonFormatSpaceContent(const uint8_t *Content)
 }
 
 
-static bool TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSize, tJsonCommentType CommentType)
+static bool TestJsonFormatIndentContent(const tJsonUtf8Unit *Content, size_t IndentSize, tJsonCommentType CommentType)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
+	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	uint8_t Character;
 	bool ok;
 
 	JsonElementSetUp(&Root);
@@ -115,14 +115,14 @@ static bool TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSiz
 
 	for (Index = 0; ok && (Content[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == Content[Index]);
+		ok = ok && (CodeUnit == Content[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == Content[Index]);
+	ok = ok && (CodeUnit == Content[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -134,55 +134,55 @@ static bool TestJsonFormatIndentContent(const uint8_t *Content, size_t IndentSiz
 
 static bool TestJsonFormatCompress(void)
 {
-	static const uint8_t *Content[] =
+	static const tJsonUtf8Unit *Content[] =
 	{
-		(const uint8_t *)"{"
-		                    "\"key-true\":true,"
-		                    "\"key-false\":false,"
-		                    "\"key-null\":null,"
-		                    "\"key-int\":123,"
-		                    "\"key-real\":1.23e4,"
-		                    "\"key-real-nan\":NaN,"
-		                    "\"key-string\":\"hello world\","
-		                    "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\","
-		                    "\"key-object-empty\":{},"
-		                    "\"key-object\":{\"key\":value},"
-		                    "\"key-array-empty\":[],"
-		                    "\"key-array\":["
-		                        "true,"
-		                        "false,"
-		                        "null,"
-		                        "123,"
-		                        "1.23e4,"
-		                        "NaN,"
-		                        "\"hello world\","
-		                        "\"\\t\\r\\n\\b\\f\\\\\\\"\","
-		                        "{},"
-		                        "{\"key\":value},"
-		                        "[],"
-		                        "[1,2,3]"
-		                    "]"
-		                 "}",
-		(const uint8_t *)"["
-		                    "true,"
-		                    "false,"
-		                    "null,"
-		                    "123,"
-		                    "1.23e4,"
-		                    "NaN,"
-		                    "\"hello world\","
-		                    "\"\\t\\r\\n\\b\\f\\\\\\\"\","
-		                    "{},"
-		                    "{\"key\":value},"
-		                    "[],"
-		                    "[1,2,3]"
-		                 "]",
-		(const uint8_t *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
-		(const uint8_t *)"true",
-		(const uint8_t *)"false",
-		(const uint8_t *)"null",
-		(const uint8_t *)"1234567890",
-		(const uint8_t *)"1.234567890e-99"
+		(const tJsonUtf8Unit *)"{"
+		                          "\"key-true\":true,"
+		                          "\"key-false\":false,"
+		                          "\"key-null\":null,"
+		                          "\"key-int\":123,"
+		                          "\"key-real\":1.23e4,"
+		                          "\"key-real-nan\":NaN,"
+		                          "\"key-string\":\"hello world\","
+		                          "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                          "\"key-object-empty\":{},"
+		                          "\"key-object\":{\"key\":value},"
+		                          "\"key-array-empty\":[],"
+		                          "\"key-array\":["
+		                              "true,"
+		                              "false,"
+		                              "null,"
+		                              "123,"
+		                              "1.23e4,"
+		                              "NaN,"
+		                              "\"hello world\","
+		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                              "{},"
+		                              "{\"key\":value},"
+		                              "[],"
+		                              "[1,2,3]"
+		                          "]"
+		                       "}",
+		(const tJsonUtf8Unit *)"["
+		                          "true,"
+		                          "false,"
+		                          "null,"
+		                          "123,"
+		                          "1.23e4,"
+		                          "NaN,"
+		                          "\"hello world\","
+		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                          "{},"
+		                          "{\"key\":value},"
+		                          "[],"
+		                          "[1,2,3]"
+		                       "]",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"true",
+		(const tJsonUtf8Unit *)"false",
+		(const tJsonUtf8Unit *)"null",
+		(const tJsonUtf8Unit *)"1234567890",
+		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
 	bool ok;
@@ -198,55 +198,55 @@ static bool TestJsonFormatCompress(void)
 
 static bool TestJsonFormatSpace(void)
 {
-	static const uint8_t *Content[] =
+	static const tJsonUtf8Unit *Content[] =
 	{
-		(const uint8_t *)"{ "
-		                    "\"key-true\": true, "
-		                    "\"key-false\": false, "
-		                    "\"key-null\": null, "
-		                    "\"key-int\": 123, "
-		                    "\"key-real\": 1.23e4, "
-		                    "\"key-real-nan\": NaN, "
-		                    "\"key-string\": \"hello world\", "
-		                    "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\", "
-		                    "\"key-object-empty\": {}, "
-		                    "\"key-object\": { \"key\": value }, "
-		                    "\"key-array-empty\": [], "
-		                    "\"key-array\": [ "
-		                        "true, "
-		                        "false, "
-		                        "null, "
-		                        "123, "
-		                        "1.23e4, "
-		                        "NaN, "
-		                        "\"hello world\", "
-		                        "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
-		                        "{}, "
-		                        "{ \"key\": value }, "
-		                        "[], "
-		                        "[ 1, 2, 3 ] "
-		                    "] "
-		                 "}",
-		(const uint8_t *)"[ "
-		                    "true, "
-		                    "false, "
-		                    "null, "
-		                    "123, "
-		                    "1.23e4, "
-		                    "NaN, "
-		                    "\"hello world\", "
-		                    "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
-		                    "{}, "
-		                    "{ \"key\": value }, "
-		                    "[], "
-		                    "[ 1, 2, 3 ] "
-		                 "]",
-		(const uint8_t *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
-		(const uint8_t *)"true",
-		(const uint8_t *)"false",
-		(const uint8_t *)"null",
-		(const uint8_t *)"1234567890",
-		(const uint8_t *)"1.234567890e-99"
+		(const tJsonUtf8Unit *)"{ "
+		                          "\"key-true\": true, "
+		                          "\"key-false\": false, "
+		                          "\"key-null\": null, "
+		                          "\"key-int\": 123, "
+		                          "\"key-real\": 1.23e4, "
+		                          "\"key-real-nan\": NaN, "
+		                          "\"key-string\": \"hello world\", "
+		                          "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                          "\"key-object-empty\": {}, "
+		                          "\"key-object\": { \"key\": value }, "
+		                          "\"key-array-empty\": [], "
+		                          "\"key-array\": [ "
+		                              "true, "
+		                              "false, "
+		                              "null, "
+		                              "123, "
+		                              "1.23e4, "
+		                              "NaN, "
+		                              "\"hello world\", "
+		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                              "{}, "
+		                              "{ \"key\": value }, "
+		                              "[], "
+		                              "[ 1, 2, 3 ] "
+		                          "] "
+		                       "}",
+		(const tJsonUtf8Unit *)"[ "
+		                          "true, "
+		                          "false, "
+		                          "null, "
+		                          "123, "
+		                          "1.23e4, "
+		                          "NaN, "
+		                          "\"hello world\", "
+		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                          "{}, "
+		                          "{ \"key\": value }, "
+		                          "[], "
+		                          "[ 1, 2, 3 ] "
+		                       "]",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"true",
+		(const tJsonUtf8Unit *)"false",
+		(const tJsonUtf8Unit *)"null",
+		(const tJsonUtf8Unit *)"1234567890",
+		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
 	bool ok;
@@ -262,95 +262,95 @@ static bool TestJsonFormatSpace(void)
 
 static bool TestJsonFormatIndent(void)
 {
-	static const uint8_t *Content[] =
+	static const tJsonUtf8Unit *Content[] =
 	{
-		(const uint8_t *)"{\n"
-		                 "   \"key-true\": true,\n"
-		                 "   \"key-false\": false,\n"
-		                 "   \"key-null\": null,\n"
-		                 "   \"key-int\": 123,\n"
-		                 "   \"key-real\": 1.23e4,\n"
-		                 "   \"key-real-nan\": NaN,\n"
-		                 "   \"key-string\": \"hello world\",\n"
-		                 "   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
-		                 "   \"key-object-empty\": {},\n"
-		                 "   \"key-object\": {\n"
-		                 "      \"key\": value\n"
-		                 "   },\n"
-		                 "   \"key-array-empty\": [],\n"
-		                 "   \"key-array\": [\n"
-		                 "      true,\n"
-		                 "      false,\n"
-		                 "      null,\n"
-		                 "      123,\n"
-		                 "      1.23e4,\n"
-		                 "      NaN,\n"
-		                 "      \"hello world\",\n"
-		                 "      \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
-		                 "      {},\n"
-		                 "      {\n"
-		                 "         \"key\": value\n"
-		                 "      },\n"
-		                 "      [],\n"
-		                 "      [\n"
-		                 "         1,\n"
-		                 "         2,\n"
-		                 "         3\n"
-		                 "      ]\n"
-		                 "   ]\n"
-		                 "}",
-		(const uint8_t *)"[]",
-		(const uint8_t *)"[\n"
-		                 "   1\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   {}\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   {\n"
-		                 "      \"key\": \"value\"\n"
-		                 "   }\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   []\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   [\n"
-		                 "      1\n"
-		                 "   ]\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   [\n"
-		                 "      1,\n"
-		                 "      2\n"
-		                 "   ]\n"
-		                 "]",
-		(const uint8_t *)"[\n"
-		                 "   true,\n"
-		                 "   false,\n"
-		                 "   null,\n"
-		                 "   123,\n"
-		                 "   1.23e4,\n"
-		                 "   NaN,\n"
-		                 "   \"hello world\",\n"
-		                 "   \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
-		                 "   {},\n"
-		                 "   {\n"
-		                 "      \"key\": value\n"
-		                 "   },\n"
-		                 "   [],\n"
-		                 "   [\n"
-		                 "      1,\n"
-		                 "      2,\n"
-		                 "      3\n"
-		                 "   ]\n"
-		                 "]",
-		(const uint8_t *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
-		(const uint8_t *)"true",
-		(const uint8_t *)"false",
-		(const uint8_t *)"null",
-		(const uint8_t *)"1234567890",
-		(const uint8_t *)"1.234567890e-99"
+		(const tJsonUtf8Unit *)"{\n"
+		                       "   \"key-true\": true,\n"
+		                       "   \"key-false\": false,\n"
+		                       "   \"key-null\": null,\n"
+		                       "   \"key-int\": 123,\n"
+		                       "   \"key-real\": 1.23e4,\n"
+		                       "   \"key-real-nan\": NaN,\n"
+		                       "   \"key-string\": \"hello world\",\n"
+		                       "   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "   \"key-object-empty\": {},\n"
+		                       "   \"key-object\": {\n"
+		                       "      \"key\": value\n"
+		                       "   },\n"
+		                       "   \"key-array-empty\": [],\n"
+		                       "   \"key-array\": [\n"
+		                       "      true,\n"
+		                       "      false,\n"
+		                       "      null,\n"
+		                       "      123,\n"
+		                       "      1.23e4,\n"
+		                       "      NaN,\n"
+		                       "      \"hello world\",\n"
+		                       "      \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "      {},\n"
+		                       "      {\n"
+		                       "         \"key\": value\n"
+		                       "      },\n"
+		                       "      [],\n"
+		                       "      [\n"
+		                       "         1,\n"
+		                       "         2,\n"
+		                       "         3\n"
+		                       "      ]\n"
+		                       "   ]\n"
+		                       "}",
+		(const tJsonUtf8Unit *)"[]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   1\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   {}\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   {\n"
+		                       "      \"key\": \"value\"\n"
+		                       "   }\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   []\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   [\n"
+		                       "      1\n"
+		                       "   ]\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   [\n"
+		                       "      1,\n"
+		                       "      2\n"
+		                       "   ]\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"[\n"
+		                       "   true,\n"
+		                       "   false,\n"
+		                       "   null,\n"
+		                       "   123,\n"
+		                       "   1.23e4,\n"
+		                       "   NaN,\n"
+		                       "   \"hello world\",\n"
+		                       "   \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "   {},\n"
+		                       "   {\n"
+		                       "      \"key\": value\n"
+		                       "   },\n"
+		                       "   [],\n"
+		                       "   [\n"
+		                       "      1,\n"
+		                       "      2,\n"
+		                       "      3\n"
+		                       "   ]\n"
+		                       "]",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"true",
+		(const tJsonUtf8Unit *)"false",
+		(const tJsonUtf8Unit *)"null",
+		(const tJsonUtf8Unit *)"1234567890",
+		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
 	bool ok;
@@ -368,7 +368,7 @@ static bool TestJsonFormatIndent(void)
 
 static bool TestJsonFormatCommentLine(void)
 {
-	static const uint8_t Content[] =
+	static const tJsonUtf8Unit Content[] =
 		"// Comment 1\n"
 		"// Comment 2\n"
 		"{ // Comment 3\n"
@@ -403,7 +403,7 @@ static bool TestJsonFormatCommentLine(void)
 		"     // Comment 32\n"
 		"} // Comment 33\n"
 		"// Comment 34\n";
-	static const uint8_t ContentIndentCommentNone[] =
+	static const tJsonUtf8Unit ContentIndentCommentNone[] =
 		"{\n"
 		"   \"key1\": \"value1\",\n"
 		"   \"key2\": [\n"
@@ -415,7 +415,7 @@ static bool TestJsonFormatCommentLine(void)
 		"      \"key5\": []\n"
 		"   }\n"
 		"}";
-	static const uint8_t ContentIndentCommentLine[] =
+	static const tJsonUtf8Unit ContentIndentCommentLine[] =
 		"// Comment 1\n"
 		"// Comment 2\n"
 		"{\n"
@@ -462,7 +462,7 @@ static bool TestJsonFormatCommentLine(void)
 		"}\n"
 		"// Comment 33\n"
 		"// Comment 34";
-	static const uint8_t ContentIndentCommentBlock[] =
+	static const tJsonUtf8Unit ContentIndentCommentBlock[] =
 		"/* Comment 1\n"
 		"   Comment 2 */\n"
 		"{\n"
@@ -509,7 +509,7 @@ static bool TestJsonFormatCommentLine(void)
 		"}\n"
 		"/* Comment 33\n"
 		"   Comment 34 */";
-	static const uint8_t ContentSpace[] =
+	static const tJsonUtf8Unit ContentSpace[] =
 		"{ "
 		   "\"key1\": \"value1\", "
 		   "\"key2\": [ "
@@ -521,7 +521,7 @@ static bool TestJsonFormatCommentLine(void)
 		     "\"key5\": [] "
 		   "} "
 		"}";
-	static const uint8_t ContentCompress[] =
+	static const tJsonUtf8Unit ContentCompress[] =
 		"{"
 		   "\"key1\":\"value1\","
 		   "\"key2\":["
@@ -536,8 +536,8 @@ static bool TestJsonFormatCommentLine(void)
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
+	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	uint8_t Character;
 	bool ok;
 
 	JsonElementSetUp(&Root);
@@ -557,14 +557,14 @@ static bool TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ok && (ContentIndentCommentNone[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentNone[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentNone[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -572,14 +572,14 @@ static bool TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ok && (ContentIndentCommentLine[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentLine[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentLine[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -587,14 +587,14 @@ static bool TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ok && (ContentIndentCommentBlock[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentBlock[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentBlock[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -602,14 +602,14 @@ static bool TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ok && (ContentSpace[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentSpace[Index]);
+		ok = ok && (CodeUnit == ContentSpace[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentSpace[Index]);
+	ok = ok && (CodeUnit == ContentSpace[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -617,14 +617,14 @@ static bool TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ok && (ContentCompress[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentCompress[Index]);
+		ok = ok && (CodeUnit == ContentCompress[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentCompress[Index]);
+	ok = ok && (CodeUnit == ContentCompress[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -636,7 +636,7 @@ static bool TestJsonFormatCommentLine(void)
 
 static bool TestJsonFormatCommentBlock(void)
 {
-	static const uint8_t Content[] =
+	static const tJsonUtf8Unit Content[] =
 		"/* Comment 1\n"
 		"   Comment 2 */\n"
 		"{ /* Comment 3\n"
@@ -671,7 +671,7 @@ static bool TestJsonFormatCommentBlock(void)
 		"        Comment 32 */\n"
 		"} /* Comment 33 */\n"
 		"/* Comment 34 */\n";
-	static const uint8_t ContentIndentCommentNone[] =
+	static const tJsonUtf8Unit ContentIndentCommentNone[] =
 		"{\n"
 		"   \"key1\": \"value1\",\n"
 		"   \"key2\": [\n"
@@ -683,7 +683,7 @@ static bool TestJsonFormatCommentBlock(void)
 		"      \"key5\": []\n"
 		"   }\n"
 		"}";
-	static const uint8_t ContentIndentCommentLine[] =
+	static const tJsonUtf8Unit ContentIndentCommentLine[] =
 		"// Comment 1\n"
 		"//Comment 2 \n"
 		"{\n"
@@ -730,7 +730,7 @@ static bool TestJsonFormatCommentBlock(void)
 		"}\n"
 		"// Comment 33 \n"
 		"// Comment 34 ";
-	static const uint8_t ContentIndentCommentBlock[] =
+	static const tJsonUtf8Unit ContentIndentCommentBlock[] =
 		"/* Comment 1\n"
 		"  Comment 2 */\n"
 		"{\n"
@@ -777,7 +777,7 @@ static bool TestJsonFormatCommentBlock(void)
 		"}\n"
 		"/* Comment 33 \n"
 		"   Comment 34 */";
-	static const uint8_t ContentSpace[] =
+	static const tJsonUtf8Unit ContentSpace[] =
 		"{ "
 		   "\"key1\": \"value1\", "
 		   "\"key2\": [ "
@@ -789,7 +789,7 @@ static bool TestJsonFormatCommentBlock(void)
 		     "\"key5\": [] "
 		   "} "
 		"}";
-	static const uint8_t ContentCompress[] =
+	static const tJsonUtf8Unit ContentCompress[] =
 		"{"
 		   "\"key1\":\"value1\","
 		   "\"key2\":["
@@ -804,8 +804,8 @@ static bool TestJsonFormatCommentBlock(void)
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
+	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	uint8_t Character;
 	bool ok;
 
 	JsonElementSetUp(&Root);
@@ -825,14 +825,14 @@ static bool TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ok && (ContentIndentCommentNone[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentNone[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentNone[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -840,14 +840,14 @@ static bool TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ok && (ContentIndentCommentLine[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentLine[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentLine[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -855,14 +855,14 @@ static bool TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ok && (ContentIndentCommentBlock[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentIndentCommentBlock[Index]);
+		ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentIndentCommentBlock[Index]);
+	ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -870,14 +870,14 @@ static bool TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ok && (ContentSpace[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentSpace[Index]);
+		ok = ok && (CodeUnit == ContentSpace[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentSpace[Index]);
+	ok = ok && (CodeUnit == ContentSpace[Index]);
 
 	JsonFormatCleanUp(&Format);
 
@@ -885,14 +885,14 @@ static bool TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ok && (ContentCompress[Index] != 0); Index++)
 	{
-		ok = (JsonFormat(&Format, &Character) == JSON_FORMAT_INCOMPLETE);
+		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
 
-		ok = ok && (Character == ContentCompress[Index]);
+		ok = ok && (CodeUnit == ContentCompress[Index]);
 	}
 
-	ok = ok && (JsonFormat(&Format, &Character) == JSON_FORMAT_COMPLETE);
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
 
-	ok = ok && (Character == ContentCompress[Index]);
+	ok = ok && (CodeUnit == ContentCompress[Index]);
 
 	JsonFormatCleanUp(&Format);
 
