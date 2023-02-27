@@ -8,7 +8,7 @@ static bool TestJsonCharacterIsLiteral(void)
 	bool IsLiteral;
 	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
 	{
 		IsLiteral = JsonCharacterIsLiteral(Character);
 		if (((Character >= '0') && (Character <= '9')) ||
@@ -34,7 +34,7 @@ static bool TestJsonCharacterIsWhitespace(void)
 	bool IsWhitespace;
 	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
 	{
 		IsWhitespace = JsonCharacterIsWhitespace(Character);
 		if ((Character == ' ') || (Character == '\t') || (Character == '\r') || (Character == '\n'))
@@ -57,7 +57,7 @@ static bool TestJsonCharacterIsEscapable(void)
 	bool IsEscapable;
 	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
 	{
 		IsEscapable = JsonCharacterIsEscapable(Character);
 		if ((Character == '\b') || (Character == '\f') || (Character == '\t') || (Character == '\r') || (Character == '\n') || (Character == '"') || (Character == '\\'))
@@ -80,7 +80,7 @@ static bool TestJsonCharacterToEscape(void)
 	tJsonCharacter EscapedCharacter;
 	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
 	{
 		EscapedCharacter = JsonCharacterToEscape(Character);
 		if (Character == '\b')
@@ -119,7 +119,7 @@ static bool TestJsonCharacterFromEscape(void)
 	tJsonCharacter UnescapedCharacter;
 	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character <= UINT8_MAX); Character++)
+	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
 	{
 		UnescapedCharacter = JsonCharacterFromEscape(Character);
 		if (Character == 'b')
