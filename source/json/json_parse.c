@@ -21,11 +21,30 @@ static bool JsonParseAllocateElement(tJsonParse *Parse, tJsonType Type)
 }
 
 
-static tJsonParseState JsonParseKeyEscape(tJsonParse *Parse, uint8_t Character)
+static bool JsonParseUtf8IsComplete(tJsonParse *Parse, tJsonUtf8Unit CodeUnit, tJsonUtf8Code *Code)
 {
-	Character = JsonCharacterFromEscape(Character);
+	if (!JsonUtf8CodeAddUnit(&Parse->Utf8Code, CodeUnit))
+	{
+		Parse->State = json_ParseError;
+		return false;
+	}
+	
+	if (!JsonUtf8CodeIsValid(Parse->Utf8Code))
+	{
+		return false;
+	}
 
-	if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+	*Code = Parse->Utf8Code;
+	Parse->Utf8Code = 0;
+	return true;
+}
+
+
+static tJsonParseState JsonParseKeyEscape(tJsonParse *Parse, tJsonUtf8Code Code)
+{
+	Code = JsonCharacterFromEscape(Code);
+
+	if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -34,18 +53,18 @@ static tJsonParseState JsonParseKeyEscape(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseKey(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseKey(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == '\\')
+	if (Code == '\\')
 	{
 		return json_ParseKeyEscape;
 	}
-	else if (Character == '"')
+	else if (Code == '"')
 	{
 		Parse->AllocateChild = true;
 		return json_ParseKeyEnd;
 	}
-	else if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+	else if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -54,9 +73,9 @@ static tJsonParseState JsonParseKey(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == '"')
+	if (Code == '"')
 	{
 		if (!JsonParseAllocateElement(Parse, json_TypeKey))
 		{
@@ -65,7 +84,7 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
 
 		return json_ParseKey;
 	}
-	else if (Character == '}')
+	else if (Code == '}')
 	{
 		if (Parse->Element->Type != json_TypeObject)
 		{
@@ -74,12 +93,12 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
 
 		return json_ParseValueEnd;
 	}
-	else if (Character == '/')
+	else if (Code == '/')
 	{
 		Parse->CommentState = Parse->State;
 		return json_ParseCommentStart;
 	}
-	else if (!JsonCharacterIsWhitespace(Character))
+	else if (!JsonCharacterIsWhitespace(Code))
 	{
 		return json_ParseError;
 	}
@@ -88,18 +107,18 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == ':')
+	if (Code == ':')
 	{
 		return json_ParseValueStart;
 	}
-	else if (Character == '/')
+	else if (Code == '/')
 	{
 		Parse->CommentState = Parse->State;
 		return json_ParseCommentStart;
 	}
-	else if (!JsonCharacterIsWhitespace(Character))
+	else if (!JsonCharacterIsWhitespace(Code))
 	{
 		return json_ParseError;
 	}
@@ -108,11 +127,11 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseValueStringEscape(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseValueStringEscape(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	Character = JsonCharacterFromEscape(Character);
+	Code = JsonCharacterFromEscape(Code);
 
-	if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+	if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -121,17 +140,17 @@ static tJsonParseState JsonParseValueStringEscape(tJsonParse *Parse, uint8_t Cha
 }
 
 
-static tJsonParseState JsonParseValueString(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseValueString(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == '\\')
+	if (Code == '\\')
 	{
 		return json_ParseValueStringEscape;
 	}
-	else if (Character == '"')
+	else if (Code == '"')
 	{
 		return json_ParseValueEnd;
 	}
-	else if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+	else if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -140,10 +159,10 @@ static tJsonParseState JsonParseValueString(tJsonParse *Parse, uint8_t Character
 }
 
 
-static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	Parse->AllocateChild = false;
-	if (Character == ',')
+	if (Code == ',')
 	{
 		if (Parse->Element->Parent == NULL)
 		{
@@ -163,7 +182,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 			return json_ParseError;
 		}
 	}
-	else if (Character == '}')
+	else if (Code == '}')
 	{
 		if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeKey))
 		{
@@ -177,7 +196,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 		Parse->Element = Parse->Element->Parent;
 		return json_ParseValueEnd;
 	}
-	else if (Character == ']')
+	else if (Code == ']')
 	{
 		if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeArray))
 		{
@@ -186,12 +205,12 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 		Parse->Element = Parse->Element->Parent;
 		return json_ParseValueEnd;
 	}
-	else if (Character == '/')
+	else if (Code == '/')
 	{
 		Parse->CommentState = Parse->State;
 		return json_ParseCommentStart;
 	}
-	else if (Character == '\0')
+	else if (Code == '\0')
 	{
 		if ((Parse->Element->Parent == NULL) || (Parse->Element->Parent->Type != json_TypeRoot))
 		{
@@ -200,7 +219,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 		Parse->Element = Parse->Element->Parent;
 		return json_ParseComplete;
 	}
-	else if (!JsonCharacterIsWhitespace(Character))
+	else if (!JsonCharacterIsWhitespace(Code))
 	{
 		return json_ParseError;
 	}
@@ -209,13 +228,13 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseValueLiteral(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseValueLiteral(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (!JsonCharacterIsLiteral(Character))
+	if (!JsonCharacterIsLiteral(Code))
 	{
-		return JsonParseValueEnd(Parse, Character);
+		return JsonParseValueEnd(Parse, Code);
 	}
-	else if (!JsonStringAddCharacter(&Parse->Element->Name, Character))
+	else if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -224,9 +243,9 @@ static tJsonParseState JsonParseValueLiteral(tJsonParse *Parse, uint8_t Characte
 }
 
 
-static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseValueStart(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == '{')
+	if (Code == '{')
 	{
 		if (!JsonParseAllocateElement(Parse, json_TypeObject))
 		{
@@ -236,7 +255,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 		Parse->AllocateChild = true;
 		return json_ParseKeyStart;
 	}
-	else if (Character == '[')
+	else if (Code == '[')
 	{
 		if (!JsonParseAllocateElement(Parse, json_TypeArray))
 		{
@@ -246,7 +265,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 		Parse->AllocateChild = true;
 		return json_ParseValueStart;
 	}
-	else if (Character == ']')
+	else if (Code == ']')
 	{
 		if (Parse->Element->Type != json_TypeArray)
 		{
@@ -254,7 +273,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 		}
 		return json_ParseValueEnd;
 	}
-	else if (Character == '"')
+	else if (Code == '"')
 	{
 		if (!JsonParseAllocateElement(Parse, json_TypeValueString))
 		{
@@ -262,12 +281,12 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 		}
 		return json_ParseValueString;
 	}
-	else if (Character == '/')
+	else if (Code == '/')
 	{
 		Parse->CommentState = Parse->State;
 		return json_ParseCommentStart;
 	}
-	else if (Character == '\0')
+	else if (Code == '\0')
 	{
 		if (Parse->Element->Type != json_TypeRoot)
 		{
@@ -275,15 +294,15 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 		}
 		return json_ParseComplete;
 	}
-	else if (JsonCharacterIsLiteral(Character))
+	else if (JsonCharacterIsLiteral(Code))
 	{
-		if (!JsonParseAllocateElement(Parse, json_TypeValueLiteral) || !JsonStringAddCharacter(&Parse->Element->Name, Character))
+		if (!JsonParseAllocateElement(Parse, json_TypeValueLiteral) || !JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 		{
 			return json_ParseError;
 		}
 		return json_ParseValueLiteral;
 	}
-	else if (!JsonCharacterIsWhitespace(Character))
+	else if (!JsonCharacterIsWhitespace(Code))
 	{
 		return json_ParseError;
 	}
@@ -292,22 +311,22 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, uint8_t Character)
 }
 
 
-static tJsonParseState JsonParseCommentStart(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseCommentStart(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (((Character != '/') && (Character != '*')) || (!Parse->StripComments && !JsonParseAllocateElement(Parse, json_TypeComment)))
+	if (((Code != '/') && (Code != '*')) || (!Parse->StripComments && !JsonParseAllocateElement(Parse, json_TypeComment)))
 	{
 		return json_ParseError;
 	}
 
-	return (Character == '/') ? json_ParseCommentLine : json_ParseCommentBlock;
+	return (Code == '/') ? json_ParseCommentLine : json_ParseCommentBlock;
 }
 
 
-static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	tJsonParseState State;
 
-	if ((Character == '\r') || (Character == '\n'))
+	if ((Code == '\r') || (Code == '\n'))
 	{
 		State = Parse->CommentState;
 		Parse->CommentState = json_ParseError;
@@ -317,7 +336,7 @@ static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, uint8_t Character
 		}
 		return State;
 	}
-	else if (!Parse->StripComments && !JsonStringAddCharacter(&Parse->Element->Name, Character))
+	else if (!Parse->StripComments && !JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -326,17 +345,17 @@ static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, uint8_t Character
 }
 
 
-static tJsonParseState JsonParseCommentBlock(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseCommentBlock(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (Character == '*')
+	if (Code == '*')
 	{
 		return json_ParseCommentBlockEnd;
 	}
-	else if ((Character == '\r') || (Character == '\n'))
+	else if ((Code == '\r') || (Code == '\n'))
 	{
 		return json_ParseCommentBlockLine;
 	}
-	else if (!Parse->StripComments && !JsonStringAddCharacter(&Parse->Element->Name, Character))
+	else if (!Parse->StripComments && !JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
@@ -345,9 +364,9 @@ static tJsonParseState JsonParseCommentBlock(tJsonParse *Parse, uint8_t Characte
 }
 
 
-static tJsonParseState JsonParseCommentBlockLine(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseCommentBlockLine(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	if (!JsonCharacterIsWhitespace(Character))
+	if (!JsonCharacterIsWhitespace(Code))
 	{
 		if (!Parse->StripComments)
 		{
@@ -358,18 +377,18 @@ static tJsonParseState JsonParseCommentBlockLine(tJsonParse *Parse, uint8_t Char
 			}
 		}
 
-		return JsonParseCommentBlock(Parse, Character);
+		return JsonParseCommentBlock(Parse, Code);
 	}
 
 	return json_ParseCommentBlockLine;
 }
 
 
-static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, uint8_t Character)
+static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	tJsonParseState State;
 
-	if (Character == '/')
+	if (Code == '/')
 	{
 		State = Parse->CommentState;
 		Parse->CommentState = json_ParseError;
@@ -379,12 +398,12 @@ static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, uint8_t Chara
 		}
 		return State;
 	}
-	else if (!Parse->StripComments && !JsonStringAddCharacter(&Parse->Element->Name, '*'))
+	else if (!Parse->StripComments && !JsonStringAddUtf8Code(&Parse->Element->Name, '*'))
 	{
 		return json_ParseError;
 	}
 
-	return JsonParseCommentBlock(Parse, Character);
+	return JsonParseCommentBlock(Parse, Code);
 }
 
 
@@ -392,6 +411,7 @@ void JsonParseSetUp(tJsonParse *Parse, bool StripComments, tJsonElement *RootEle
 {
 	Parse->State = json_ParseValueStart;
 	Parse->Element = RootElement;
+	Parse->Utf8Code = 0;
 	Parse->CommentState = json_ParseError;
 	Parse->AllocateChild = true;
 	Parse->StripComments = StripComments;
@@ -402,15 +422,18 @@ void JsonParseCleanUp(tJsonParse *Parse)
 {
 	Parse->State = json_ParseComplete;
 	Parse->Element = NULL;
+	Parse->Utf8Code = 0;
 	Parse->CommentState = json_ParseError;
 	Parse->AllocateChild = false;
 	Parse->StripComments = false;
 }
 
 
-int JsonParse(tJsonParse *Parse, uint8_t Character)
+int JsonParse(tJsonParse *Parse, tJsonUtf8Unit CodeUnit)
 {
-	if ((Parse->State != json_ParseComplete) && (Parse->State != json_ParseError))
+	tJsonUtf8Code Code;
+
+	if ((Parse->State != json_ParseComplete) && (Parse->State != json_ParseError) && JsonParseUtf8IsComplete(Parse, CodeUnit, &Code))
 	{
 		if (Parse->Element == NULL)
 		{
@@ -421,59 +444,59 @@ int JsonParse(tJsonParse *Parse, uint8_t Character)
 			switch (Parse->State)
 			{
 				case json_ParseKeyStart:
-					Parse->State = JsonParseKeyStart(Parse, Character);
+					Parse->State = JsonParseKeyStart(Parse, Code);
 				break;
 
 				case json_ParseKey:
-					Parse->State = JsonParseKey(Parse, Character);
+					Parse->State = JsonParseKey(Parse, Code);
 				break;
 
 				case json_ParseKeyEscape:
-					Parse->State = JsonParseKeyEscape(Parse, Character);
+					Parse->State = JsonParseKeyEscape(Parse, Code);
 				break;
 
 				case json_ParseKeyEnd:
-					Parse->State = JsonParseKeyEnd(Parse, Character);
+					Parse->State = JsonParseKeyEnd(Parse, Code);
 				break;
 
 				case json_ParseValueStart:
-					Parse->State = JsonParseValueStart(Parse, Character);
+					Parse->State = JsonParseValueStart(Parse, Code);
 				break;
 
 				case json_ParseValueString:
-					Parse->State = JsonParseValueString(Parse, Character);
+					Parse->State = JsonParseValueString(Parse, Code);
 				break;
 
 				case json_ParseValueStringEscape:
-					Parse->State = JsonParseValueStringEscape(Parse, Character);
+					Parse->State = JsonParseValueStringEscape(Parse, Code);
 				break;
 
 				case json_ParseValueLiteral:
-					Parse->State = JsonParseValueLiteral(Parse, Character);
+					Parse->State = JsonParseValueLiteral(Parse, Code);
 				break;
 
 				case json_ParseValueEnd:
-					Parse->State = JsonParseValueEnd(Parse, Character);
+					Parse->State = JsonParseValueEnd(Parse, Code);
 				break;
 
 				case json_ParseCommentStart:
-					Parse->State = JsonParseCommentStart(Parse, Character);
+					Parse->State = JsonParseCommentStart(Parse, Code);
 				break;
 
 				case json_ParseCommentLine:
-					Parse->State = JsonParseCommentLine(Parse, Character);
+					Parse->State = JsonParseCommentLine(Parse, Code);
 				break;
 
 				case json_ParseCommentBlock:
-					Parse->State = JsonParseCommentBlock(Parse, Character);
+					Parse->State = JsonParseCommentBlock(Parse, Code);
 				break;
 
 				case json_ParseCommentBlockLine:
-					Parse->State = JsonParseCommentBlockLine(Parse, Character);
+					Parse->State = JsonParseCommentBlockLine(Parse, Code);
 				break;
 
 				case json_ParseCommentBlockEnd:
-					Parse->State = JsonParseCommentBlockEnd(Parse, Character);
+					Parse->State = JsonParseCommentBlockEnd(Parse, Code);
 				break;
 
 				default:

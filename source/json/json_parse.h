@@ -2,6 +2,7 @@
 #define JSON_PARSE_H
 
 #include "json_element.h"
+#include "json_utf8.h"
 
 
 /**
@@ -35,6 +36,7 @@ typedef struct
 {
 	tJsonParseState State;         /**< The current parse state */
 	tJsonElement   *Element;       /**< The current element being parsed */
+	tJsonUtf8Code   Utf8Code;      /**< The current UTF-8 character code being parsed */
 	tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
 	bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
 	bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
@@ -70,15 +72,15 @@ void JsonParseCleanUp(tJsonParse *Parse);
 
 
 /**
- * @brief Parses the next character in the JSON content
- * @param Parse     The JSON content parser
- * @param Character The next character in the JSON content
+ * @brief Parses the next UTF-8 code unit in the JSON content
+ * @param Parse    The JSON content parser
+ * @param CodeUnit The next UTF-8 code unit in the JSON content
  * @return `JSON_PARSE_ERROR`      is returned if there was a parsing error
  * @return `JSON_PARSE_COMPLETE`   is returned if the parsing is complete
  * @return `JSON_PARSE_INCOMPLETE` is returned if parsing is not yet complete
- * @note The parsing should be completed by passing a null character
+ * @note The parsing should be completed by passing a null character (zero value code unit)
  */
-int JsonParse(tJsonParse *Parse, uint8_t Character);
+int JsonParse(tJsonParse *Parse, tJsonUtf8Unit CodeUnit);
 
 
 #endif
