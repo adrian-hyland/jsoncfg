@@ -28,7 +28,7 @@ static bool TestJsonElementCleanUp(void)
 
 	JsonElementSetUp(&Element);
 
-	ok = (JsonElementFind(&Element, (const uint8_t *)"/", true) != NULL);
+	ok = (JsonElementFind(&Element, JsonPathAscii("/"), true) != NULL);
 
 	ok = ok && (JsonElementGetType(&Element) == json_TypeRoot);
 
@@ -428,29 +428,29 @@ static bool TestJsonElementFind(void)
 {
 	static struct
 	{
-		const uint8_t *Path;
+		const char *Path;
 		tJsonType      ElementType;
 	} CreatePaths[] =
 	{
-		{ (const uint8_t *)"/",                                               json_TypeObject       },
-		{ (const uint8_t *)"/key1:123",                                       json_TypeValueLiteral },
-		{ (const uint8_t *)"/key2:\"hello world\"",                           json_TypeValueString  },
-		{ (const uint8_t *)"/key3[/object:1]",                                json_TypeObject       },
-		{ (const uint8_t *)"/key3[/object:1]/key31:\"hello again\"",          json_TypeValueString  },
-		{ (const uint8_t *)"/key3[/object:2]",                                json_TypeObject       },
-		{ (const uint8_t *)"/key3[/object:2]/key32[/object:321]",             json_TypeObject       },
-		{ (const uint8_t *)"/key3[/object:2]/key32[/object:322]",             json_TypeObject       },
-		{ (const uint8_t *)"/key3[/object:2]/key32[/object:322]/key322:true", json_TypeValueLiteral }
+		{ "/",                                               json_TypeObject       },
+		{ "/key1:123",                                       json_TypeValueLiteral },
+		{ "/key2:\"hello world\"",                           json_TypeValueString  },
+		{ "/key3[/object:1]",                                json_TypeObject       },
+		{ "/key3[/object:1]/key31:\"hello again\"",          json_TypeValueString  },
+		{ "/key3[/object:2]",                                json_TypeObject       },
+		{ "/key3[/object:2]/key32[/object:321]",             json_TypeObject       },
+		{ "/key3[/object:2]/key32[/object:322]",             json_TypeObject       },
+		{ "/key3[/object:2]/key32[/object:322]/key322:true", json_TypeValueLiteral }
 	};
-	const uint8_t *InvalidPaths[] =
+	const char *InvalidPaths[] =
 	{
-		(const uint8_t *)"/key1:12",
-		(const uint8_t *)"/key4",
-		(const uint8_t *)"/key3[object:3]",
-		(const uint8_t *)"/key3[object:1]/key32",
-		(const uint8_t *)"/key3[object:2]/key31",
-		(const uint8_t *)"/key3[object:2]/key32[/object:323]",
-		(const uint8_t *)"/key3[object:2]/key32[/object:322]/key321",
+		"/key1:12",
+		"/key4",
+		"/key3[object:3]",
+		"/key3[object:1]/key32",
+		"/key3[object:2]/key31",
+		"/key3[object:2]/key32[/object:323]",
+		"/key3[object:2]/key32[/object:322]/key321",
 	};
 	tJsonElement Root;
 	tJsonElement *Element;
@@ -461,7 +461,7 @@ static bool TestJsonElementFind(void)
 
 	for (ok = true, n = 0; ok && (n < sizeof(CreatePaths) / sizeof(CreatePaths[0])); n++)
 	{
-		Element = JsonElementFind(&Root, CreatePaths[n].Path, true);
+		Element = JsonElementFind(&Root, JsonPathAscii(CreatePaths[n].Path), true);
 
 		ok = (Element != NULL);
 
@@ -470,14 +470,14 @@ static bool TestJsonElementFind(void)
 
 	for (n = 0; ok && (n < sizeof(InvalidPaths) / sizeof(InvalidPaths[0])); n++)
 	{
-		Element = JsonElementFind(&Root, InvalidPaths[n], false);
+		Element = JsonElementFind(&Root, JsonPathAscii(InvalidPaths[n]), false);
 
 		ok = (Element == NULL);
 	}
 
 	for (n = 0; ok && (n < sizeof(CreatePaths) / sizeof(CreatePaths[0])); n++)
 	{
-		Element = JsonElementFind(&Root, CreatePaths[n].Path, false);
+		Element = JsonElementFind(&Root, JsonPathAscii(CreatePaths[n].Path), false);
 
 		ok = (Element != NULL);
 
