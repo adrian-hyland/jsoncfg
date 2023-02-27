@@ -1,4 +1,5 @@
 #include "json_parse.h"
+#include "json_format.h"
 #include "test_json.h"
 
 
@@ -6,54 +7,60 @@ static bool TestJsonValueUtf8Valid(void)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
+	tJsonFormat Format;
+	tJsonCharacter Character;
+	tJsonUtf8Code Code;
+	tJsonUtf8Unit CodeUnit;
+	size_t Length;
+	size_t n;
 	bool ok;
 
-	// TODO: should we allow parsing of control characters in values? or should we ensure that they always get escaped?
 	JsonElementSetUp(&Root);
+
 	JsonParseSetUp(&Parse, false, &Root);
 
 	ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
 
-	for (uint32_t code = 0x20; ok && (code < 0x80); code++)
+	for (Character = 0x20; ok && (Character < 0x110000); Character++)
 	{
-		if ((code != '\\') && (code != '"'))
+		if ((Character != '\\') && (Character != '"'))
 		{
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_INCOMPLETE);
+			Code = JsonUtf8Code(Character);
+			Length = JsonUtf8CodeGetUnitLength(Code);
+			for (n = 0; ok && (n < Length); n++)
+			{
+				ok = (JsonParse(&Parse, JsonUtf8CodeGetUnit(Code, n)) == JSON_PARSE_INCOMPLETE);
+			}
 		}
-	}
-
-	for (uint32_t code = 0x80; ok && (code < 0x800); code++)
-	{
-		ok = ok && (JsonParse(&Parse, 0xC0 + (code >> 6)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_INCOMPLETE);
-	}
-
-	for (uint32_t code = 0x800; ok && (code < 0xD800); code++)
-	{
-		ok = ok && (JsonParse(&Parse, 0xE0 + (code >> 12)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_INCOMPLETE);
-	}
-
-	for (uint32_t code = 0xE000; ok && (code < 0x10000); code++)
-	{
-		ok = ok && (JsonParse(&Parse, 0xE0 + (code >> 12)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_INCOMPLETE);
-	}
-
-	for (uint32_t code = 0x10000; ok && (code < 0x110000); code++)
-	{
-		ok = ok && (JsonParse(&Parse, 0xF0 + (code >> 18)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 12) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_INCOMPLETE);
 	}
 
 	ok = ok && (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
 	ok = ok && (JsonParse(&Parse, '\0') == JSON_PARSE_COMPLETE);
 
 	JsonParseCleanUp(&Parse);
+
+	JsonFormatSetUpSpace(&Format, &Root);
+
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_PARSE_INCOMPLETE) && (CodeUnit == '"');
+
+	for (Character = 0x20; ok && (Character < 0x110000); Character++)
+	{
+		if ((Character != '\\') && (Character != '"'))
+		{
+			Code = JsonUtf8Code(Character);
+			Length = JsonUtf8CodeGetUnitLength(Code);
+			for (n = 0; ok && (n < Length); n++)
+			{
+				ok = (JsonFormat(&Format, &CodeUnit) == JSON_PARSE_INCOMPLETE) && (CodeUnit == JsonUtf8CodeGetUnit(Code, n));
+			}
+		}
+	}
+
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_PARSE_INCOMPLETE) && (CodeUnit == '"');
+	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_PARSE_COMPLETE) && (CodeUnit == '\0');
+
+	JsonFormatCleanUp(&Format);
+
 	JsonElementCleanUp(&Root);
 
 	return ok;
@@ -64,130 +71,53 @@ static bool TestJsonValueUtf8Invalid(void)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
+	tJsonCharacter Character;
+	tJsonUtf8Code Code;
+	tJsonUtf8Unit InvalidUnit;
+	size_t Length;
+	size_t n;
 	bool ok = true;
 
-	for (uint32_t code = 0x80; ok && (code < 0x100); code++)
+	for (Character = 0x80; ok && (Character < 0x110000); Character++)
 	{
-		JsonElementSetUp(&Root);
-		JsonParseSetUp(&Parse, false, &Root);
+		Code = JsonUtf8Code(Character);
+		Length = JsonUtf8CodeGetUnitLength(Code);
 
-		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
-		if (((code & 0xE0) == 0xC0) || ((code & 0xF0) == 0xE0) || ((code & 0xF8) == 0xF0))
+		for (InvalidUnit = 0x00; ok && (InvalidUnit < 0x80); InvalidUnit++)
 		{
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, '"') == JSON_PARSE_ERROR);
-		}
-		else
-		{
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_ERROR);
-		}
+			JsonElementSetUp(&Root);
+			JsonParseSetUp(&Parse, false, &Root);
 
-		JsonParseCleanUp(&Parse);
-		JsonElementCleanUp(&Root);
-	}
+			ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
 
-	for (uint32_t code = 0x8000; ok && (code < 0x10000); code++)
-	{
-		if ((code & 0xE0C0) == 0xC080)
-		{
-			continue;
+			for (n = 0; ok && (n < Length - 1); n++)
+			{
+				ok = (JsonParse(&Parse, JsonUtf8CodeGetUnit(Code, n)) == JSON_PARSE_INCOMPLETE);
+			}
+
+			ok = ok && (JsonParse(&Parse, InvalidUnit) == JSON_PARSE_ERROR);
+
+			JsonParseCleanUp(&Parse);
+			JsonElementCleanUp(&Root);
 		}
 
-		JsonElementSetUp(&Root);
-		JsonParseSetUp(&Parse, false, &Root);
+		for (InvalidUnit = 0xC0; ok && (InvalidUnit != 0x00); InvalidUnit++)
+		{
+			JsonElementSetUp(&Root);
+			JsonParseSetUp(&Parse, false, &Root);
 
-		if (((code & 0xF0C0) == 0xE080) || ((code & 0xF8C0) == 0xF080))
-		{
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, '"') == JSON_PARSE_ERROR);
-		}
-		else if (((code & 0xE000) == 0xC000) || ((code & 0xF000) == 0xE000) || ((code & 0xF800) == 0xF000))
-		{
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_ERROR);
-		}
-		else
-		{
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_ERROR);
-		}
+			ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
 
-		JsonParseCleanUp(&Parse);
-		JsonElementCleanUp(&Root);
-	}
+			for (n = 0; ok && (n < Length - 1); n++)
+			{
+				ok = (JsonParse(&Parse, JsonUtf8CodeGetUnit(Code, n)) == JSON_PARSE_INCOMPLETE);
+			}
 
-	for (uint32_t code = 0x800000; ok && (code < 0x1000000); code++)
-	{
-		if (((code & 0xE0C000) == 0xC08000) || ((code & 0xF0C0C0) == 0xE08080))
-		{
-			continue;
-		}
+			ok = ok && (JsonParse(&Parse, InvalidUnit) == JSON_PARSE_ERROR);
 
-		JsonElementSetUp(&Root);
-		JsonParseSetUp(&Parse, false, &Root);
-
-		if ((code & 0xF8C0C0) == 0xF08080)
-		{
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, '"') == JSON_PARSE_ERROR);
+			JsonParseCleanUp(&Parse);
+			JsonElementCleanUp(&Root);
 		}
-		else if (((code & 0xF0C000) == 0xE08000) || (code & 0xF8C000) == 0xF08000)
-		{
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_ERROR);
-		}
-		else if (((code & 0xE00000) == 0xC00000) || ((code & 0xF00000) == 0xE00000) || ((code & 0xF80000) == 0xF00000))
-		{
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_ERROR);
-		}
-		else
-		{
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_ERROR);
-		}
-
-		JsonParseCleanUp(&Parse);
-		JsonElementCleanUp(&Root);
-	}
-
-	for (uint32_t code = 0x80000000; ok && (code != 0); code++)
-	{
-		if (((code & 0xE0C00000) == 0xC0800000) || ((code & 0xF0C0C000) == 0xE0808000) || ((code & 0xF8C0C0C0) == 0xF0808080))
-		{
-			continue;
-		}
-
-		JsonElementSetUp(&Root);
-		JsonParseSetUp(&Parse, false, &Root);
-
-		if ((code & 0xF8C0C0C0) == 0xF0808000)
-		{
-			ok = ok && (JsonParse(&Parse, code >> 24) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_ERROR);
-		}
-		else if (((code & 0xF0C00000) == 0xE0800000) || (code & 0xF8C0C000) == 0xF0800000)
-		{
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code) == JSON_PARSE_ERROR);
-		}
-		else if (((code & 0xE0000000) == 0xC0000000) || ((code & 0xF0000000) == 0xE0000000) || ((code & 0xF8000000) == 0xF0000000))
-		{
-			ok = ok && (JsonParse(&Parse, code >> 16) == JSON_PARSE_INCOMPLETE);
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_ERROR);
-		}
-		else
-		{
-			ok = ok && (JsonParse(&Parse, code >> 8) == JSON_PARSE_ERROR);
-		}
-
-		JsonParseCleanUp(&Parse);
-		JsonElementCleanUp(&Root);
 	}
 
 	return ok;
@@ -198,31 +128,42 @@ static bool TestJsonValueUtf8OutOfRange(void)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
+	tJsonCharacter Character;
 	bool ok = true;
 
-	for (uint32_t code = 0xD800; ok && (code < 0xE000); code++)
+	for (Character = 0xD800; ok && (Character < 0xE000); Character = Character + 0x40)
 	{
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, false, &Root);
 
 		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0xE0 + (code >> 12)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_ERROR);
+		ok = ok && (JsonParse(&Parse, 0xE0 + (Character >> 12)) == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0x80 + ((Character >> 6) & 0x3F)) == JSON_PARSE_ERROR);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
 	}
 
-	for (uint32_t code = 0x110000; ok && (code < 0x200000); code++)
+	for (Character = 0x110000; ok && (Character < 0x140000); Character = Character + 0x1000)
 	{
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, false, &Root);
 
-		ok = ok && (JsonParse(&Parse, 0xF0 + (code >> 18)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 12) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_ERROR);
+		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0xF0 + (Character >> 18)) == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0x80 + ((Character >> 12) & 0x3F)) == JSON_PARSE_ERROR);
+
+		JsonParseCleanUp(&Parse);
+		JsonElementCleanUp(&Root);
+	}
+
+	for (Character = 0x140000; ok && (Character < 0x200000); Character = Character + 0x40000)
+	{
+		JsonElementSetUp(&Root);
+		JsonParseSetUp(&Parse, false, &Root);
+
+		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0xF0 + (Character >> 18)) == JSON_PARSE_ERROR);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
@@ -236,42 +177,42 @@ static bool TestJsonValueUtf8Overlong(void)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
+	tJsonCharacter Character;
 	bool ok = true;
 
-	for (uint32_t code = 0; ok && (code < 0x80); code++)
+	for (Character = 0; ok && (Character < 0x80); Character = Character + 0x40)
 	{
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, false, &Root);
 
-		ok = ok && (JsonParse(&Parse, 0xC0 + (code >> 6)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_ERROR);
+		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0xC0 + (Character >> 6)) == JSON_PARSE_ERROR);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
 	}
 
-	for (uint32_t code = 0; ok && (code < 0x800); code++)
+	for (Character = 0; ok && (Character < 0x800); Character = Character + 0x40)
 	{
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, false, &Root);
 
-		ok = ok && (JsonParse(&Parse, 0xE0 + (code >> 12)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_ERROR);
+		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0xE0 + (Character >> 12)) == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0x80 + ((Character >> 6) & 0x3F)) == JSON_PARSE_ERROR);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
 	}
 
-	for (uint32_t code = 0; ok && (code < 0x10000); code++)
+	for (Character = 0; ok && (Character < 0x10000); Character = Character + 0x1000)
 	{
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, false, &Root);
 
-		ok = ok && (JsonParse(&Parse, 0xF0 + (code >> 18)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 12) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + ((code >> 6) & 0x3F)) == JSON_PARSE_INCOMPLETE);
-		ok = ok && (JsonParse(&Parse, 0x80 + (code & 0x3F)) == JSON_PARSE_ERROR);
+		ok = (JsonParse(&Parse, '"') == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0xF0 + (Character >> 18)) == JSON_PARSE_INCOMPLETE);
+		ok = ok && (JsonParse(&Parse, 0x80 + ((Character >> 12) & 0x3F)) == JSON_PARSE_ERROR);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
