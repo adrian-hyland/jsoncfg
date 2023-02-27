@@ -1,7 +1,13 @@
 #include "json.h"
 
 
-bool JsonReadString(tJsonElement *Root, bool StripComments, const char *String)
+bool JsonReadStringAscii(tJsonElement *Root, bool StripComments, const char *String)
+{
+	return JsonReadStringUtf8(Root, StripComments, (const tJsonUtf8Unit *)String);
+}
+
+
+bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const tJsonUtf8Unit *String)
 {
 	tJsonParse Parse;
 	int Error;
@@ -50,7 +56,7 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream)
 bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream)
 {
 	tJsonFormat Format;
-	uint8_t Character;
+	tJsonUtf8Unit CodeUnit;
 	int Error;
 
 	if (IndentSize == 0)
@@ -64,10 +70,10 @@ bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType Comme
 
 	do
 	{
-		Error = JsonFormat(&Format, &Character);
+		Error = JsonFormat(&Format, &CodeUnit);
 		if (Error == JSON_FORMAT_INCOMPLETE)
 		{
-			if (fputc(Character, Stream) == EOF)
+			if (fputc(CodeUnit, Stream) == EOF)
 			{
 				Error = JSON_FORMAT_ERROR;
 			}

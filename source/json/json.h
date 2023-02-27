@@ -10,11 +10,22 @@
  * @brief Reads JSON content from a string
  * @param Root          The root JSON element
  * @param StripComments Indicates whether comments should be stripped from the JSON content
- * @param String        The null terminated string containing the JSON content
+ * @param String        The null terminated ASCII string containing the JSON content
  * @return A true value is returned if the JSON content was successfully read from the string
  * @return A false value is returned if the JSON content could not be read from the string
  */
-bool JsonReadString(tJsonElement *Root, bool StripComments, const char *String);
+bool JsonReadStringAscii(tJsonElement *Root, bool StripComments, const char *String);
+
+
+/**
+ * @brief Reads JSON content from a string
+ * @param Root          The root JSON element
+ * @param StripComments Indicates whether comments should be stripped from the JSON content
+ * @param String        The null terminated UTF-8 encoded string containing the JSON content
+ * @return A true value is returned if the JSON content was successfully read from the string
+ * @return A false value is returned if the JSON content could not be read from the string
+ */
+bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const tJsonUtf8Unit *String);
 
 
 /**
