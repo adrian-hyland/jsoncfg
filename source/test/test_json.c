@@ -13,7 +13,11 @@ static const tTest *Tests[] =
 	&TestJsonElement,
 	&TestJsonParse,
 	&TestJsonFormat,
-	&TestJsonValueUtf8
+	&TestJsonKeyUtf8,
+	&TestJsonValueUtf8,
+	&TestJsonLiteralUtf8,
+	&TestJsonCommentLineUtf8,
+	&TestJsonCommentBlockUtf8
 };
 
 

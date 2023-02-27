@@ -47,9 +47,33 @@ extern const tTest TestJsonFormat;
 
 
 /**
+ * @brief Contains test cases for UTF-8 encoded key string values
+ */
+extern const tTest TestJsonKeyUtf8;
+
+
+/**
  * @brief Contains test cases for UTF-8 encoded string values
  */
 extern const tTest TestJsonValueUtf8;
+
+
+/**
+ * @brief Contains test cases for UTF-8 encoded literal values
+ */
+extern const tTest TestJsonLiteralUtf8;
+
+
+/**
+ * @brief Contains test cases for UTF-8 encoded line comments
+ */
+extern const tTest TestJsonCommentLineUtf8;
+
+
+/**
+ * @brief Contains test cases for UTF-8 encoded block comments
+ */
+extern const tTest TestJsonCommentBlockUtf8;
 
 
 #endif
