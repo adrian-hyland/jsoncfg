@@ -86,12 +86,12 @@ int main(int argc, const char *argv[])
 
 		for (; (Error == JSONCFG_ERROR_NONE) && (Argument < argc); Argument = Argument + 2)
 		{
-			Element = JsonElementFind(&Root, (const uint8_t *)argv[Argument], true);
+			Element = JsonElementFind(&Root, JsonPathAscii(argv[Argument]), true);
 			if (Element == NULL)
 			{
 				Error = JSONCFG_ERROR_NO_PATH;
 			}
-			else if (!JsonReadString(&Value, false, argv[Argument + 1]))
+			else if (!JsonReadStringAscii(&Value, false, argv[Argument + 1]))
 			{
 				Error = JSONCFG_ERROR_READ_VALUE;
 			}
