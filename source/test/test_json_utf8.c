@@ -231,7 +231,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			ok = JsonUtf8CodeAddUnit(&Code, Unit1);
 			ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
-			ok = ok && (Code == (Unit1 << 8) + Unit2);
+			ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 8) + (tJsonUtf8Code)Unit2);
 			ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 		}
 
@@ -268,7 +268,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 				ok = JsonUtf8CodeAddUnit(&Code, Unit1);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
-				ok = ok && (Code == (Unit1 << 16) + (Unit2 << 8) + Unit3);
+				ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3);
 				ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 			}
 
@@ -314,7 +314,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 				ok = JsonUtf8CodeAddUnit(&Code, Unit1);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
-				ok = ok && (Code == (Unit1 << 16) + (Unit2 << 8) + Unit3);
+				ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3);
 				ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 			}
 
@@ -360,7 +360,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 				ok = JsonUtf8CodeAddUnit(&Code, Unit1);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
-				ok = ok && (Code == (Unit1 << 16) + (Unit2 << 8) + Unit3);
+				ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3);
 				ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 			}
 
@@ -406,7 +406,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 				ok = JsonUtf8CodeAddUnit(&Code, Unit1);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 				ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
-				ok = ok && (Code == (Unit1 << 16) + (Unit2 << 8) + Unit3);
+				ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3);
 				ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 			}
 
@@ -464,7 +464,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit4);
-					ok = ok && (Code == (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4);
+					ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4);
 					ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 				}
 			}
@@ -523,7 +523,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit4);
-					ok = ok && (Code == (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4);
+					ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4);
 					ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 				}
 			}
@@ -582,7 +582,7 @@ static bool TestJsonUtf8CodeAddUnit(void)
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit2);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit3);
 					ok = ok && JsonUtf8CodeAddUnit(&Code, Unit4);
-					ok = ok && (Code == (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4);
+					ok = ok && (Code == ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4);
 					ok = ok && !JsonUtf8CodeAddUnit(&Code, 0x80);
 				}
 			}
