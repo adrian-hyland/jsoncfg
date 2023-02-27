@@ -2,21 +2,7 @@
 #define JSON_ELEMENT_H
 
 #include "json_string.h"
-
-
-/**
- * @brief Enumeration used to define different JSON element types
- */
-typedef enum
-{
-	json_TypeRoot,         /**< Root element */
-	json_TypeKey,          /**< Key element*/
-	json_TypeValueString,  /**< String value element */
-	json_TypeValueLiteral, /**< Literal value element (for \a null, \a boolean or \a numeric values) */
-	json_TypeObject,       /**< Object element */
-	json_TypeArray,        /**< Array element */
-	json_TypeComment,      /**< Comment element */
-} tJsonType;
+#include "json_path.h"
 
 
 /**
@@ -105,7 +91,7 @@ tJsonElement *JsonElementGetNext(tJsonElement *Element, bool IgnoreComments);
  * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is zero) or created (if \a `Create` is non-zero)
  * @note The type of parameter \a `Element` must be equal to \a `json_TypeRoot` - use \a `JsonElementSetUp()` to set up an appropriate element
  */
-tJsonElement *JsonElementFind(tJsonElement *Element, const uint8_t *Path, bool Create);
+tJsonElement *JsonElementFind(tJsonElement *Element, tJsonPath Path, bool Create);
 
 
 /**
