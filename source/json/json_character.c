@@ -18,6 +18,50 @@ bool JsonCharacterIsWhitespace(tJsonCharacter Character)
 }
 
 
+bool JsonCharacterIsHexDigit(tJsonCharacter Character)
+{
+	return ((Character >= '0') && (Character <= '9')) || ((Character >= 'a') && (Character <= 'f')) || ((Character >= 'A') && (Character <= 'F'));
+}
+
+
+uint8_t JsonCharacterToHexDigit(tJsonCharacter Character)
+{
+	if ((Character >= '0') && (Character <= '9'))
+	{
+		return Character - '0';
+	}
+	else if ((Character >= 'a') && (Character <= 'f'))
+	{
+		return Character - 'a' + 10;
+	}
+	else if ((Character >= 'A') && (Character <= 'F'))
+	{
+		return Character - 'A' + 10;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+tJsonCharacter JsonCharacterFromHexDigit(uint8_t HexDigit)
+{
+	if ((HexDigit >= 0) && (HexDigit <= 9))
+	{
+		return '0' + HexDigit;
+	}
+	else if ((HexDigit >= 0x0A) && (HexDigit <= 0x0F))
+	{
+		return 'A' + HexDigit - 0x0A;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
 bool JsonCharacterIsEscapable(tJsonCharacter Character)
 {
 	return (Character == '\b') || (Character == '\f') || (Character == '\n') || (Character == '\r') || (Character == '\t') || (Character == '"') || (Character == '\\');

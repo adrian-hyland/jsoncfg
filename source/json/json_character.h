@@ -40,6 +40,33 @@ bool JsonCharacterIsWhitespace(tJsonCharacter Character);
 
 
 /**
+ * @brief Checks if a character represents a hexadecimal digit
+ * @param Character The character to check
+ * @return A true value is returned if the character represents a hexadecimal digit
+ * @return A false value is returned of the character does not represent a hexadecimal digit
+ */
+bool JsonCharacterIsHexDigit(tJsonCharacter Character);
+
+
+/**
+ * @brief Converts a character to the hexdecimal digit that it represents
+ * @param Character The character representing a hexdecimal digit
+ * @return The hexadecimal digit that the character represents
+ * @return A zero value will be returned if the character does not represent a hexadecimal digit
+ */
+uint8_t JsonCharacterToHexDigit(tJsonCharacter Character);
+
+
+/**
+ * @brief Converts a hexadecimal digit to its character representation
+ * @param HexDigit The hexdecimal digit
+ * @return The character representation of the hexadecimal digit
+ * @return A null character will be returned if the hexadecimal digit value is not valid
+ */
+tJsonCharacter JsonCharacterFromHexDigit(uint8_t HexDigit);
+
+
+/**
  * @brief Checks if a character needs to be escaped
  * @param Character The character to check
  * @return A true value is returned if the character needs to be escaped
