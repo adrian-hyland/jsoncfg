@@ -7,7 +7,7 @@
 /**
  * @brief The maximum number of code units that an encoded UTF-8 character can have
  */
-#define JSON_UTF8_MAX_SIZE 4
+#define JSON_UTF8_MAX_SIZE (sizeof(tJsonUtf8Code) / sizeof(tJsonUtf8Unit))
 
 
 /**
@@ -19,7 +19,7 @@
 /**
  * @brief Type used to hold a UTF-8 character code
  * @note The value that this holds is the UTF-8 code of a unicode character (padded with leading zeros).
- * @note Use \a `JsonUtf8CodeGetCodePoint()` to get the actual code point value.
+ * @note Use \a `JsonUtf8CodeGetCharacter()` to get the actual character code point value.
  */
 typedef uint32_t tJsonUtf8Code;
 
