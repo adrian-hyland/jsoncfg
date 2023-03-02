@@ -1,4 +1,3 @@
-#include <string.h>
 #include "json_utf8.h"
 #include "test_json.h"
 
