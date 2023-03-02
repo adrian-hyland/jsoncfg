@@ -17,6 +17,12 @@ extern const tTest TestJsonUtf8;
 
 
 /**
+ * @brief Contains test cases for the `JsonUtf16` set of functions
+ */
+extern const tTest TestJsonUtf16;
+
+
+/**
  * @brief Contains test cases for the `JsonString` set of functions
  */
 extern const tTest TestJsonString;
