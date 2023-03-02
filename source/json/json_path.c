@@ -1,4 +1,5 @@
 #include <string.h>
+#include "json_utf16.h"
 #include "json_character.h"
 #include "json_path.h"
 
@@ -25,67 +26,292 @@ tJsonPath JsonPathAscii(const char *PathString)
 }
 
 
+static size_t JsonPathGetNextUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit *Unit)
+{
+	tJsonUtf8Code Utf8Code;
+	size_t NextOffset;
+	size_t CodeLength;
+	size_t n;
+
+	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset, &Utf8Code);
+	if ((CodeLength == 0) || (Utf8Code != '\\'))
+	{
+		return 0;
+	}
+	NextOffset = Offset + CodeLength;
+
+	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
+	if ((CodeLength == 0) || (Utf8Code != 'u'))
+	{
+		return 0;
+	}
+	NextOffset = NextOffset + CodeLength;
+
+	for (n = 0; n < 4; n++)
+	{
+		CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
+		if ((CodeLength == 0) || !JsonCharacterIsHexDigit(Utf8Code) || !JsonUtf16UnitSetNibble(Unit, n, JsonCharacterToHexDigit(Utf8Code)))
+		{
+			return 0;
+		}
+		NextOffset = NextOffset + CodeLength;
+	}
+
+	return NextOffset - Offset;
+}
+
+
+static size_t JsonPathGetPreviousUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit *Unit)
+{
+	tJsonUtf8Code Utf8Code;
+	size_t PreviousOffset = Offset;
+	size_t CodeLength;
+	size_t n;
+
+	for (n = 0; n < 4; n++)
+	{
+		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
+		if ((CodeLength == 0) || !JsonCharacterIsHexDigit(Utf8Code) || !JsonUtf16UnitSetNibble(Unit, 3 - n, JsonCharacterToHexDigit(Utf8Code)))
+		{
+			return 0;
+		}
+		PreviousOffset = PreviousOffset - CodeLength;
+	}
+
+	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
+	if ((CodeLength == 0) || (Utf8Code != 'u'))
+	{
+		return 0;
+	}
+	PreviousOffset = PreviousOffset - CodeLength;
+
+	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
+	if ((CodeLength == 0) || (Utf8Code != '\\'))
+	{
+		return 0;
+	}
+	PreviousOffset = PreviousOffset - CodeLength;
+
+	return Offset - PreviousOffset;
+}
+
+
+static size_t JsonPathGetNextUtf16Code(tJsonPath Path, size_t Offset, tJsonUtf16Code *Code)
+{
+	tJsonUtf16Unit LowUnit;
+	tJsonUtf16Unit HighUnit;
+	size_t NextOffset;
+	size_t CodeLength;
+
+	*Code = 0;
+
+	CodeLength = JsonPathGetNextUtf16Unit(Path, Offset, &HighUnit);
+	if (CodeLength == 0)
+	{
+		return 0;
+	}
+	NextOffset = Offset + CodeLength;
+
+	if (JsonUtf16UnitIsHighSurrogate(HighUnit))
+	{
+		CodeLength = JsonPathGetNextUtf16Unit(Path, NextOffset, &LowUnit);
+		if (CodeLength == 0)
+		{
+			return 0;
+		}
+		NextOffset = NextOffset + CodeLength;
+	}
+	else
+	{
+		LowUnit = HighUnit;
+		HighUnit = 0;
+	}
+
+	*Code = HighUnit;
+	if (!JsonUtf16CodeAddUnit(Code, LowUnit))
+	{
+		return 0;
+	}
+
+	if (!JsonUtf16CodeIsValid(*Code))
+	{
+		return 0;
+	}
+
+	return NextOffset - Offset;
+}
+
+
+static size_t JsonPathGetPreviousUtf16Code(tJsonPath Path, size_t Offset, tJsonUtf16Code *Code)
+{
+	tJsonUtf16Unit LowUnit;
+	tJsonUtf16Unit HighUnit;
+	size_t PreviousOffset = Offset;
+	size_t CodeLength;
+
+	*Code = 0;
+
+	CodeLength = JsonPathGetPreviousUtf16Unit(Path, PreviousOffset, &LowUnit);
+	if (CodeLength == 0)
+	{
+		return 0;
+	}
+	PreviousOffset = PreviousOffset - CodeLength;
+
+	if (JsonUtf16UnitIsLowSurrogate(LowUnit))
+	{
+		CodeLength = JsonPathGetPreviousUtf16Unit(Path, PreviousOffset, &HighUnit);
+		if (CodeLength == 0)
+		{
+			return 0;
+		}
+		PreviousOffset = PreviousOffset - CodeLength;
+	}
+	else
+	{
+		HighUnit = 0;
+	}
+
+	*Code = HighUnit;
+	if (!JsonUtf16CodeAddUnit(Code, LowUnit))
+	{
+		return 0;
+	}
+
+	if (!JsonUtf16CodeIsValid(*Code))
+	{
+		return 0;
+	}
+
+	return Offset - PreviousOffset;
+}
+
+
 size_t JsonPathGetNextUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code)
 {
-	size_t Length1;
-	size_t Length2;
+	tJsonUtf16Code Utf16Code;
+	tJsonUtf8Code Utf8Code;
+	size_t NextOffset;
+	size_t CodeLength;
 
 	*IsEscaped = false;
+	*Code = 0;
 
-	Length1 = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset, Code);
-	if (Length1 == 0)
+	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset, &Utf8Code);
+	if (CodeLength == 0)
 	{
-		*Code = '\0';
 		return 0;
 	}
-
-	if (*Code != '\\')
+	NextOffset = Offset + CodeLength;
+	
+	if (Utf8Code != '\\')
 	{
-		return Length1;
+		*Code = Utf8Code;
+		return NextOffset - Offset;
 	}
 
-	Length2 = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset + Length1, Code);
-	if (Length2 == 0)
+	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
+	if (CodeLength == 0)
 	{
-		*Code = '\0';
 		return 0;
 	}
+	NextOffset = NextOffset + CodeLength;
+
+	if (Utf8Code != 'u')
+	{
+		*IsEscaped = true;
+		*Code = JsonCharacterFromEscape(Utf8Code);
+		return NextOffset - Offset;
+	}
+
+	CodeLength = JsonPathGetNextUtf16Code(Path, Offset, &Utf16Code);
+	if (CodeLength == 0)
+	{
+		return 0;
+	}
+	NextOffset = Offset + CodeLength;
 
 	*IsEscaped = true;
-	*Code = JsonCharacterFromEscape(*Code);
-	return Length1 + Length2;
+	*Code = JsonUtf8Code(JsonUtf16CodeGetCharacter(Utf16Code));
+	return NextOffset - Offset;
 }
 
 
 size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code)
 {
+	tJsonUtf16Code Utf16Code;
+	tJsonUtf8Code Utf8Code;
 	tJsonUtf8Code PreviousCode;
+	size_t UnescapedOffset;
+	size_t EscapedOffset;
 	size_t PreviousOffset;
-	size_t Length;
-	size_t Length1;
-	size_t Length2;
+	size_t CodeLength;
+	bool IsEscapedUtf16;
 
 	*IsEscaped = false;
+	*Code = 0;
 
-	Length1 = JsonUtf8GetPreviousCode(Path.Value, Path.Length, Offset, Code);
-	if (Length1 == 0)
+	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, Offset, &Utf8Code);
+	if (CodeLength == 0)
 	{
-		*Code = '\0';
 		return 0;
 	}
+	UnescapedOffset = Offset - CodeLength;
 
-	for (Length2 = 0, PreviousOffset = Offset - Length1; (PreviousOffset > 0); PreviousOffset = PreviousOffset - Length)
+	IsEscapedUtf16 = false;
+	EscapedOffset = UnescapedOffset;
+	if (JsonCharacterIsHexDigit(Utf8Code))
 	{
-		Length = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &PreviousCode);
-		if (Length == 0)
+		CodeLength = JsonPathGetPreviousUtf16Code(Path, Offset, &Utf16Code);
+		IsEscapedUtf16 = (CodeLength != 0);
+		if (IsEscapedUtf16)
 		{
-			*IsEscaped = false;
-			*Code = '\0';
+			*IsEscaped = true;
+			EscapedOffset = Offset - CodeLength;
+		}
+	}
+
+	if (!*IsEscaped)
+	{
+		if (UnescapedOffset == 0)
+		{
+			if (Utf8Code == '\\')
+			{
+				return 0;
+			}
+
+			*Code = Utf8Code;
+			return Offset;
+		}
+
+		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, UnescapedOffset, &PreviousCode);
+		if (CodeLength == 0)
+		{
 			return 0;
 		}
-		if (Length2 == 0)
+
+		if (PreviousCode != '\\')
 		{
-			Length2 = Length;
+			if (Utf8Code == '\\')
+			{
+				return 0;
+			}
+
+			*Code = Utf8Code;
+			return Offset - UnescapedOffset;
+		}
+
+		*IsEscaped = true;
+		EscapedOffset = UnescapedOffset - CodeLength;
+	}
+
+	for (PreviousOffset = EscapedOffset; PreviousOffset > 0; PreviousOffset = PreviousOffset - CodeLength)
+	{
+		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &PreviousCode);
+		if (CodeLength == 0)
+		{
+			*IsEscaped = false;
+			return 0;
 		}
 		if (PreviousCode != '\\')
 		{
@@ -94,20 +320,28 @@ size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscape
 		*IsEscaped = !*IsEscaped;
 	}
 
-	if (*IsEscaped)
+	if (!*IsEscaped)
 	{
-		*Code = JsonCharacterFromEscape(*Code);
-		return Length1 + Length2;
-	}
+		if (Utf8Code == '\\')
+		{
+			return 0;
+		}
 
-	if (*Code == '\\')
-	{
-		*IsEscaped = false;
-		*Code = '\0';
-		return 0;
-	}
+		*Code = Utf8Code;
 		
-	return Length1;
+		return Offset - UnescapedOffset;
+	}
+	else
+	{
+		if (Utf8Code == 'u')
+		{
+			return 0;
+		}
+
+		*Code = IsEscapedUtf16 ? JsonUtf8Code(JsonUtf16CodeGetCharacter(Utf16Code)) : JsonCharacterFromEscape(Utf8Code);
+
+		return Offset - EscapedOffset;
+	}
 }
 
 

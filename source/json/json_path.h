@@ -36,7 +36,7 @@ tJsonPath JsonPathAscii(const char *PathString);
 /**
  * @brief Gets the left part of a JSON path
  * @param Path     The JSON path
- * @param ToOffset The offset up to where the left part is taken from
+ * @param ToOffset The offset (in bytes) up to where the left part is taken from
  * @return The left part between [0, ToOffset) of the JSON path
  * @note The life time of the returned JSON path must have a longer life time than the orignal \a 'Path'.
  */
@@ -46,7 +46,7 @@ tJsonPath JsonPathLeft(tJsonPath Path, size_t ToOffset);
 /**
  * @brief Gets the right part of a JSON path
  * @param Path       The JSON path
- * @param FromOffset The offset from where the right part is taken from
+ * @param FromOffset The offset (in bytes) from where the right part is taken from
  * @return The right part between [FromOffset, Path.Length) of the JSON path
  * @note The life time of the returned JSON path must have a longer life time than the orignal \a 'Path'.
  */
@@ -56,8 +56,8 @@ tJsonPath JsonPathRight(tJsonPath Path, size_t FromOffset);
 /**
  * @brief Gets the middle part of a JSON path
  * @param Path       The JSON path
- * @param FromOffset The offset from where the middle part is taken from
- * @param ToOffset   The offset up to where the left part is taken from
+ * @param FromOffset The offset (in bytes) from where the middle part is taken from
+ * @param ToOffset   The offset (in bytes) up to where the left part is taken from
  * @return The middle part between [FromOffset, ToOffset) of the JSON path
  * @note The life time of the returned JSON path must have a longer life time than the orignal \a 'Path'.
  * @note The value of \a 'ToOffset' should be greater than \a 'FromOffset' - the returned path will have a zero length otherwise.

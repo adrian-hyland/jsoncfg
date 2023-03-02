@@ -63,14 +63,19 @@ Provides the JSON content value for the key
 ***Key Path Format***\
 The path used to identify the key in the JSON content should have the following format (note that this format, although similar, is **not** intended to conform to RFC6901)
 ```abnf
-quotation-mark = %x22 ; "
-key-start = %x2F      ; /
-value-start = %x3A    ; :
-array-start = %x5B    ; [
-array-end = %x5D      ; ]
-escape = %x5C         ; \
+quotation-mark = %x22     ; "
+key-start = %x2F          ; /
+value-start = %x3A        ; :
+array-start = %x5B        ; [
+array-end = %x5D          ; ]
+escape = %x5C             ; \
+hex = %x31-39 /           ; 1-9
+      %x41-46 /           ; A-F
+      %x61-66             ; a-f
+unicode = %x75 4hex       ; uXXXX
 char = unescaped /
        escape (
+         unicode        /
          quotation-mark /
          key-start      /
          value-start    /
