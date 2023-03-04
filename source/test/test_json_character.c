@@ -2,13 +2,13 @@
 #include "test_json.h"
 
 
-static bool TestJsonCharacterIsLiteral(void)
+static tTestResult TestJsonCharacterIsLiteral(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	bool IsLiteral;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		IsLiteral = JsonCharacterIsLiteral(Character);
 		if (((Character >= '0') && (Character <= '9')) ||
@@ -16,222 +16,222 @@ static bool TestJsonCharacterIsLiteral(void)
 		    ((Character >= 'A') && (Character <= 'Z')) ||
 		     (Character == '-') || (Character == '+') || (Character == '.'))
 		{
-			ok = IsLiteral;
+			TEST_IS_TRUE(IsLiteral, TestResult);
 		}
 		else
 		{
-			ok = !IsLiteral;
+			TEST_IS_FALSE(IsLiteral, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterIsWhitespace(void)
+static tTestResult TestJsonCharacterIsWhitespace(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	bool IsWhitespace;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		IsWhitespace = JsonCharacterIsWhitespace(Character);
 		if ((Character == ' ') || (Character == '\t') || (Character == '\r') || (Character == '\n'))
 		{
-			ok = IsWhitespace;
+			TEST_IS_TRUE(IsWhitespace, TestResult);
 		}
 		else
 		{
-			ok = !IsWhitespace;
+			TEST_IS_FALSE(IsWhitespace, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterIsHexDigit(void)
+static tTestResult TestJsonCharacterIsHexDigit(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	bool IsHexDigit;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		IsHexDigit = JsonCharacterIsHexDigit(Character);
 		if (((Character >= '0') && (Character <= '9')) || ((Character >= 'a') && (Character <= 'f')) || ((Character >= 'A') && (Character <= 'F')))
 		{
-			ok = IsHexDigit;
+			TEST_IS_TRUE(IsHexDigit, TestResult);
 		}
 		else
 		{
-			ok = !IsHexDigit;
+			TEST_IS_FALSE(IsHexDigit, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterToHexDigit(void)
+static tTestResult TestJsonCharacterToHexDigit(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	uint8_t HexDigit;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		HexDigit = JsonCharacterToHexDigit(Character);
 		if ((Character >= '0') && (Character <= '9'))
 		{
-			ok = (HexDigit == Character - '0');
+			TEST_IS_EQ(HexDigit, Character - '0', TestResult);
 		}
 		else if ((Character >= 'a') && (Character <= 'f'))
 		{
-			ok = (HexDigit == Character - 'a' + 10);
+			TEST_IS_EQ(HexDigit, Character - 'a' + 10, TestResult);
 		}
 		else if ((Character >= 'A') && (Character <= 'F'))
 		{
-			ok = (HexDigit == Character - 'A' + 10);
+			TEST_IS_EQ(HexDigit, Character - 'A' + 10, TestResult);
 		}
 		else
 		{
-			ok = (HexDigit == 0);
+			TEST_IS_EQ(HexDigit, 0, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterFromHexDigit(void)
+static tTestResult TestJsonCharacterFromHexDigit(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	uint8_t HexDigit;
-	bool ok;
 
-	for (ok = true, HexDigit = 0; ok && (HexDigit < 0x0A); HexDigit++)
+	for (HexDigit = 0; HexDigit < 0x0A; HexDigit++)
 	{
 		Character = JsonCharacterFromHexDigit(HexDigit);
 
-		ok = (Character == HexDigit + '0');
+		TEST_IS_EQ(Character, HexDigit + '0', TestResult);
 	}
 
-	for (HexDigit = 0x0A; ok && (HexDigit < 0x10); HexDigit++)
+	for (HexDigit = 0x0A; HexDigit < 0x10; HexDigit++)
 	{
 		Character = JsonCharacterFromHexDigit(HexDigit);
 
-		ok = (Character == HexDigit - 0x0A + 'A');
+		TEST_IS_EQ(Character, HexDigit - 0x0A + 'A', TestResult);
 	}
 
-	for (HexDigit = 0x10; ok && (HexDigit != 0); HexDigit++)
+	for (HexDigit = 0x10; HexDigit != 0; HexDigit++)
 	{
-		ok = (JsonCharacterFromHexDigit(HexDigit) == 0);
+		TEST_IS_EQ(JsonCharacterFromHexDigit(HexDigit), 0, TestResult);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterIsEscapable(void)
+static tTestResult TestJsonCharacterIsEscapable(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	bool IsEscapable;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		IsEscapable = JsonCharacterIsEscapable(Character);
 		if ((Character == '\b') || (Character == '\f') || (Character == '\t') || (Character == '\r') || (Character == '\n') || (Character == '"') || (Character == '\\'))
 		{
-			ok = IsEscapable;
+			TEST_IS_TRUE(IsEscapable, TestResult);
 		}
 		else
 		{
-			ok = !IsEscapable;
+			TEST_IS_FALSE(IsEscapable, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterToEscape(void)
+static tTestResult TestJsonCharacterToEscape(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	tJsonCharacter EscapedCharacter;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		EscapedCharacter = JsonCharacterToEscape(Character);
 		if (Character == '\b')
 		{
-			ok = (EscapedCharacter == 'b');
+			TEST_IS_EQ(EscapedCharacter, 'b', TestResult);
 		}
 		else if (Character == '\f')
 		{
-			ok = (EscapedCharacter == 'f');
+			TEST_IS_EQ(EscapedCharacter, 'f', TestResult);
 		}
 		else if (Character == '\t')
 		{
-			ok = (EscapedCharacter == 't');
+			TEST_IS_EQ(EscapedCharacter, 't', TestResult);
 		}
 		else if (Character == '\r')
 		{
-			ok = (EscapedCharacter == 'r');
+			TEST_IS_EQ(EscapedCharacter, 'r', TestResult);
 		}
 		else if (Character == '\n')
 		{
-			ok = (EscapedCharacter = 'n');
+			TEST_IS_EQ(EscapedCharacter, 'n', TestResult);
 		}
 		else
 		{
-			ok = (EscapedCharacter == Character);
+			TEST_IS_EQ(EscapedCharacter, Character, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonCharacterFromEscape(void)
+static tTestResult TestJsonCharacterFromEscape(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonCharacter Character;
 	tJsonCharacter UnescapedCharacter;
-	bool ok;
 
-	for (ok = true, Character = 0; ok && (Character < 0x80); Character++)
+	for (Character = 0; Character < 0x80; Character++)
 	{
 		UnescapedCharacter = JsonCharacterFromEscape(Character);
 		if (Character == 'b')
 		{
-			ok = (UnescapedCharacter == '\b');
+			TEST_IS_EQ(UnescapedCharacter, '\b', TestResult);
 		}
 		else if (Character == 'f')
 		{
-			ok = (UnescapedCharacter == '\f');
+			TEST_IS_EQ(UnescapedCharacter, '\f', TestResult);
 		}
 		else if (Character == 't')
 		{
-			ok = (UnescapedCharacter == '\t');
+			TEST_IS_EQ(UnescapedCharacter, '\t', TestResult);
 		}
 		else if (Character == 'r')
 		{
-			ok = (UnescapedCharacter == '\r');
+			TEST_IS_EQ(UnescapedCharacter, '\r', TestResult);
 		}
 		else if (Character == 'n')
 		{
-			ok = (UnescapedCharacter = '\n');
+			TEST_IS_EQ(UnescapedCharacter, '\n', TestResult);
 		}
 		else
 		{
-			ok = (UnescapedCharacter == Character);
+			TEST_IS_EQ(UnescapedCharacter, Character, TestResult);
 		}
 	}
 
-	return ok;
+	return TestResult;
 }
 
 

@@ -2,298 +2,294 @@
 #include "test_json.h"
 
 
-static bool TestJsonStringSetUp(void)
+static tTestResult TestJsonStringSetUp(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
 	tJsonUtf8Code Code;
-	bool ok;
 
 	JsonStringSetUp(&String);
 
-	ok = (JsonStringGetLength(&String) == 0);
+	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
 
-	ok = ok && (JsonStringGetNextUtf8Code(&String, 0, &Code) == 0);
+	TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, 0, &Code), 0, TestResult);
 	
-	ok = ok && (Code == '\0');
+	TEST_IS_EQ(Code, '\0', TestResult);
 
 	JsonStringCleanUp(&String);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonStringCleanUp(void)
+static tTestResult TestJsonStringCleanUp(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
 	tJsonUtf8Code Code;
-	bool ok;
 
 	JsonStringSetUp(&String);
 
-	ok = JsonStringAddUtf8Code(&String, 'a');
+	TEST_IS_TRUE(JsonStringAddUtf8Code(&String, 'a'), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 1);
+	TEST_IS_EQ(JsonStringGetLength(&String), 1, TestResult);
 
-	ok = ok && (JsonStringGetNextUtf8Code(&String, 0, &Code) == 1);
+	TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, 0, &Code), 1, TestResult);
 	
-	ok = ok && (Code == 'a');
+	TEST_IS_EQ(Code, 'a', TestResult);
 
 	JsonStringCleanUp(&String);
 
-	ok = ok && (JsonStringGetLength(&String) == 0);
+	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
 
-	ok = ok && (JsonStringGetNextUtf8Code(&String, 0, &Code) == 0);
+	TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, 0, &Code), 0, TestResult);
 	
-	ok = ok && (Code == '\0');
+	TEST_IS_EQ(Code, '\0', TestResult);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonStringClear(void)
+static tTestResult TestJsonStringClear(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
 	tJsonUtf8Code Code;
-	bool ok;
 
 	JsonStringSetUp(&String);
 
-	ok = JsonStringAddCharacter(&String, 'a');
+	TEST_IS_TRUE(JsonStringAddCharacter(&String, 'a'), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 1);
+	TEST_IS_EQ(JsonStringGetLength(&String), 1, TestResult);
 
-	ok = ok && (JsonStringGetNextUtf8Code(&String, 0, &Code) == 1);
+	TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, 0, &Code), 1, TestResult);
 	
-	ok = ok && (Code == 'a');
+	TEST_IS_EQ(Code, 'a', TestResult);
 
 	JsonStringClear(&String);
 
-	ok = ok && (JsonStringGetLength(&String) == 0);
+	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
 
-	ok = ok && (JsonStringGetNextUtf8Code(&String, 0, &Code) == 0);
+	TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, 0, &Code), 0, TestResult);
 	
-	ok = ok && (Code == '\0');
+	TEST_IS_EQ(Code, '\0', TestResult);
 
 	JsonStringCleanUp(&String);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonStringGetLength(void)
+static tTestResult TestJsonStringGetLength(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
-	bool ok;
 
 	JsonStringSetUp(&String);
 
-	ok = JsonStringAddCharacter(&String, 0x7F);
+	TEST_IS_TRUE(JsonStringAddCharacter(&String, 0x7F), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 1);
+	TEST_IS_EQ(JsonStringGetLength(&String), 1, TestResult);
 
-	ok = ok && JsonStringAddCharacter(&String, 0x7FF);
+	TEST_IS_TRUE(JsonStringAddCharacter(&String, 0x7FF), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 3);
+	TEST_IS_EQ(JsonStringGetLength(&String), 3, TestResult);
 
-	ok = ok && JsonStringAddCharacter(&String, 0xFFFF);
+	TEST_IS_TRUE(JsonStringAddCharacter(&String, 0xFFFF), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 6);
+	TEST_IS_EQ(JsonStringGetLength(&String), 6, TestResult);
 
-	ok = ok && JsonStringAddCharacter(&String, 0x10FFFF);
+	TEST_IS_TRUE(JsonStringAddCharacter(&String, 0x10FFFF), TestResult);
 
-	ok = ok && (JsonStringGetLength(&String) == 10);
-
-	JsonStringCleanUp(&String);
-
-	return ok;
-}
-
-
-static bool TestJsonStringAddUtf8Code(void)
-{
-	tJsonString String;
-	tJsonCharacter Character;
-	tJsonUtf8Code NextCode;
-	size_t Offset;
-	size_t Length;
-	bool ok = true;
-
-	JsonStringSetUp(&String);
-
-	for (Character = 1; ok && (Character < 0xD800); Character++)
-	{
-		ok = JsonStringAddUtf8Code(&String, JsonUtf8Code(Character));
-	}
-
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++)
-	{
-		ok = JsonStringAddUtf8Code(&String, JsonUtf8Code(Character));
-	}
-
-	for (Character = 1, Offset = 0; ok && (Character < 0xD800); Character++, Offset = Offset + Length)
-	{
-		Length = JsonStringGetNextUtf8Code(&String, Offset, &NextCode);
-		
-		ok = (Length == JsonUtf8CodeGetUnitLength(NextCode));
-		
-		ok = ok && (Character == JsonUtf8CodeGetCharacter(NextCode));
-	}
-
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++, Offset = Offset + Length)
-	{
-		Length = JsonStringGetNextUtf8Code(&String, Offset, &NextCode);
-		
-		ok = (Length == JsonUtf8CodeGetUnitLength(NextCode));
-		
-		ok = ok && (Character == JsonUtf8CodeGetCharacter(NextCode));
-	}
-
-	ok = ok && (Offset == JsonStringGetLength(&String));
+	TEST_IS_EQ(JsonStringGetLength(&String), 10, TestResult);
 
 	JsonStringCleanUp(&String);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonStringAddCharacter(void)
+static tTestResult TestJsonStringAddUtf8Code(void)
 {
-	tJsonString String;
-	tJsonCharacter Character;
-	tJsonCharacter NextCharacter;
-	size_t Offset;
-	size_t Length;
-	bool ok = true;
-
-	JsonStringSetUp(&String);
-
-	for (Character = 1; ok && (Character < 0xD800); Character++)
-	{
-		ok = JsonStringAddCharacter(&String, Character);
-	}
-
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++)
-	{
-		ok = JsonStringAddCharacter(&String, Character);
-	}
-
-	for (Character = 1, Offset = 0; ok && (Character < 0xD800); Character++, Offset = Offset + Length)
-	{
-		Length = JsonStringGetNextCharacter(&String, Offset, &NextCharacter);
-		
-		ok = (Length == JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character)));
-		
-		ok = ok && (Character == NextCharacter);
-	}
-
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++, Offset = Offset + Length)
-	{
-		Length = JsonStringGetNextCharacter(&String, Offset, &NextCharacter);
-		
-		ok = (Length == JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character)));
-		
-		ok = ok && (Character == NextCharacter);
-	}
-
-	ok = ok && (Offset == JsonStringGetLength(&String));
-
-	JsonStringCleanUp(&String);
-
-	return ok;
-}
-
-
-static bool TestJsonStringGetNextUtf8Code(void)
-{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
 	tJsonCharacter Character;
 	tJsonUtf8Code NextCode;
 	size_t Offset;
 	size_t Length;
-	bool ok = true;
 
 	JsonStringSetUp(&String);
 
-	for (Character = 1, Offset = 0; ok && (Character < 0xD800); Character++, Offset = Offset + Length)
+	for (Character = 1; Character < 0xD800; Character++)
 	{
-		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
-
-		ok = (JsonStringGetNextUtf8Code(&String, Offset, &NextCode) == 0);
-		
-		ok = ok && (NextCode == '\0');
-
-		ok = ok && JsonStringAddCharacter(&String, Character);
-
-		ok = ok && (JsonStringGetNextUtf8Code(&String, Offset, &NextCode) == Length);
-		
-		ok = ok && (Character == JsonUtf8CodeGetCharacter(NextCode));
+		TEST_IS_TRUE(JsonStringAddUtf8Code(&String, JsonUtf8Code(Character)), TestResult);
 	}
 
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++, Offset = Offset + Length)
+	for (Character = 0xE000; Character < 0x110000; Character++)
 	{
-		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
-
-		ok = (JsonStringGetNextUtf8Code(&String, Offset, &NextCode) == 0);
-		
-		ok = ok && (NextCode == '\0');
-
-		ok = ok && JsonStringAddCharacter(&String, Character);
-
-		ok = ok && (JsonStringGetNextUtf8Code(&String, Offset, &NextCode) == Length);
-		
-		ok = ok && (Character == JsonUtf8CodeGetCharacter(NextCode));
+		TEST_IS_TRUE(JsonStringAddUtf8Code(&String, JsonUtf8Code(Character)), TestResult);
 	}
+
+	for (Character = 1, Offset = 0; Character < 0xD800; Character++, Offset = Offset + Length)
+	{
+		Length = JsonStringGetNextUtf8Code(&String, Offset, &NextCode);
+		
+		TEST_IS_EQ(Length, JsonUtf8CodeGetUnitLength(NextCode), TestResult);
+		TEST_IS_EQ(Character, JsonUtf8CodeGetCharacter(NextCode), TestResult);
+	}
+
+	for (Character = 0xE000; Character < 0x110000; Character++, Offset = Offset + Length)
+	{
+		Length = JsonStringGetNextUtf8Code(&String, Offset, &NextCode);
+		
+		TEST_IS_EQ(Length, JsonUtf8CodeGetUnitLength(NextCode), TestResult);
+		TEST_IS_EQ(Character, JsonUtf8CodeGetCharacter(NextCode), TestResult);
+	}
+
+	TEST_IS_EQ(Offset, JsonStringGetLength(&String), TestResult);
 
 	JsonStringCleanUp(&String);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonStringGetNextCharacter(void)
+static tTestResult TestJsonStringAddCharacter(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonString String;
 	tJsonCharacter Character;
 	tJsonCharacter NextCharacter;
 	size_t Offset;
 	size_t Length;
-	bool ok = true;
 
 	JsonStringSetUp(&String);
 
-	for (Character = 1, Offset = 0; ok && (Character < 0xD800); Character++, Offset = Offset + Length)
+	for (Character = 1; Character < 0xD800; Character++)
 	{
-		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
-
-		ok = (JsonStringGetNextCharacter(&String, Offset, &NextCharacter) == 0);
-		
-		ok = ok && (NextCharacter == '\0');
-
-		ok = ok && JsonStringAddCharacter(&String, Character);
-
-		ok = ok && (JsonStringGetNextCharacter(&String, Offset, &NextCharacter) == Length);
-		
-		ok = ok && (Character == NextCharacter);
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
 	}
 
-	for (Character = 0xE000; ok && (Character < 0x110000); Character++, Offset = Offset + Length)
+	for (Character = 0xE000; Character < 0x110000; Character++)
+	{
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
+	}
+
+	for (Character = 1, Offset = 0; Character < 0xD800; Character++, Offset = Offset + Length)
+	{
+		Length = JsonStringGetNextCharacter(&String, Offset, &NextCharacter);
+		
+		TEST_IS_EQ(Length, JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character)), TestResult);
+		TEST_IS_EQ(Character, NextCharacter, TestResult);
+	}
+
+	for (Character = 0xE000; Character < 0x110000; Character++, Offset = Offset + Length)
+	{
+		Length = JsonStringGetNextCharacter(&String, Offset, &NextCharacter);
+		
+		TEST_IS_EQ(Length, JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character)), TestResult);
+		TEST_IS_EQ(Character, NextCharacter, TestResult);
+	}
+
+	TEST_IS_EQ(Offset, JsonStringGetLength(&String), TestResult);
+
+	JsonStringCleanUp(&String);
+
+	return TestResult;
+}
+
+
+static tTestResult TestJsonStringGetNextUtf8Code(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonString String;
+	tJsonCharacter Character;
+	tJsonUtf8Code NextCode;
+	size_t Offset;
+	size_t Length;
+
+	JsonStringSetUp(&String);
+
+	for (Character = 1, Offset = 0; Character < 0xD800; Character++, Offset = Offset + Length)
 	{
 		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
 
-		ok = (JsonStringGetNextCharacter(&String, Offset, &NextCharacter) == 0);
+		TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, Offset, &NextCode), 0, TestResult);
 		
-		ok = ok && (NextCharacter == '\0');
+		TEST_IS_EQ(NextCode, '\0', TestResult);
 
-		ok = ok && JsonStringAddCharacter(&String, Character);
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
 
-		ok = ok && (JsonStringGetNextCharacter(&String, Offset, &NextCharacter) == Length);
+		TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, Offset, &NextCode), Length, TestResult);
 		
-		ok = ok && (Character == NextCharacter);
+		TEST_IS_EQ(Character, JsonUtf8CodeGetCharacter(NextCode), TestResult);
+	}
+
+	for (Character = 0xE000; Character < 0x110000; Character++, Offset = Offset + Length)
+	{
+		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
+
+		TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, Offset, &NextCode), 0, TestResult);
+		
+		TEST_IS_EQ(NextCode, '\0', TestResult);
+
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
+
+		TEST_IS_EQ(JsonStringGetNextUtf8Code(&String, Offset, &NextCode), Length, TestResult);
+		
+		TEST_IS_EQ(Character, JsonUtf8CodeGetCharacter(NextCode), TestResult);
 	}
 
 	JsonStringCleanUp(&String);
 
-	return ok;
+	return TestResult;
+}
+
+
+static tTestResult TestJsonStringGetNextCharacter(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonString String;
+	tJsonCharacter Character;
+	tJsonCharacter NextCharacter;
+	size_t Offset;
+	size_t Length;
+
+	JsonStringSetUp(&String);
+
+	for (Character = 1, Offset = 0; Character < 0xD800; Character++, Offset = Offset + Length)
+	{
+		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
+
+		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), 0, TestResult);
+		
+		TEST_IS_EQ(NextCharacter, '\0', TestResult);
+
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
+
+		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), Length, TestResult);
+		
+		TEST_IS_EQ(Character, NextCharacter, TestResult);
+	}
+
+	for (Character = 0xE000; Character < 0x110000; Character++, Offset = Offset + Length)
+	{
+		Length = JsonUtf8CodeGetUnitLength(JsonUtf8Code(Character));
+
+		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), 0, TestResult);
+		
+		TEST_IS_EQ(NextCharacter, '\0', TestResult);
+
+		TEST_IS_TRUE(JsonStringAddCharacter(&String, Character), TestResult);
+
+		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), Length, TestResult);
+		
+		TEST_IS_EQ(Character, NextCharacter, TestResult);
+	}
+
+	JsonStringCleanUp(&String);
+
+	return TestResult;
 }
 
 

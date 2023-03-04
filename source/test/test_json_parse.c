@@ -4,87 +4,84 @@
 #include "test_json.h"
 
 
-static bool TestJsonParseComplete(const tJsonUtf8Unit *Content, bool StripComments)
+static tTestResult TestJsonParseComplete(tTestResult TestResult, const tJsonUtf8Unit *Content, bool StripComments)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 	JsonParseSetUp(&Parse, StripComments, &Root);
 
-	for (ok = true; ok && (*Content != '\0'); Content++)
+	for (; *Content != '\0'; Content++)
 	{
-		ok = (JsonParse(&Parse, *Content) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, *Content), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, *Content) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, *Content), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonParseIncomplete(const tJsonUtf8Unit *Content, bool StripComments)
+static tTestResult TestJsonParseIncomplete(tTestResult TestResult, const tJsonUtf8Unit *Content, bool StripComments)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	size_t Length;
 	size_t Index;
-	bool ok;
 
-	ok = true;
 	Length = strlen((const char *)Content);
 
-	while (ok && (Length > 1))
+	while (Length > 1)
 	{
 		Length--;
 
 		JsonElementSetUp(&Root);
 		JsonParseSetUp(&Parse, StripComments, &Root);
 
-		for (Index = 0; ok && (Index < Length); Index++)
+		for (Index = 0; Index < Length; Index++)
 		{
-			ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+			TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 		}
 
-		ok = ok && (JsonParse(&Parse, '\0') == JSON_PARSE_ERROR);
+		TEST_IS_EQ(JsonParse(&Parse, '\0'), JSON_PARSE_ERROR, TestResult);
 
 		JsonParseCleanUp(&Parse);
 		JsonElementCleanUp(&Root);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonParseError(const tJsonUtf8Unit *Content)
+static tTestResult TestJsonParseError(tTestResult TestResult, const tJsonUtf8Unit *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 	JsonParseSetUp(&Parse, true, &Root);
 
-	for (ok = true; ok && (Content[0] != '\0') && (Content[1] != '\0'); Content++)
+	for (; (Content[0] != '\0') && (Content[1] != '\0'); Content++)
 	{
-		ok = (JsonParse(&Parse, *Content) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, *Content), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, *Content) == JSON_PARSE_ERROR);
+	TEST_IS_EQ(JsonParse(&Parse, *Content), JSON_PARSE_ERROR, TestResult);
 
 	JsonParseCleanUp(&Parse);
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonParseContent(void)
+static tTestResult TestJsonParseContent(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit *ValidContent[] =
 	{
 		(const tJsonUtf8Unit *)"{ "
@@ -217,29 +214,28 @@ static bool TestJsonParseContent(void)
 		(const tJsonUtf8Unit *)"123 ,",
 	};
 	size_t n;
-	bool ok;
 
-	for (ok = true, n = 0; ok && (n < sizeof(ValidContent) / sizeof(ValidContent[0])); n++)
+	for (n = 0; n < sizeof(ValidContent) / sizeof(ValidContent[0]); n++)
 	{
-		ok = TestJsonParseComplete(ValidContent[n], false);
-		ok = ok && TestJsonParseComplete(ValidContent[n], true);
+		TestResult = TestJsonParseComplete(TestResult, ValidContent[n], false);
+		TestResult = TestJsonParseComplete(TestResult, ValidContent[n], true);
 	}
 
-	for (n = 0; ok && (n < sizeof(ValidContent) / sizeof(ValidContent[0])); n++)
+	for (n = 0; n < sizeof(ValidContent) / sizeof(ValidContent[0]); n++)
 	{
 		if (!JsonCharacterIsLiteral(*ValidContent[n]) && (*ValidContent[n] != '/'))
 		{
-			ok = TestJsonParseIncomplete(ValidContent[n], false);
-			ok = ok && TestJsonParseIncomplete(ValidContent[n], true);
+			TestResult = TestJsonParseIncomplete(TestResult, ValidContent[n], false);
+			TestResult = TestJsonParseIncomplete(TestResult, ValidContent[n], true);
 		}
 	}
 
-	for (n = 0; ok && (n < sizeof(InvalidContent) / sizeof(InvalidContent[0])); n++)
+	for (n = 0; n < sizeof(InvalidContent) / sizeof(InvalidContent[0]); n++)
 	{
-		ok = TestJsonParseError(InvalidContent[n]);
+		TestResult = TestJsonParseError(TestResult, InvalidContent[n]);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 

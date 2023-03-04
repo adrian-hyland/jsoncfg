@@ -3,137 +3,129 @@
 #include "test_json.h"
 
 
-static bool TestJsonFormatCompressContent(const tJsonUtf8Unit *Content)
+static tTestResult TestJsonFormatCompressContent(tTestResult TestResult, const tJsonUtf8Unit *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
 	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
+	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
 	JsonFormatSetUpCompress(&Format, &Root);
 
-	for (Index = 0; ok && (Content[Index] != 0); Index++)
+	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == Content[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == Content[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatSpaceContent(const tJsonUtf8Unit *Content)
+static tTestResult TestJsonFormatSpaceContent(tTestResult TestResult, const tJsonUtf8Unit *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
 	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
+	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
 	JsonFormatSetUpSpace(&Format, &Root);
 
-	for (Index = 0; ok && (Content[Index] != 0); Index++)
+	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == Content[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == Content[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatIndentContent(const tJsonUtf8Unit *Content, size_t IndentSize, tJsonCommentType CommentType)
+static tTestResult TestJsonFormatIndentContent(tTestResult TestResult, const tJsonUtf8Unit *Content, size_t IndentSize, tJsonCommentType CommentType)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
 	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
+	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
 	JsonFormatSetUpIndent(&Format, IndentSize, CommentType, &Root);
 
-	for (Index = 0; ok && (Content[Index] != 0); Index++)
+	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == Content[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == Content[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatCompress(void)
+static tTestResult TestJsonFormatCompress(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit *Content[] =
 	{
 		(const tJsonUtf8Unit *)"{"
@@ -185,19 +177,19 @@ static bool TestJsonFormatCompress(void)
 		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
-	bool ok;
 
-	for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
 	{
-		ok = TestJsonFormatCompressContent(Content[n]);
+		TestResult = TestJsonFormatCompressContent(TestResult, Content[n]);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatSpace(void)
+static tTestResult TestJsonFormatSpace(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit *Content[] =
 	{
 		(const tJsonUtf8Unit *)"{ "
@@ -249,19 +241,19 @@ static bool TestJsonFormatSpace(void)
 		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
-	bool ok;
 
-	for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
 	{
-		ok = TestJsonFormatSpaceContent(Content[n]);
+		TestResult = TestJsonFormatSpaceContent(TestResult, Content[n]);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatIndent(void)
+static tTestResult TestJsonFormatIndent(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit *Content[] =
 	{
 		(const tJsonUtf8Unit *)"{\n"
@@ -353,21 +345,21 @@ static bool TestJsonFormatIndent(void)
 		(const tJsonUtf8Unit *)"1.234567890e-99"
 	};
 	size_t n;
-	bool ok;
 
-	for (ok = true, n = 0; ok && (n < sizeof(Content) / sizeof(Content[0])); n++)
+	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
 	{
-		ok = TestJsonFormatIndentContent(Content[n], 3, json_CommentNone);
-		ok = ok && TestJsonFormatIndentContent(Content[n], 3, json_CommentLine);
-		ok = ok && TestJsonFormatIndentContent(Content[n], 3, json_CommentBlock);
+		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentNone);
+		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentLine);
+		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentBlock);
 	}
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatCommentLine(void)
+static tTestResult TestJsonFormatCommentLine(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit Content[] =
 		"// Comment 1\n"
 		"// Comment 2\n"
@@ -538,104 +530,94 @@ static bool TestJsonFormatCommentLine(void)
 	tJsonFormat Format;
 	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
+	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentNone, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentNone[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentNone[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentLine, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentLine[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentLine[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentBlock, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentBlock[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentBlock[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpSpace(&Format, &Root);
 
-	for (Index = 0; ok && (ContentSpace[Index] != 0); Index++)
+	for (Index = 0; ContentSpace[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentSpace[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentSpace[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpCompress(&Format, &Root);
 
-	for (Index = 0; ok && (ContentCompress[Index] != 0); Index++)
+	for (Index = 0; ContentCompress[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentCompress[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentCompress[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonFormatCommentBlock(void)
+static tTestResult TestJsonFormatCommentBlock(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const tJsonUtf8Unit Content[] =
 		"/* Comment 1\n"
 		"   Comment 2 */\n"
@@ -806,99 +788,88 @@ static bool TestJsonFormatCommentBlock(void)
 	tJsonFormat Format;
 	tJsonUtf8Unit CodeUnit;
 	size_t Index;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (ok = true, Index = 0; ok && (Content[Index] != '\0'); Index++)
+	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		ok = (JsonParse(&Parse, Content[Index]) == JSON_PARSE_INCOMPLETE);
+		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	ok = ok && (JsonParse(&Parse, Content[Index]) == JSON_PARSE_COMPLETE);
+	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentNone, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentNone[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentNone[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentNone[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentLine, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentLine[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentLine[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentLine[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpIndent(&Format, 3, json_CommentBlock, &Root);
 
-	for (Index = 0; ok && (ContentIndentCommentBlock[Index] != 0); Index++)
+	for (Index = 0; ContentIndentCommentBlock[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentIndentCommentBlock[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpSpace(&Format, &Root);
 
-	for (Index = 0; ok && (ContentSpace[Index] != 0); Index++)
+	for (Index = 0; ContentSpace[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentSpace[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentSpace[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonFormatSetUpCompress(&Format, &Root);
 
-	for (Index = 0; ok && (ContentCompress[Index] != 0); Index++)
+	for (Index = 0; ContentCompress[Index] != 0; Index++)
 	{
-		ok = (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_INCOMPLETE);
-
-		ok = ok && (CodeUnit == ContentCompress[Index]);
+		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
 	}
 
-	ok = ok && (JsonFormat(&Format, &CodeUnit) == JSON_FORMAT_COMPLETE);
-
-	ok = ok && (CodeUnit == ContentCompress[Index]);
+	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 

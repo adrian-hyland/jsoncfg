@@ -4,11 +4,11 @@
 
 void TestRun(const tTest *Test[], size_t TestCount)
 {
+	tTestResult Result;
 	size_t TestIndex;
 	size_t CaseIndex;
 	size_t RunCount;
 	size_t PassCount;
-	bool Result;
 
 	printf("Test,Case,Result\n");
 
@@ -36,10 +36,10 @@ void TestRun(const tTest *Test[], size_t TestCount)
 			{
 				printf("\"Case %zu\",", CaseIndex + 1);
 			}
-			printf("%s\n", Result ? "PASS" : "FAIL");
+			printf("%s\n", TEST_RESULT_GET_STRING(Result));
 
 			RunCount++;
-			if (Result)
+			if (TEST_RESULT_IS_PASS(Result))
 			{
 				PassCount++;
 			}

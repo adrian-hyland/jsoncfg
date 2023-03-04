@@ -2,54 +2,55 @@
 #include "test_json.h"
 
 
-static bool TestJsonElementSetUp(void)
+static tTestResult TestJsonElementSetUp(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonElement Element;
-	bool ok;
 
 	JsonElementSetUp(&Element);
 
-	ok = (JsonElementGetType(&Element) == json_TypeRoot);
+	TEST_IS_EQ(JsonElementGetType(&Element), json_TypeRoot, TestResult);
 
-	ok = ok && (JsonElementGetChild(&Element, false) == NULL);
+	TEST_IS_EQ(JsonElementGetChild(&Element, false), NULL, TestResult);
 
-	ok = ok && (JsonElementGetNext(&Element, false) == NULL);
+	TEST_IS_EQ(JsonElementGetNext(&Element, false), NULL, TestResult);
 
 	JsonElementCleanUp(&Element);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementCleanUp(void)
+static tTestResult TestJsonElementCleanUp(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonElement Element;
-	bool ok;
 
 	JsonElementSetUp(&Element);
 
-	ok = (JsonElementFind(&Element, JsonPathAscii("/"), true) != NULL);
+	TEST_IS_NOT_EQ(JsonElementFind(&Element, JsonPathAscii("/"), true), NULL, TestResult);
 
-	ok = ok && (JsonElementGetType(&Element) == json_TypeRoot);
+	TEST_IS_EQ(JsonElementGetType(&Element), json_TypeRoot, TestResult);
 
-	ok = ok && (JsonElementGetChild(&Element, false) != NULL);
+	TEST_IS_NOT_EQ(JsonElementGetChild(&Element, false), NULL, TestResult);
 
-	ok = ok && (JsonElementGetNext(&Element, false) == NULL);
+	TEST_IS_EQ(JsonElementGetNext(&Element, false), NULL, TestResult);
 
 	JsonElementCleanUp(&Element);
 
-	ok = ok && (JsonElementGetType(&Element) == json_TypeRoot);
+	TEST_IS_EQ(JsonElementGetType(&Element), json_TypeRoot, TestResult);
 
-	ok = ok && (JsonElementGetChild(&Element, false) == NULL);
+	TEST_IS_EQ(JsonElementGetChild(&Element, false), NULL, TestResult);
 
-	ok = ok && (JsonElementGetNext(&Element, false) == NULL);
+	TEST_IS_EQ(JsonElementGetNext(&Element, false), NULL, TestResult);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementAllocateChild(void)
+static tTestResult TestJsonElementAllocateChild(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	const struct
 	{
 		tJsonType ParentType;
@@ -111,55 +112,62 @@ static bool TestJsonElementAllocateChild(void)
 	tJsonElement *Parent;
 	tJsonElement *Child;
 	size_t n;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
-	for (ok = true, n = 0; ok && (n < sizeof(TestAllocations) / sizeof(TestAllocations[0])); n++)
+	for (n = 0; n < sizeof(TestAllocations) / sizeof(TestAllocations[0]); n++)
 	{
 		if (TestAllocations[n].ParentType == json_TypeRoot)
 		{
-			ok = (JsonElementAllocateChild(&Root, TestAllocations[n].ChildType) == TestAllocations[n].Valid);
+			TEST_IS_EQ(JsonElementAllocateChild(&Root, TestAllocations[n].ChildType), TestAllocations[n].Valid, TestResult);
 
 			Parent = &Root;
 		}
 		else
 		{
-			ok = JsonElementAllocateChild(&Root, TestAllocations[n].ParentType);
+			TEST_IS_TRUE(JsonElementAllocateChild(&Root, TestAllocations[n].ParentType), TestResult);
 
 			Parent = JsonElementGetChild(&Root, false);
 
-			ok = ok && (Parent != NULL);
+			TEST_IS_NOT_EQ(Parent, NULL, TestResult);
 
-			ok = ok && (JsonElementGetType(Parent) == TestAllocations[n].ParentType);
+			TEST_IS_EQ(JsonElementGetType(Parent), TestAllocations[n].ParentType, TestResult);
 
-			ok = ok && (JsonElementGetChild(Parent, false) == NULL);
+			TEST_IS_EQ(JsonElementGetChild(Parent, false), NULL, TestResult);
 
-			ok = ok && (JsonElementGetNext(Parent, false) == NULL);
+			TEST_IS_EQ(JsonElementGetNext(Parent, false), NULL, TestResult);
 
-			ok = ok && !(!JsonElementAllocateChild(Parent, TestAllocations[n].ChildType) ^ !TestAllocations[n].Valid);
+			if (TestAllocations[n].Valid)
+			{
+				TEST_IS_TRUE(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestResult);
+			}
+			else
+			{
+				TEST_IS_FALSE(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestResult);
+			}
 		}
 
 		Child = JsonElementGetChild(Parent, false);
 
 		if (Child != NULL)
 		{
-			ok = ok && (JsonElementGetType(Child) == TestAllocations[n].ChildType);
+			TEST_IS_EQ(JsonElementGetType(Child), TestAllocations[n].ChildType, TestResult);
 
-			ok = ok && (JsonElementGetChild(Child, false) == NULL);
+			TEST_IS_EQ(JsonElementGetChild(Child, false), NULL, TestResult);
 
-			ok = ok && (JsonElementGetNext(Child, false) == NULL);
+			TEST_IS_EQ(JsonElementGetNext(Child, false), NULL, TestResult);
 		}
 	}
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementAllocateNext(void)
+static tTestResult TestJsonElementAllocateNext(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	const struct
 	{
 		tJsonType ParentType;
@@ -300,11 +308,10 @@ static bool TestJsonElementAllocateNext(void)
 	tJsonElement *Child;
 	tJsonElement *Sibling;
 	size_t n;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
-	for (ok = true, n = 0; ok && (n < sizeof(TestAllocations) / sizeof(TestAllocations[0])); n++)
+	for (n = 0; n < sizeof(TestAllocations) / sizeof(TestAllocations[0]); n++)
 	{
 		if (TestAllocations[n].ParentType == json_TypeRoot)
 		{
@@ -312,120 +319,136 @@ static bool TestJsonElementAllocateNext(void)
 		}
 		else
 		{
-			ok = JsonElementAllocateChild(&Root, TestAllocations[n].ParentType);
+			TEST_IS_TRUE(JsonElementAllocateChild(&Root, TestAllocations[n].ParentType), TestResult);
 
 			Parent = JsonElementGetChild(&Root, false);
 		}
 
-		ok = ok && (Parent != NULL);
+		TEST_IS_NOT_EQ(Parent, NULL, TestResult);
 
-		ok = ok && JsonElementAllocateChild(Parent, TestAllocations[n].ChildType);
+		TEST_IS_TRUE(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestResult);
 
 		Child = (Parent != NULL) ? JsonElementGetChild(Parent, false) : NULL;
 
-		ok = ok && (Child != NULL);
+		TEST_IS_NOT_EQ(Child, NULL, TestResult);
 
-		ok = ok && !(!JsonElementAllocateNext(Child, TestAllocations[n].SiblingType) ^ !TestAllocations[n].Valid);
+		if (TestAllocations[n].Valid)
+		{
+			TEST_IS_TRUE(JsonElementAllocateNext(Child, TestAllocations[n].SiblingType), TestResult);
+		}
+		else
+		{
+			TEST_IS_FALSE(JsonElementAllocateNext(Child, TestAllocations[n].SiblingType), TestResult);
+		}
 
 		Sibling = JsonElementGetNext(Child, false);
 
 		if (Sibling != NULL)
 		{
-			ok = ok && (JsonElementGetType(Sibling) == TestAllocations[n].SiblingType);
+			TEST_IS_EQ(JsonElementGetType(Sibling), TestAllocations[n].SiblingType, TestResult);
 
-			ok = ok && (JsonElementGetChild(Sibling, false) == NULL);
+			TEST_IS_EQ(JsonElementGetChild(Sibling, false), NULL, TestResult);
 
-			ok = ok && (JsonElementGetNext(Sibling, false) == NULL);
+			TEST_IS_EQ(JsonElementGetNext(Sibling, false), NULL, TestResult);
 		}
 	}
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementGetChild(void)
+static tTestResult TestJsonElementGetChild(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonElement Root;
 	tJsonElement *Element;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
-	ok = (JsonElementGetChild(&Root, false) == NULL) && (JsonElementGetChild(&Root, true) == NULL);
+	TEST_IS_EQ(JsonElementGetChild(&Root, false), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&Root, true), NULL, TestResult);
 
-	ok = ok && JsonElementAllocateChild(&Root, json_TypeComment);
-
-	Element = JsonElementGetChild(&Root, false);
-
-	ok = ok && (Element != NULL) && (Element->Type == json_TypeComment);
-
-	ok = ok && (JsonElementGetChild(&Root, true) == NULL);
-
-	ok = ok && JsonElementAllocateNext(Element, json_TypeObject);
+	TEST_IS_TRUE(JsonElementAllocateChild(&Root, json_TypeComment), TestResult);
 
 	Element = JsonElementGetChild(&Root, false);
 
-	ok = ok && (Element != NULL) && (Element->Type == json_TypeComment);
+	TEST_IS_NOT_EQ(Element, NULL, TestResult);
+	TEST_IS_EQ(Element->Type, json_TypeComment, TestResult);
+
+	TEST_IS_EQ(JsonElementGetChild(&Root, true), NULL, TestResult);
+
+	TEST_IS_TRUE(JsonElementAllocateNext(Element, json_TypeObject), TestResult);
+
+	Element = JsonElementGetChild(&Root, false);
+
+	TEST_IS_NOT_EQ(Element, NULL, TestResult);
+	TEST_IS_EQ(Element->Type, json_TypeComment, TestResult);
 
 	Element = JsonElementGetChild(&Root, true);
 
-	ok = ok && (Element != NULL) && (Element->Type == json_TypeObject);
+	TEST_IS_NOT_EQ(Element, NULL, TestResult);
+	TEST_IS_EQ(Element->Type, json_TypeObject, TestResult);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementGetNext(void)
+static tTestResult TestJsonElementGetNext(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonElement Root;
 	tJsonElement *ChildElement;
 	tJsonElement *NextElement;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
-	ok = JsonElementAllocateChild(&Root, json_TypeObject);
+	TEST_IS_TRUE(JsonElementAllocateChild(&Root, json_TypeObject), TestResult);
 
 	ChildElement = JsonElementGetChild(&Root, false);
 
-	ok = ok && (ChildElement != NULL);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
 
-	ok = ok && JsonElementAllocateChild(ChildElement, json_TypeKey);
+	TEST_IS_TRUE(JsonElementAllocateChild(ChildElement, json_TypeKey), TestResult);
 
 	ChildElement = JsonElementGetChild(ChildElement, false);
 
-	ok = ok && (JsonElementGetNext(ChildElement, false) == NULL) && (JsonElementGetNext(ChildElement, true) == NULL);
+	TEST_IS_EQ(JsonElementGetNext(ChildElement, false), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetNext(ChildElement, true), NULL, TestResult);
 
-	ok = ok && JsonElementAllocateNext(ChildElement, json_TypeComment);
-
-	NextElement = JsonElementGetNext(ChildElement, false);
-
-	ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeComment);
-
-	ok = ok && (JsonElementGetNext(ChildElement, true) == NULL);
-
-	ok = ok && JsonElementAllocateNext(NextElement, json_TypeKey);
+	TEST_IS_TRUE(JsonElementAllocateNext(ChildElement, json_TypeComment), TestResult);
 
 	NextElement = JsonElementGetNext(ChildElement, false);
 
-	ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeComment);
+	TEST_IS_NOT_EQ(NextElement, NULL, TestResult);
+	TEST_IS_EQ(NextElement->Type, json_TypeComment, TestResult);
+
+	TEST_IS_EQ(JsonElementGetNext(ChildElement, true), NULL, TestResult);
+
+	TEST_IS_TRUE(JsonElementAllocateNext(NextElement, json_TypeKey), TestResult);
+
+	NextElement = JsonElementGetNext(ChildElement, false);
+
+	TEST_IS_NOT_EQ(NextElement, NULL, TestResult);
+	TEST_IS_EQ(NextElement->Type, json_TypeComment, TestResult);
 
 	NextElement = JsonElementGetNext(ChildElement, true);
 
-	ok = ok && (NextElement != NULL) && (NextElement->Type == json_TypeKey);
+	TEST_IS_NOT_EQ(NextElement, NULL, TestResult);
+	TEST_IS_EQ(NextElement->Type, json_TypeKey, TestResult);
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
-static bool TestJsonElementFind(void)
+static tTestResult TestJsonElementFind(void)
 {
+	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static struct
 	{
 		const char *Path;
@@ -455,38 +478,37 @@ static bool TestJsonElementFind(void)
 	tJsonElement Root;
 	tJsonElement *Element;
 	size_t n;
-	bool ok;
 
 	JsonElementSetUp(&Root);
 
-	for (ok = true, n = 0; ok && (n < sizeof(CreatePaths) / sizeof(CreatePaths[0])); n++)
+	for (n = 0; n < sizeof(CreatePaths) / sizeof(CreatePaths[0]); n++)
 	{
 		Element = JsonElementFind(&Root, JsonPathAscii(CreatePaths[n].Path), true);
 
-		ok = (Element != NULL);
+		TEST_IS_NOT_EQ(Element, NULL, TestResult);
 
-		ok = ok && (JsonElementGetType(Element) == CreatePaths[n].ElementType);
+		TEST_IS_EQ(JsonElementGetType(Element), CreatePaths[n].ElementType, TestResult);
 	}
 
-	for (n = 0; ok && (n < sizeof(InvalidPaths) / sizeof(InvalidPaths[0])); n++)
+	for (n = 0; n < sizeof(InvalidPaths) / sizeof(InvalidPaths[0]); n++)
 	{
 		Element = JsonElementFind(&Root, JsonPathAscii(InvalidPaths[n]), false);
 
-		ok = (Element == NULL);
+		TEST_IS_EQ(Element, NULL, TestResult);
 	}
 
-	for (n = 0; ok && (n < sizeof(CreatePaths) / sizeof(CreatePaths[0])); n++)
+	for (n = 0; n < sizeof(CreatePaths) / sizeof(CreatePaths[0]); n++)
 	{
 		Element = JsonElementFind(&Root, JsonPathAscii(CreatePaths[n].Path), false);
 
-		ok = (Element != NULL);
+		TEST_IS_NOT_EQ(Element, NULL, TestResult);
 
-		ok = ok && (JsonElementGetType(Element) == CreatePaths[n].ElementType);
+		TEST_IS_EQ(JsonElementGetType(Element), CreatePaths[n].ElementType, TestResult);
 	}
 
 	JsonElementCleanUp(&Root);
 
-	return ok;
+	return TestResult;
 }
 
 
