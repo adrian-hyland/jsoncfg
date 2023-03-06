@@ -40,6 +40,16 @@ bool JsonCharacterIsWhitespace(tJsonCharacter Character);
 
 
 /**
+ * @brief Checks if a character is a control character
+ * @param Character The character to check
+ * @return A true value is returned if the character is a control character
+ * @return A false value is returned of the character is not a control character
+ * @note Only the code points 0-31 are considered to be control characters
+ */
+bool JsonCharacterIsControl(tJsonCharacter Character);
+
+
+/**
  * @brief Checks if a character represents a hexadecimal digit
  * @param Character The character to check
  * @return A true value is returned if the character represents a hexadecimal digit

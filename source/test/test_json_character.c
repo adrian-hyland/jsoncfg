@@ -51,6 +51,29 @@ static tTestResult TestJsonCharacterIsWhitespace(void)
 }
 
 
+static tTestResult TestJsonCharacterIsControl(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonCharacter Character;
+	bool IsControl;
+
+	for (Character = 0; Character < 0x80; Character++)
+	{
+		IsControl = JsonCharacterIsControl(Character);
+		if (Character < 0x20)
+		{
+			TEST_IS_TRUE(IsControl, TestResult);
+		}
+		else
+		{
+			TEST_IS_FALSE(IsControl, TestResult);
+		}
+	}
+
+	return TestResult;
+}
+
+
 static tTestResult TestJsonCharacterIsHexDigit(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
@@ -239,6 +262,7 @@ static const tTestCase TestCaseJsonCharacter[] =
 {
 	{ "JsonCharacterIsLiteral",    TestJsonCharacterIsLiteral    },
 	{ "JsonCharacterIsWhitespace", TestJsonCharacterIsWhitespace },
+	{ "JsonCharacterIsControl",    TestJsonCharacterIsControl    },
 	{ "JsonCharacterIsHexDigit",   TestJsonCharacterIsHexDigit   },
 	{ "JsonCharacterToHexDigit",   TestJsonCharacterToHexDigit   },
 	{ "JsonCharacterFromHexDigit", TestJsonCharacterFromHexDigit },

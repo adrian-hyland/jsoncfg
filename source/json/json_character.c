@@ -18,6 +18,12 @@ bool JsonCharacterIsWhitespace(tJsonCharacter Character)
 }
 
 
+bool JsonCharacterIsControl(tJsonCharacter Character)
+{
+	return Character < 0x20;
+}
+
+
 bool JsonCharacterIsHexDigit(tJsonCharacter Character)
 {
 	return ((Character >= '0') && (Character <= '9')) || ((Character >= 'a') && (Character <= 'f')) || ((Character >= 'A') && (Character <= 'F'));
