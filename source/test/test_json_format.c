@@ -136,7 +136,7 @@ static tTestResult TestJsonFormatCompress(void)
 		                          "\"key-real\":1.23e4,"
 		                          "\"key-real-nan\":NaN,"
 		                          "\"key-string\":\"hello world\","
-		                          "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                          "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
 		                          "\"key-object-empty\":{},"
 		                          "\"key-object\":{\"key\":value},"
 		                          "\"key-array-empty\":[],"
@@ -148,7 +148,7 @@ static tTestResult TestJsonFormatCompress(void)
 		                              "1.23e4,"
 		                              "NaN,"
 		                              "\"hello world\","
-		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
 		                              "{},"
 		                              "{\"key\":value},"
 		                              "[],"
@@ -163,13 +163,13 @@ static tTestResult TestJsonFormatCompress(void)
 		                          "1.23e4,"
 		                          "NaN,"
 		                          "\"hello world\","
-		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\","
+		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
 		                          "{},"
 		                          "{\"key\":value},"
 		                          "[],"
 		                          "[1,2,3]"
 		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
 		(const tJsonUtf8Unit *)"true",
 		(const tJsonUtf8Unit *)"false",
 		(const tJsonUtf8Unit *)"null",
@@ -200,7 +200,7 @@ static tTestResult TestJsonFormatSpace(void)
 		                          "\"key-real\": 1.23e4, "
 		                          "\"key-real-nan\": NaN, "
 		                          "\"key-string\": \"hello world\", "
-		                          "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                          "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
 		                          "\"key-object-empty\": {}, "
 		                          "\"key-object\": { \"key\": value }, "
 		                          "\"key-array-empty\": [], "
@@ -212,7 +212,7 @@ static tTestResult TestJsonFormatSpace(void)
 		                              "1.23e4, "
 		                              "NaN, "
 		                              "\"hello world\", "
-		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
 		                              "{}, "
 		                              "{ \"key\": value }, "
 		                              "[], "
@@ -227,13 +227,13 @@ static tTestResult TestJsonFormatSpace(void)
 		                          "1.23e4, "
 		                          "NaN, "
 		                          "\"hello world\", "
-		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\", "
+		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
 		                          "{}, "
 		                          "{ \"key\": value }, "
 		                          "[], "
 		                          "[ 1, 2, 3 ] "
 		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
 		(const tJsonUtf8Unit *)"true",
 		(const tJsonUtf8Unit *)"false",
 		(const tJsonUtf8Unit *)"null",
@@ -264,7 +264,7 @@ static tTestResult TestJsonFormatIndent(void)
 		                       "   \"key-real\": 1.23e4,\n"
 		                       "   \"key-real-nan\": NaN,\n"
 		                       "   \"key-string\": \"hello world\",\n"
-		                       "   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
 		                       "   \"key-object-empty\": {},\n"
 		                       "   \"key-object\": {\n"
 		                       "      \"key\": value\n"
@@ -278,7 +278,7 @@ static tTestResult TestJsonFormatIndent(void)
 		                       "      1.23e4,\n"
 		                       "      NaN,\n"
 		                       "      \"hello world\",\n"
-		                       "      \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "      \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
 		                       "      {},\n"
 		                       "      {\n"
 		                       "         \"key\": value\n"
@@ -325,7 +325,7 @@ static tTestResult TestJsonFormatIndent(void)
 		                       "   1.23e4,\n"
 		                       "   NaN,\n"
 		                       "   \"hello world\",\n"
-		                       "   \"\\t\\r\\n\\b\\f\\\\\\\"\",\n"
+		                       "   \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
 		                       "   {},\n"
 		                       "   {\n"
 		                       "      \"key\": value\n"
@@ -337,7 +337,7 @@ static tTestResult TestJsonFormatIndent(void)
 		                       "      3\n"
 		                       "   ]\n"
 		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\"",
+		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
 		(const tJsonUtf8Unit *)"true",
 		(const tJsonUtf8Unit *)"false",
 		(const tJsonUtf8Unit *)"null",

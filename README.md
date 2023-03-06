@@ -119,8 +119,9 @@ $ cat c_cpp_properties.json | jsoncfg -cn -i4
 
 - The input JSON content should be encoded using UTF-8 (without a byte order mark).
 - The input JSON content may contain any line or block comments even though, technically, comments should not be used for JSON. Support for handling comments was added as they can be used quite a lot in JSON configuration files.
-- The input JSON content should not contain any escaped UTF-16 characters (any `\uXXXX` sequences) as these are not yet supported by the parsing functionality.
 - The parsing functionality does not check the validity of any literals that are contained in the input JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
+- The parsing functionality will not accept any NUL characters in the input JSON content, even if they have been escaped as \u0000.
+- The formatting functionality will escape any control characters (U+00000..U+001F) in the output JSON content.
 
 ## Adding build configurations to the VS Code project
 

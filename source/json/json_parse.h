@@ -2,7 +2,7 @@
 #define JSON_PARSE_H
 
 #include "json_element.h"
-#include "json_utf8.h"
+#include "json_utf16.h"
 
 
 /**
@@ -10,22 +10,34 @@
  */
 typedef enum
 {
-	json_ParseComplete,          /**< Parsing is complete */
-	json_ParseError,             /**< A parsing error has occurred */
-	json_ParseKeyStart,          /**< Parsing the start of a key string */
-	json_ParseKey,               /**< Parsing a character in a key string */
-	json_ParseKeyEscape,         /**< Parsing an escaped character in a key string */
-	json_ParseKeyEnd,            /**< Parsing the end of a key string */
-	json_ParseValueStart,        /**< Parsing the start of a value */
-	json_ParseValueString,       /**< Parsing a character in a string value */
-	json_ParseValueStringEscape, /**< Parsing an escaped character in a string value */
-	json_ParseValueLiteral,      /**< Parsing a character in a literal value */
-	json_ParseValueEnd,          /**< Parsing the end of a value */
-	json_ParseCommentStart,      /**< Parsing the start of a comment */
-	json_ParseCommentLine,       /**< Parsing a character in a line comment */
-	json_ParseCommentBlock,      /**< Parsing a character in a block comment */
-	json_ParseCommentBlockLine,  /**< Parsing a new line in a block comment */
-	json_ParseCommentBlockEnd,   /**< Parsing the end of a block comment */
+	json_ParseComplete,               /**< Parsing is complete */
+	json_ParseError,                  /**< A parsing error has occurred */
+	json_ParseKeyStart,               /**< Parsing the start of a key string */
+	json_ParseKey,                    /**< Parsing a character in a key string */
+	json_ParseKeyEscape,              /**< Parsing an escaped character in a key string */
+	json_ParseKeyUtf16Escape,         /**< Parsing an escaped unicode character in a key string */
+	json_ParseKeyUtf16,               /**< Parsing the start of an escaped unicode character in a key string */
+	json_ParseKeyUtf16Digit1,         /**< Parsing the first digit of an escaped unicode character in a key string */
+	json_ParseKeyUtf16Digit2,         /**< Parsing the second digit of an escaped unicode character in a key string */
+	json_ParseKeyUtf16Digit3,         /**< Parsing the third digit of an escaped unicode character in a key string */
+	json_ParseKeyUtf16Digit4,         /**< Parsing the fourth digit of an escaped unicode character in a key string */
+	json_ParseKeyEnd,                 /**< Parsing the end of a key string */
+	json_ParseValueStart,             /**< Parsing the start of a value */
+	json_ParseValueString,            /**< Parsing a character in a string value */
+	json_ParseValueStringEscape,      /**< Parsing an escaped character in a string value */
+	json_ParseValueStringUtf16Escape, /**< Parsing an escaped unicode character in a string value */
+	json_ParseValueStringUtf16,       /**< Parsing the start of an escaped unicode character in a string value */
+	json_ParseValueStringUtf16Digit1, /**< Parsing the first digit of an escaped unicode character in a string value */
+	json_ParseValueStringUtf16Digit2, /**< Parsing the second digit of an escaped unicode character in a string value */
+	json_ParseValueStringUtf16Digit3, /**< Parsing the third digit of an escaped unicode character in a string value */
+	json_ParseValueStringUtf16Digit4, /**< Parsing the fourth digit of an escaped unicode character in a string value */
+	json_ParseValueLiteral,           /**< Parsing a character in a literal value */
+	json_ParseValueEnd,               /**< Parsing the end of a value */
+	json_ParseCommentStart,           /**< Parsing the start of a comment */
+	json_ParseCommentLine,            /**< Parsing a character in a line comment */
+	json_ParseCommentBlock,           /**< Parsing a character in a block comment */
+	json_ParseCommentBlockLine,       /**< Parsing a new line in a block comment */
+	json_ParseCommentBlockEnd,        /**< Parsing the end of a block comment */
 } tJsonParseState;
 
 
@@ -37,6 +49,7 @@ typedef struct
 	tJsonParseState State;         /**< The current parse state */
 	tJsonElement   *Element;       /**< The current element being parsed */
 	tJsonUtf8Code   Utf8Code;      /**< The current UTF-8 character code being parsed */
+	tJsonUtf16Code  Utf16Code;     /**< The current UTF-16 character being escaped */
 	tJsonParseState CommentState;  /**< The state that the parser was in when a comment is encountered (so that it can be restored afterwards) */
 	bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
 	bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
