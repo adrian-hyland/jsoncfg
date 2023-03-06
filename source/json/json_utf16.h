@@ -58,35 +58,22 @@ bool JsonUtf16CodeIsValid(tJsonUtf16Code Code);
 
 
 /**
- * @brief Checks if a UTF-16 code unit is a high surrogate value value
- * @param Unit The UTF-16 code unit to check
- * @return A true value is returned if the code unit is is a high surrogate value
- * @return A false value is returned if the code unit is not a high surrogate value
- * @note A high surrogate value does not represent a valid unicode character.
- * @note If the code unit is a high surrogate value then it should be combined with a low surrogate code unit.
+ * @brief Returns the number of code units in a UTF-16 character code
+ * @param Code The UTF-16 character code
+ * @return The number of code units
+ * @return A zero value is returned if the code is not valid
  */
-bool JsonUtf16UnitIsHighSurrogate(tJsonUtf16Unit Unit);
+size_t JsonUtf16CodeGetUnitLength(tJsonUtf16Code Code);
 
 
 /**
- * @brief Checks if a UTF-16 code unit is a low surrogate value value
- * @param Unit The UTF-16 code unit to check
- * @return A true value is returned if the character unit is is a low surrogate value
- * @return A false value is returned if the character unit is not a low surrogate value
- * @note A low surrogate value does not represent a valid unicode character.
+ * @brief Gets a code unit from a UTF-16 character code
+ * @param Code  The UTF-16 character code
+ * @param Index The code unit to get
+ * @return The code unit
+ * @return A zero value is returned if the code unit could not be returned
  */
-bool JsonUtf16UnitIsLowSurrogate(tJsonUtf16Unit Unit);
-
-
-/**
- * @brief Sets a nibble in a UTF-16 code unit
- * @param Code  The UTF-16 code unit
- * @param Index The nibble to set
- * @param Nibble The nibble value (between 0x0 and 0xF)
- * @return A true value is returned if the nibble was set in the code unit
- * @return A false value is returned if the nibble could not be set in the code unit
- */
-bool JsonUtf16UnitSetNibble(tJsonUtf16Unit *Code, size_t Index, uint8_t Nibble);
+tJsonUtf16Unit JsonUtf16CodeGetUnit(tJsonUtf16Code Code, size_t Index);
 
 
 /**
@@ -126,6 +113,38 @@ uint8_t JsonUtf16CodeGetNibble(tJsonUtf16Code Code, size_t Index);
  * @return A false value is returned if the nibble could not be added to the character code
  */
 bool JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble);
+
+
+/**
+ * @brief Checks if a UTF-16 code unit is a high surrogate value value
+ * @param Unit The UTF-16 code unit to check
+ * @return A true value is returned if the code unit is is a high surrogate value
+ * @return A false value is returned if the code unit is not a high surrogate value
+ * @note A high surrogate value does not represent a valid unicode character.
+ * @note If the code unit is a high surrogate value then it should be combined with a low surrogate code unit.
+ */
+bool JsonUtf16UnitIsHighSurrogate(tJsonUtf16Unit Unit);
+
+
+/**
+ * @brief Checks if a UTF-16 code unit is a low surrogate value value
+ * @param Unit The UTF-16 code unit to check
+ * @return A true value is returned if the character unit is is a low surrogate value
+ * @return A false value is returned if the character unit is not a low surrogate value
+ * @note A low surrogate value does not represent a valid unicode character.
+ */
+bool JsonUtf16UnitIsLowSurrogate(tJsonUtf16Unit Unit);
+
+
+/**
+ * @brief Sets a nibble in a UTF-16 code unit
+ * @param Code  The UTF-16 code unit
+ * @param Index The nibble to set
+ * @param Nibble The nibble value (between 0x0 and 0xF)
+ * @return A true value is returned if the nibble was set in the code unit
+ * @return A false value is returned if the nibble could not be set in the code unit
+ */
+bool JsonUtf16UnitSetNibble(tJsonUtf16Unit *Code, size_t Index, uint8_t Nibble);
 
 
 #endif

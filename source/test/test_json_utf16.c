@@ -325,6 +325,96 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 }
 
 
+static tTestResult TestJsonUtf16CodeGetUnitLength(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonUtf16Code Code;
+
+	for (Code = 0; Code < 0xD800; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 1, TestResult);
+	}
+
+	for (Code = 0xD800; Code < 0xE000; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 0, TestResult);
+	}
+
+	for (Code = 0xE000; Code < 0x10000; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 1, TestResult);
+	}
+
+	for (Code = 0x10000; Code < 0xD8000000; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 0, TestResult);
+	}
+
+	for (Code = 0xD8000000; Code < 0xDC000000; Code++)
+	{
+		if (JsonUtf16CodeIsValid(Code))
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 2, TestResult);
+		}
+		else
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 0, TestResult);
+		}
+	}
+
+	for (Code = 0xDC000000; Code != 0; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnitLength(Code), 0, TestResult);
+	}
+
+	return TestResult;
+}
+
+
+static tTestResult TestJsonUtf16CodeGetUnit(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonUtf16Code Code;
+
+	for (Code = 0; Code < 0x10000; Code++)
+	{
+		if (JsonUtf16CodeIsValid(Code))
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), Code, TestResult);
+		}
+		else
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), 0x00, TestResult);
+		}
+	}
+
+	for (Code = 0x10000; Code < 0xD8000000; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), 0x00, TestResult);
+	}
+
+	for (Code = 0xD8000000; Code < 0xDC000000; Code++)
+	{
+		if (JsonUtf16CodeIsValid(Code))
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), Code >> 16, TestResult);
+			TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 1), Code & 0xFFFF, TestResult);
+		}
+		else
+		{
+			TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), 0x00, TestResult);
+		}
+	}
+
+	for (Code = 0xDC000000; Code != 0; Code++)
+	{
+		TEST_IS_EQ(JsonUtf16CodeGetUnit(Code, 0), 0x00, TestResult);
+	}
+
+	return TestResult;
+}
+
+
 static tTestResult TestJsonUtf16CodeGetNibbleLength(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
@@ -740,6 +830,8 @@ static const tTestCase TestCaseJsonUtf16[] =
 	{ "JsonUtf16UnitIsLowSurrogate",  TestJsonUtf16UnitIsLowSurrogate  },
 	{ "JsonUtf16UnitSetNibble",       TestJsonUtf16UnitSetNibble       },
 	{ "JsonUtf16CodeAddUnit",         TestJsonUtf16CodeAddUnit         },
+	{ "JsonUtf16CodeGetUnitLength",   TestJsonUtf16CodeGetUnitLength   },
+	{ "JsonUtf16CodeGetUnit",         TestJsonUtf16CodeGetUnit         },
 	{ "JsonUtf16CodeGetNibbleLength", TestJsonUtf16CodeGetNibbleLength },
 	{ "JsonUtf16CodeGetNibble",       TestJsonUtf16CodeGetNibble       },
 	{ "JsonUtf16CodeAddNibble",       TestJsonUtf16CodeAddNibble       },

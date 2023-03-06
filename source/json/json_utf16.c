@@ -53,6 +53,27 @@ bool JsonUtf16CodeIsValid(tJsonUtf16Code Code)
 }
 
 
+size_t JsonUtf16CodeGetUnitLength(tJsonUtf16Code Code)
+{
+	if (JsonUtf16CodeIsValid(Code))
+	{
+		return (Code < 0x10000) ? 1 : 2;
+	}
+	return 0;
+}
+
+
+tJsonUtf16Unit JsonUtf16CodeGetUnit(tJsonUtf16Code Code, size_t Index)
+{
+	size_t Length = JsonUtf16CodeGetUnitLength(Code);
+	if (Index < Length)
+	{
+		return Code >> ((Length - Index - 1) * 16);
+	}
+	return 0;
+}
+
+
 bool JsonUtf16UnitIsHighSurrogate(tJsonUtf16Unit Unit)
 {
 	return (Unit >= 0xD800) && (Unit < 0xDC00);
@@ -106,11 +127,7 @@ bool JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit)
 
 size_t JsonUtf16CodeGetNibbleLength(tJsonUtf16Code Code)
 {
-	if (JsonUtf16CodeIsValid(Code))
-	{
-		return (Code < 0x10000) ? 4 : 8;
-	}
-	return 0;
+	return JsonUtf16CodeGetUnitLength(Code) * 4;
 }
 
 
