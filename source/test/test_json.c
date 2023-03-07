@@ -18,7 +18,9 @@ static const tTest *Tests[] =
 	&TestJsonValueUtf8,
 	&TestJsonLiteralUtf8,
 	&TestJsonCommentLineUtf8,
-	&TestJsonCommentBlockUtf8
+	&TestJsonCommentBlockUtf8,
+	&TestJsonValueUtf16,
+	&TestJsonKeyUtf16,
 };
 
 

@@ -82,4 +82,16 @@ extern const tTest TestJsonCommentLineUtf8;
 extern const tTest TestJsonCommentBlockUtf8;
 
 
+/**
+ * @brief Contains test cases for UTF-16 escaped key string values
+ */
+extern const tTest TestJsonKeyUtf16;
+
+
+/**
+ * @brief Contains test cases for UTF-16 escaped string values
+ */
+extern const tTest TestJsonValueUtf16;
+
+
 #endif
