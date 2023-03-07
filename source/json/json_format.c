@@ -36,59 +36,70 @@ static void JsonFormatUtf8(tJsonFormat *Format, tJsonUtf8Code Code, tJsonUtf8Uni
 }
 
 
+static tJsonFormatState JsonFormatSetEscapeState(tJsonFormat *Format, tJsonFormatState State)
+{
+	tJsonFormatState PreviousState;
+
+	PreviousState = Format->EscapeState;
+	Format->EscapeState = State;
+
+	return PreviousState;
+}
+
+
 static tJsonFormatState JsonFormatValueStart(tJsonFormat *Format, tJsonUtf8Code *Code);
 static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, tJsonUtf8Code *Code);
 
 
-static tJsonFormatState JsonFormatKeyUtf16Escape(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16Escape(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = '\\';
-	return json_FormatKeyUtf16;
+	return json_FormatUtf16;
 }
 
 
-static tJsonFormatState JsonFormatKeyUtf16(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = 'u';
-	return json_FormatKeyUtf16Digit1;
+	return json_FormatUtf16Digit1;
 }
 
 
-static tJsonFormatState JsonFormatKeyUtf16Digit1(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16Digit1(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 0));
-	return json_FormatKeyUtf16Digit2;
+	return json_FormatUtf16Digit2;
 }
 
 
-static tJsonFormatState JsonFormatKeyUtf16Digit2(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16Digit2(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 1));
-	return json_FormatKeyUtf16Digit3;
+	return json_FormatUtf16Digit3;
 }
 
 
-static tJsonFormatState JsonFormatKeyUtf16Digit3(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16Digit3(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 2));
-	return json_FormatKeyUtf16Digit4;
+	return json_FormatUtf16Digit4;
 }
 
 
-static tJsonFormatState JsonFormatKeyUtf16Digit4(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatUtf16Digit4(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 3));
 	Format->Utf16CodeIndex++;
 	if (Format->Utf16CodeIndex < JsonUtf16CodeGetUnitLength(Format->Utf16Code))
 	{
-		return json_FormatKeyUtf16Escape;
+		return json_FormatUtf16Escape;
 	}
 
-	return json_FormatKey;
+	return JsonFormatSetEscapeState(Format, json_FormatError);
 }
 
 
-static tJsonFormatState JsonFormatKeyEscape(tJsonFormat *Format, tJsonUtf8Code *Code)
+static tJsonFormatState JsonFormatEscape(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	size_t CodeLength;
 
@@ -99,7 +110,8 @@ static tJsonFormatState JsonFormatKeyEscape(tJsonFormat *Format, tJsonUtf8Code *
 	}
 	*Code = JsonCharacterToEscape(*Code);
 	Format->NameIndex = Format->NameIndex + CodeLength;
-	return json_FormatKey;
+
+	return JsonFormatSetEscapeState(Format, json_FormatError);
 }
 
 
@@ -117,7 +129,8 @@ static tJsonFormatState JsonFormatKey(tJsonFormat *Format, tJsonUtf8Code *Code)
 		else if (JsonCharacterIsEscapable(*Code))
 		{
 			*Code = '\\';
-			return json_FormatKeyEscape;
+			JsonFormatSetEscapeState(Format, Format->State);
+			return json_FormatEscape;
 		}
 		else if (JsonCharacterIsControl(*Code))
 		{
@@ -125,7 +138,8 @@ static tJsonFormatState JsonFormatKey(tJsonFormat *Format, tJsonUtf8Code *Code)
 			Format->Utf16Code = JsonUtf16Code(JsonUtf8CodeGetCharacter(*Code));
 			Format->Utf16CodeIndex = 0;
 			*Code = '\\';
-			return json_FormatKeyUtf16;
+			JsonFormatSetEscapeState(Format, Format->State);
+			return json_FormatUtf16;
 		}
 		Format->NameIndex = Format->NameIndex + CodeLength;
 		return json_FormatKey;
@@ -280,69 +294,6 @@ static tJsonFormatState JsonFormatValueEnd(tJsonFormat *Format, tJsonUtf8Code *C
 }
 
 
-static tJsonFormatState JsonFormatValueStringUtf16Escape(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = '\\';
-	return json_FormatValueStringUtf16;
-}
-
-
-static tJsonFormatState JsonFormatValueStringUtf16(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = 'u';
-	return json_FormatValueStringUtf16Digit1;
-}
-
-
-static tJsonFormatState JsonFormatValueStringUtf16Digit1(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 0));
-	return json_FormatValueStringUtf16Digit2;
-}
-
-
-static tJsonFormatState JsonFormatValueStringUtf16Digit2(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 1));
-	return json_FormatValueStringUtf16Digit3;
-}
-
-
-static tJsonFormatState JsonFormatValueStringUtf16Digit3(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 2));
-	return json_FormatValueStringUtf16Digit4;
-}
-
-
-static tJsonFormatState JsonFormatValueStringUtf16Digit4(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	*Code = JsonCharacterFromHexDigit(JsonUtf16CodeGetNibble(Format->Utf16Code, 3));
-	Format->Utf16CodeIndex++;
-	if (Format->Utf16CodeIndex < JsonUtf16CodeGetUnitLength(Format->Utf16Code))
-	{
-		return json_FormatValueStringUtf16Escape;
-	}
-
-	return json_FormatValueString;
-}
-
-
-static tJsonFormatState JsonFormatValueStringEscape(tJsonFormat *Format, tJsonUtf8Code *Code)
-{
-	size_t CodeLength;
-
-	CodeLength = JsonStringGetNextUtf8Code(&Format->Element->Name, Format->NameIndex, Code);
-	if (CodeLength == 0)
-	{
-		return json_FormatError;
-	}
-	*Code = JsonCharacterToEscape(*Code);
-	Format->NameIndex = Format->NameIndex + CodeLength;
-	return json_FormatValueString;
-}
-
-
 static tJsonFormatState JsonFormatValueString(tJsonFormat *Format, tJsonUtf8Code *Code)
 {
 	size_t CodeLength;
@@ -357,7 +308,8 @@ static tJsonFormatState JsonFormatValueString(tJsonFormat *Format, tJsonUtf8Code
 		else if (JsonCharacterIsEscapable(*Code))
 		{
 			*Code = '\\';
-			return json_FormatValueStringEscape;
+			JsonFormatSetEscapeState(Format, Format->State);
+			return json_FormatEscape;
 		}
 		else if (JsonCharacterIsControl(*Code))
 		{
@@ -365,7 +317,8 @@ static tJsonFormatState JsonFormatValueString(tJsonFormat *Format, tJsonUtf8Code
 			Format->Utf16Code = JsonUtf16Code(JsonUtf8CodeGetCharacter(*Code));
 			Format->Utf16CodeIndex = 0;
 			*Code = '\\';
-			return json_FormatValueStringUtf16;
+			JsonFormatSetEscapeState(Format, Format->State);
+			return json_FormatUtf16;
 		}
 		Format->NameIndex = Format->NameIndex + CodeLength;
 		return json_FormatValueString;
@@ -577,6 +530,7 @@ static void JsonFormatSetUp(tJsonFormat *Format, tJsonFormatType Type, size_t In
 	Format->Utf8Code = 0;
 	Format->Utf16Code = 0;
 	Format->CommentType = CommentType;
+	Format->EscapeState = json_FormatError;
 	Format->Utf8CodeIndex = 0;
 	Format->Utf16CodeIndex = 0;
 	Format->NameIndex = 0;
@@ -613,6 +567,7 @@ void JsonFormatCleanUp(tJsonFormat *Format)
 	Format->Utf8Code = 0;
 	Format->Utf16Code = 0;
 	Format->CommentType = json_CommentNone;
+	Format->EscapeState = json_FormatError;
 	Format->Utf8CodeIndex = 0;
 	Format->Utf16CodeIndex = 0;
 	Format->NameIndex = 0;
@@ -639,36 +594,36 @@ int JsonFormat(tJsonFormat *Format, tJsonUtf8Unit *CodeUnit)
 		{
 			switch (Format->State)
 			{
+				case json_FormatEscape:
+					Format->State = JsonFormatEscape(Format, &Code);
+				break;
+
+				case json_FormatUtf16Escape:
+					Format->State = JsonFormatUtf16Escape(Format, &Code);
+				break;
+
+				case json_FormatUtf16:
+					Format->State = JsonFormatUtf16(Format, &Code);
+				break;
+
+				case json_FormatUtf16Digit1:
+					Format->State = JsonFormatUtf16Digit1(Format, &Code);
+				break;
+
+				case json_FormatUtf16Digit2:
+					Format->State = JsonFormatUtf16Digit2(Format, &Code);
+				break;
+
+				case json_FormatUtf16Digit3:
+					Format->State = JsonFormatUtf16Digit3(Format, &Code);
+				break;
+
+				case json_FormatUtf16Digit4:
+					Format->State = JsonFormatUtf16Digit4(Format, &Code);
+				break;
+
 				case json_FormatKey:
 					Format->State = JsonFormatKey(Format, &Code);
-				break;
-
-				case json_FormatKeyEscape:
-					Format->State = JsonFormatKeyEscape(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16Escape:
-					Format->State = JsonFormatKeyUtf16Escape(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16:
-					Format->State = JsonFormatKeyUtf16(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16Digit1:
-					Format->State = JsonFormatKeyUtf16Digit1(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16Digit2:
-					Format->State = JsonFormatKeyUtf16Digit2(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16Digit3:
-					Format->State = JsonFormatKeyUtf16Digit3(Format, &Code);
-				break;
-
-				case json_FormatKeyUtf16Digit4:
-					Format->State = JsonFormatKeyUtf16Digit4(Format, &Code);
 				break;
 
 				case json_FormatKeyEnd:
@@ -681,34 +636,6 @@ int JsonFormat(tJsonFormat *Format, tJsonUtf8Unit *CodeUnit)
 
 				case json_FormatValueString:
 					Format->State = JsonFormatValueString(Format, &Code);
-				break;
-
-				case json_FormatValueStringEscape:
-					Format->State = JsonFormatValueStringEscape(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16Escape:
-					Format->State = JsonFormatValueStringUtf16Escape(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16:
-					Format->State = JsonFormatValueStringUtf16(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16Digit1:
-					Format->State = JsonFormatValueStringUtf16Digit1(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16Digit2:
-					Format->State = JsonFormatValueStringUtf16Digit2(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16Digit3:
-					Format->State = JsonFormatValueStringUtf16Digit3(Format, &Code);
-				break;
-
-				case json_FormatValueStringUtf16Digit4:
-					Format->State = JsonFormatValueStringUtf16Digit4(Format, &Code);
 				break;
 
 				case json_FormatValueLiteral:

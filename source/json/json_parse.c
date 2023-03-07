@@ -40,62 +40,84 @@ static bool JsonParseUtf8IsComplete(tJsonParse *Parse, tJsonUtf8Unit CodeUnit, t
 }
 
 
-static tJsonParseState JsonParseKeyUtf16Escape(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseSetEscapeState(tJsonParse *Parse, tJsonParseState State)
+{
+	tJsonParseState PreviousState;
+
+	PreviousState = Parse->EscapeState;
+	Parse->EscapeState = State;
+
+	return PreviousState;
+}
+
+
+static tJsonParseState JsonParseSetCommentState(tJsonParse *Parse, tJsonParseState State)
+{
+	tJsonParseState PreviousState;
+
+	PreviousState = Parse->CommentState;
+	Parse->CommentState = State;
+
+	return PreviousState;
+}
+
+
+static tJsonParseState JsonParseUtf16Escape(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (Code != '\\')
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKeyUtf16;
+	return json_ParseUtf16;
 }
 
 
-static tJsonParseState JsonParseKeyUtf16(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseUtf16(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (Code != 'u')
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKeyUtf16Digit1;
+	return json_ParseUtf16Digit1;
 }
 
 
-static tJsonParseState JsonParseKeyUtf16Digit1(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseUtf16Digit1(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKeyUtf16Digit2;
+	return json_ParseUtf16Digit2;
 }
 
 
-static tJsonParseState JsonParseKeyUtf16Digit2(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseUtf16Digit2(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKeyUtf16Digit3;
+	return json_ParseUtf16Digit3;
 }
 
 
-static tJsonParseState JsonParseKeyUtf16Digit3(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseUtf16Digit3(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKeyUtf16Digit4;
+	return json_ParseUtf16Digit4;
 }
 
 
-static tJsonParseState JsonParseKeyUtf16Digit4(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseUtf16Digit4(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (JsonCharacterIsHexDigit(Code) && JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
 	{
@@ -103,12 +125,12 @@ static tJsonParseState JsonParseKeyUtf16Digit4(tJsonParse *Parse, tJsonUtf8Code 
 		{
 			if (JsonStringAddCharacter(&Parse->Element->Name, JsonUtf16CodeGetCharacter(Parse->Utf16Code)))
 			{
-				return json_ParseKey;
+				return JsonParseSetEscapeState(Parse, json_ParseError);
 			}
 		}
 		else if (JsonUtf16UnitIsHighSurrogate(Parse->Utf16Code))
 		{
-			return json_ParseKeyUtf16Escape;
+			return json_ParseUtf16Escape;
 		}
 	}
 
@@ -116,21 +138,21 @@ static tJsonParseState JsonParseKeyUtf16Digit4(tJsonParse *Parse, tJsonUtf8Code 
 }
 
 
-static tJsonParseState JsonParseKeyEscape(tJsonParse *Parse, tJsonUtf8Code Code)
+static tJsonParseState JsonParseEscape(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	Code = JsonCharacterFromEscape(Code);
 
 	if (Code == 'u')
 	{
 		Parse->Utf16Code = 0;
-		return json_ParseKeyUtf16Digit1;
+		return json_ParseUtf16Digit1;
 	}
 	else if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
 		return json_ParseError;
 	}
 
-	return json_ParseKey;
+	return JsonParseSetEscapeState(Parse, json_ParseError);
 }
 
 
@@ -138,7 +160,8 @@ static tJsonParseState JsonParseKey(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (Code == '\\')
 	{
-		return json_ParseKeyEscape;
+		JsonParseSetEscapeState(Parse, Parse->State);
+		return json_ParseEscape;
 	}
 	else if (Code == '"')
 	{
@@ -176,7 +199,7 @@ static tJsonParseState JsonParseKeyStart(tJsonParse *Parse, tJsonUtf8Code Code)
 	}
 	else if (Code == '/')
 	{
-		Parse->CommentState = Parse->State;
+		JsonParseSetCommentState(Parse, Parse->State);
 		return json_ParseCommentStart;
 	}
 	else if (!JsonCharacterIsWhitespace(Code))
@@ -196,7 +219,7 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 	}
 	else if (Code == '/')
 	{
-		Parse->CommentState = Parse->State;
+		JsonParseSetCommentState(Parse, Parse->State);
 		return json_ParseCommentStart;
 	}
 	else if (!JsonCharacterIsWhitespace(Code))
@@ -208,105 +231,12 @@ static tJsonParseState JsonParseKeyEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 }
 
 
-static tJsonParseState JsonParseValueStringUtf16Escape(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (Code != '\\')
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueStringUtf16;
-}
-
-
-static tJsonParseState JsonParseValueStringUtf16(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (Code != 'u')
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueStringUtf16Digit1;
-}
-
-
-static tJsonParseState JsonParseValueStringUtf16Digit1(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueStringUtf16Digit2;
-}
-
-
-static tJsonParseState JsonParseValueStringUtf16Digit2(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueStringUtf16Digit3;
-}
-
-
-static tJsonParseState JsonParseValueStringUtf16Digit3(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (!JsonCharacterIsHexDigit(Code) || !JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueStringUtf16Digit4;
-}
-
-
-static tJsonParseState JsonParseValueStringUtf16Digit4(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	if (JsonCharacterIsHexDigit(Code) && JsonUtf16CodeAddNibble(&Parse->Utf16Code, JsonCharacterToHexDigit(Code)))
-	{
-		if (JsonUtf16CodeIsValid(Parse->Utf16Code))
-		{
-			if (JsonStringAddCharacter(&Parse->Element->Name, JsonUtf16CodeGetCharacter(Parse->Utf16Code)))
-			{
-				return json_ParseValueString;
-			}
-		}
-		else if (JsonUtf16UnitIsHighSurrogate(Parse->Utf16Code))
-		{
-			return json_ParseValueStringUtf16Escape;
-		}
-	}
-
-	return json_ParseError;
-}
-
-
-static tJsonParseState JsonParseValueStringEscape(tJsonParse *Parse, tJsonUtf8Code Code)
-{
-	Code = JsonCharacterFromEscape(Code);
-
-	if (Code == 'u')
-	{
-		Parse->Utf16Code = 0;
-		return json_ParseValueStringUtf16Digit1;
-	}
-	else if (!JsonStringAddUtf8Code(&Parse->Element->Name, Code))
-	{
-		return json_ParseError;
-	}
-
-	return json_ParseValueString;
-}
-
-
 static tJsonParseState JsonParseValueString(tJsonParse *Parse, tJsonUtf8Code Code)
 {
 	if (Code == '\\')
 	{
-		return json_ParseValueStringEscape;
+		JsonParseSetEscapeState(Parse, Parse->State);
+		return json_ParseEscape;
 	}
 	else if (Code == '"')
 	{
@@ -369,7 +299,7 @@ static tJsonParseState JsonParseValueEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 	}
 	else if (Code == '/')
 	{
-		Parse->CommentState = Parse->State;
+		JsonParseSetCommentState(Parse, Parse->State);
 		return json_ParseCommentStart;
 	}
 	else if (Code == '\0')
@@ -445,7 +375,7 @@ static tJsonParseState JsonParseValueStart(tJsonParse *Parse, tJsonUtf8Code Code
 	}
 	else if (Code == '/')
 	{
-		Parse->CommentState = Parse->State;
+		JsonParseSetCommentState(Parse, Parse->State);
 		return json_ParseCommentStart;
 	}
 	else if (Code == '\0')
@@ -486,17 +416,13 @@ static tJsonParseState JsonParseCommentStart(tJsonParse *Parse, tJsonUtf8Code Co
 
 static tJsonParseState JsonParseCommentLine(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	tJsonParseState State;
-
 	if ((Code == '\r') || (Code == '\n'))
 	{
-		State = Parse->CommentState;
-		Parse->CommentState = json_ParseError;
 		if (!Parse->StripComments)
 		{
 			Parse->AllocateChild = false;
 		}
-		return State;
+		return JsonParseSetCommentState(Parse, json_ParseError);
 	}
 	else if (!Parse->StripComments && !JsonStringAddUtf8Code(&Parse->Element->Name, Code))
 	{
@@ -548,17 +474,13 @@ static tJsonParseState JsonParseCommentBlockLine(tJsonParse *Parse, tJsonUtf8Cod
 
 static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, tJsonUtf8Code Code)
 {
-	tJsonParseState State;
-
 	if (Code == '/')
 	{
-		State = Parse->CommentState;
-		Parse->CommentState = json_ParseError;
 		if (!Parse->StripComments)
 		{
 			Parse->AllocateChild = false;
 		}
-		return State;
+		return JsonParseSetCommentState(Parse, json_ParseError);
 	}
 	else if (!Parse->StripComments && !JsonStringAddUtf8Code(&Parse->Element->Name, '*'))
 	{
@@ -576,6 +498,7 @@ void JsonParseSetUp(tJsonParse *Parse, bool StripComments, tJsonElement *RootEle
 	Parse->Utf8Code = 0;
 	Parse->Utf16Code = 0;
 	Parse->CommentState = json_ParseError;
+	Parse->EscapeState = json_ParseError;
 	Parse->AllocateChild = true;
 	Parse->StripComments = StripComments;
 }
@@ -588,6 +511,7 @@ void JsonParseCleanUp(tJsonParse *Parse)
 	Parse->Utf8Code = 0;
 	Parse->Utf16Code = 0;
 	Parse->CommentState = json_ParseError;
+	Parse->EscapeState = json_ParseError;
 	Parse->AllocateChild = false;
 	Parse->StripComments = false;
 }
@@ -607,40 +531,40 @@ int JsonParse(tJsonParse *Parse, tJsonUtf8Unit CodeUnit)
 		{
 			switch (Parse->State)
 			{
+				case json_ParseEscape:
+					Parse->State = JsonParseEscape(Parse, Code);
+				break;
+
+				case json_ParseUtf16Escape:
+					Parse->State = JsonParseUtf16Escape(Parse, Code);
+				break;
+
+				case json_ParseUtf16:
+					Parse->State = JsonParseUtf16(Parse, Code);
+				break;
+
+				case json_ParseUtf16Digit1:
+					Parse->State = JsonParseUtf16Digit1(Parse, Code);
+				break;
+
+				case json_ParseUtf16Digit2:
+					Parse->State = JsonParseUtf16Digit2(Parse, Code);
+				break;
+
+				case json_ParseUtf16Digit3:
+					Parse->State = JsonParseUtf16Digit3(Parse, Code);
+				break;
+
+				case json_ParseUtf16Digit4:
+					Parse->State = JsonParseUtf16Digit4(Parse, Code);
+				break;
+
 				case json_ParseKeyStart:
 					Parse->State = JsonParseKeyStart(Parse, Code);
 				break;
 
 				case json_ParseKey:
 					Parse->State = JsonParseKey(Parse, Code);
-				break;
-
-				case json_ParseKeyEscape:
-					Parse->State = JsonParseKeyEscape(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16Escape:
-					Parse->State = JsonParseKeyUtf16Escape(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16:
-					Parse->State = JsonParseKeyUtf16(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16Digit1:
-					Parse->State = JsonParseKeyUtf16Digit1(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16Digit2:
-					Parse->State = JsonParseKeyUtf16Digit2(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16Digit3:
-					Parse->State = JsonParseKeyUtf16Digit3(Parse, Code);
-				break;
-
-				case json_ParseKeyUtf16Digit4:
-					Parse->State = JsonParseKeyUtf16Digit4(Parse, Code);
 				break;
 
 				case json_ParseKeyEnd:
@@ -653,35 +577,6 @@ int JsonParse(tJsonParse *Parse, tJsonUtf8Unit CodeUnit)
 
 				case json_ParseValueString:
 					Parse->State = JsonParseValueString(Parse, Code);
-				break;
-
-				case json_ParseValueStringEscape:
-					Parse->State = JsonParseValueStringEscape(Parse, Code);
-				break;
-
-
-				case json_ParseValueStringUtf16Escape:
-					Parse->State = JsonParseValueStringUtf16Escape(Parse, Code);
-				break;
-
-				case json_ParseValueStringUtf16:
-					Parse->State = JsonParseValueStringUtf16(Parse, Code);
-				break;
-
-				case json_ParseValueStringUtf16Digit1:
-					Parse->State = JsonParseValueStringUtf16Digit1(Parse, Code);
-				break;
-
-				case json_ParseValueStringUtf16Digit2:
-					Parse->State = JsonParseValueStringUtf16Digit2(Parse, Code);
-				break;
-
-				case json_ParseValueStringUtf16Digit3:
-					Parse->State = JsonParseValueStringUtf16Digit3(Parse, Code);
-				break;
-
-				case json_ParseValueStringUtf16Digit4:
-					Parse->State = JsonParseValueStringUtf16Digit4(Parse, Code);
 				break;
 
 				case json_ParseValueLiteral:

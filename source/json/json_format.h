@@ -10,33 +10,26 @@
  */
 typedef enum
 {
-	json_FormatComplete,               /**< Formatting is complete */
-	json_FormatError,                  /**< A parsing error has occurred */
-	json_FormatKey,                    /**< Formatting a character in a key string */
-	json_FormatKeyEscape,              /**< Formatting an escaped character in a key string */
-	json_FormatKeyUtf16Escape,         /**< Formatting an escaped unicode character in a key string */
-	json_FormatKeyUtf16,               /**< Formatting the start of an escaped unicode character in a key string */
-	json_FormatKeyUtf16Digit1,         /**< Formatting the first digit of an escaped unicode character in a key string */
-	json_FormatKeyUtf16Digit2,         /**< Formatting the second digit of an escaped unicode character in a key string */
-	json_FormatKeyUtf16Digit3,         /**< Formatting the third digit of an escaped unicode character in a key string */
-	json_FormatKeyUtf16Digit4,         /**< Formatting the fourth digit of an escaped unicode character in a key string */
-	json_FormatKeyEnd,                 /**< Formatting the end of a key string */
-	json_FormatValueStart,             /**< Formatting the start of a value */
-	json_FormatValueString,            /**< Formatting a character in a string value */
-	json_FormatValueStringEscape,      /**< Formatting an escaped character in a string value */
-	json_FormatValueStringUtf16Escape, /**< Formatting an escaped unicode character in a string value */
-	json_FormatValueStringUtf16,       /**< Formatting the start of an escaped unicode character in a string value */
-	json_FormatValueStringUtf16Digit1, /**< Formatting the first digit of an escaped unicode character in a string value */
-	json_FormatValueStringUtf16Digit2, /**< Formatting the second digit of an escaped unicode character in a string value */
-	json_FormatValueStringUtf16Digit3, /**< Formatting the third digit of an escaped unicode character in a string value */
-	json_FormatValueStringUtf16Digit4, /**< Formatting the fourth digit of an escaped unicode character in a string value */
-	json_FormatValueLiteral,           /**< Formatting a character in a literal value */
-	json_FormatValueNext,              /**< Formatting the next element */
-	json_FormatValueEnd,               /**< Formatting the end of a value */
-	json_FormatCommentStart,           /**< Formatting the start of a comment */
-	json_FormatComment,                /**< Formatting a character in a comment */
-	json_FormatCommentBlock,           /**< Formatting a character in a comment block */
-	json_FormatCommentBlockEnd,        /**< Formatting the end of a comment block */
+	json_FormatComplete,        /**< Formatting is complete */
+	json_FormatError,           /**< A parsing error has occurred */
+	json_FormatEscape,          /**< Formatting an escaped character in a key string */
+	json_FormatUtf16Escape,     /**< Formatting an escaped unicode character in a key string */
+	json_FormatUtf16,           /**< Formatting the start of an escaped unicode character in a key string */
+	json_FormatUtf16Digit1,     /**< Formatting the first digit of an escaped unicode character in a key string */
+	json_FormatUtf16Digit2,     /**< Formatting the second digit of an escaped unicode character in a key string */
+	json_FormatUtf16Digit3,     /**< Formatting the third digit of an escaped unicode character in a key string */
+	json_FormatUtf16Digit4,     /**< Formatting the fourth digit of an escaped unicode character in a key string */
+	json_FormatKey,             /**< Formatting a character in a key string */
+	json_FormatKeyEnd,          /**< Formatting the end of a key string */
+	json_FormatValueStart,      /**< Formatting the start of a value */
+	json_FormatValueString,     /**< Formatting a character in a string value */
+	json_FormatValueLiteral,    /**< Formatting a character in a literal value */
+	json_FormatValueNext,       /**< Formatting the next element */
+	json_FormatValueEnd,        /**< Formatting the end of a value */
+	json_FormatCommentStart,    /**< Formatting the start of a comment */
+	json_FormatComment,         /**< Formatting a character in a comment */
+	json_FormatCommentBlock,    /**< Formatting a character in a comment block */
+	json_FormatCommentBlockEnd, /**< Formatting the end of a comment block */
 } tJsonFormatState;
 
 
@@ -73,6 +66,7 @@ typedef struct
 	tJsonUtf8Code    Utf8Code;       /**< The current UTF-8 character code being formatted */
 	tJsonUtf16Code   Utf16Code;      /**< The current UTF-16 character being escaped */
 	tJsonCommentType CommentType;    /**< Indicates how to format comments */
+	tJsonFormatState EscapeState;    /**< The state that the formatter is in when a character needs to be escaped (so that it can be restored afterwards) */
 	size_t           Utf8CodeIndex;  /**< Index into the current UTF-8 character code */
 	size_t           Utf16CodeIndex; /**< Index into the current UTF-16 character being escaped */
 	size_t           NameIndex;      /**< Index into the element name */
