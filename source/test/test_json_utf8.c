@@ -227,12 +227,33 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 		TEST_IS_EQ(Code, Unit1, TestResult);
 		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 8) + 0x80;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 16) + 0x8080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 24) + 0x808080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 	}
 
 	for (Unit1 = 0x80; Unit1 < 0xC2; Unit1++)
 	{
 		Code = 0;
 		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
+
+		Code = Unit1;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 8) + 0x80;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 16) + 0x8080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 24) + 0x808080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 	}
 
 	for (Unit1 = 0xC2; Unit1 < 0xE0; Unit1++)
@@ -242,6 +263,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -251,6 +281,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 			TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 8) + (tJsonUtf8Code)Unit2, TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
@@ -258,6 +294,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -268,6 +313,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0xA0; Unit2 < 0xC0; Unit2++)
@@ -278,6 +332,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -288,6 +348,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
@@ -296,6 +359,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -304,6 +373,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -314,6 +392,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -324,6 +411,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -334,6 +427,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
@@ -342,6 +438,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -350,6 +452,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -360,6 +471,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xA0; Unit2++)
@@ -370,6 +490,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -380,6 +506,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
@@ -388,6 +517,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -396,6 +531,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -406,6 +550,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -416,6 +569,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -426,6 +585,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
@@ -434,6 +596,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -442,6 +610,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -452,6 +629,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x90; Unit2 < 0xC0; Unit2++)
@@ -462,6 +648,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -473,6 +665,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+
+					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
+					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
@@ -493,6 +688,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -501,6 +702,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -511,6 +721,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -521,6 +740,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -532,6 +757,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+
+					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
+					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
@@ -552,6 +780,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -560,6 +794,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
@@ -570,6 +813,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0x90; Unit2++)
@@ -580,6 +832,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -591,6 +849,9 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
 					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+
+					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
+					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
@@ -611,6 +872,12 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
 				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+
+				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
+				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 			}
 		}
 
@@ -619,12 +886,31 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			Code = 0;
 			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
 			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+
+			Code = (Unit1 << 8) + Unit2;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
+			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 		}
 	}
 
 	for (Unit1 = 0xF5; Unit1 != 0; Unit1++)
 	{
+		Code = 0;
 		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
+
+		Code = Unit1;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 16) + 0x8080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+
+		Code = (Unit1 << 24) + 0x808080;
+		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
 	}
 
 	return TestResult;
