@@ -171,14 +171,14 @@ bool JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble)
 	}
 	else if ((*Code & 0xFFF800F8) == 0xD800D8)
 	{
-		if (*Code >= 0xDC00D8)
+		if ((*Code >= 0xDC00D8) || ((*Code & 0xFC) < 0xDC))
 		{
 			return false;
 		}
 	}
 	else if ((*Code & 0xFF800F80) == 0xD800D80)
 	{
-		if (*Code >= 0xDC00D80)
+		if ((*Code >= 0xDC00D80) || ((*Code & 0xFC0) < 0xDC0))
 		{
 			return false;
 		}
