@@ -544,6 +544,33 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 					if (Code >= 0x1000)
 					{
 						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+								       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									       ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+									for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+									{
+										Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										       ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+										TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									}
+								}
+							}
+						}
 					}
 				}
 
@@ -589,6 +616,33 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + (tJsonUtf16Code)Nibble4, TestResult);
 					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
+					{
+						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
+						}
+					}
 				}
 
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
@@ -624,6 +678,30 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
 						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
 						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
+
+						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
+						}
 					}
 
 					for (Nibble5 = 0x0D; Nibble5 < 0x0E; Nibble5++)
@@ -637,6 +715,28 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
 							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
 							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
+
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+if (TEST_RESULT_IS_FAILURE(TestResult))
+{
+	break;
+}
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
 						}
 
 						for (Nibble6 = 0x0C; Nibble6 < 0x010; Nibble6++)
@@ -698,7 +798,41 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 						}
 					}
 
-					for (Nibble5 = 0x0E; Nibble5 != 0; Nibble5++)
+					for (Nibble5 = 0x0E; Nibble5 < 0x10; Nibble5++)
+					{
+						Code = 0;
+						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
+						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
+						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
+
+						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
+						}
+					}
+
+					for (Nibble5 = 0x10; Nibble5 != 0; Nibble5++)
 					{
 						Code = 0;
 						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
@@ -739,7 +873,38 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
 					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
 					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+
+					Code = ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + Nibble4;
+					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
+					{
+						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
+						}
+					}
 				}
+
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
@@ -782,6 +947,36 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + (tJsonUtf16Code)Nibble4, TestResult);
 					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+					Code = ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + Nibble4;
+					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
+					{
+						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
+						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
+						{
+							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
+							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
+							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
+							{
+								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
+									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
+								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+
+								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
+								{
+									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
+										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
+									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								}
+							}
+						}
+					}
 				}
 
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
