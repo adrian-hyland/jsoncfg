@@ -120,68 +120,63 @@ tJsonUtf8Unit JsonUtf8CodeGetUnit(tJsonUtf8Code Code, size_t Index)
 }
 
 
-bool JsonUtf8CodeAddUnit(tJsonUtf8Code *Code, tJsonUtf8Unit Unit)
+int JsonUtf8CodeAddUnit(tJsonUtf8Code *Code, tJsonUtf8Unit Unit)
 {
+	int Result;
+
 	if (*Code == 0)
 	{
-		if (((Unit >= 0x80) && (Unit < 0xC2)) || (Unit >= 0xF5))
+		if (Unit < 0x80)
 		{
-			return false;
+			Result = JSON_UTF8_VALID;
+		}
+		else if ((Unit >= 0xC2) && (Unit < 0xF5))
+		{
+			Result = JSON_UTF8_INCOMPLETE;
+		}
+		else
+		{
+			Result = JSON_UTF8_INVALID;
 		}
 	}
 	else if ((Unit & 0xC0) != 0x80)
 	{
-		return false;
+		Result = JSON_UTF8_INVALID;
 	}
 	else if ((*Code & 0xFFFFFFE0) == 0xC0)
 	{
-		if (*Code < 0xC2)
-		{
-			return false;
-		}
+		Result = (*Code < 0xC2) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
 	}
 	else if ((*Code & 0xFFFFFFF0) == 0xE0)
 	{
-		if (((*Code == 0xE0) && (Unit < 0xA0)) || ((*Code == 0xED) && (Unit >= 0xA0)))
-		{
-			return false;
-		}
+		Result = (((*Code == 0xE0) && (Unit < 0xA0)) || ((*Code == 0xED) && (Unit >= 0xA0))) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
 	}
 	else if ((*Code & 0xFFFFFFF8) == 0xF0)
 	{
-		if (((*Code == 0xF0) && (Unit < 0x90)) || ((*Code == 0xF4) && (Unit >= 0x90)) || (*Code >= 0xF5))
-		{
-			return false;
-		}
+		Result = (((*Code == 0xF0) && (Unit < 0x90)) || ((*Code == 0xF4) && (Unit >= 0x90)) || (*Code >= 0xF5)) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
 	}
 	else if ((*Code & 0xFFFFF0C0) == 0xE080)
 	{
-		if ((*Code < 0xE0A0) || ((*Code >= 0xEDA0) && (*Code < 0xEE80)))
-		{
-			return false;
-		}
+		Result = ((*Code < 0xE0A0) || ((*Code >= 0xEDA0) && (*Code < 0xEE80))) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
 	}
 	else if ((*Code & 0xFFFFF8C0) == 0xF080)
 	{
-		if ((*Code < 0xF090) || (*Code >= 0xF490))
-		{
-			return false;
-		}
+		Result = ((*Code < 0xF090) || (*Code >= 0xF490)) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
 	}
 	else if ((*Code & 0xFFF8C0C0) == 0xF08080)
 	{
-		if ((*Code < 0xF09080) || (*Code >= 0xF49080))
-		{
-			return false;
-		}
+		Result = ((*Code < 0xF09080) || (*Code >= 0xF49080)) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
 	}
 	else
 	{
-		return false;
+		Result = JSON_UTF8_INVALID;
 	}
 
-	*Code = (*Code << 8) | Unit;
-	return true;
+	if (Result != JSON_UTF8_INVALID)
+	{
+		*Code = (*Code << 8) | Unit;
+	}
+	return Result;
 }
 
 

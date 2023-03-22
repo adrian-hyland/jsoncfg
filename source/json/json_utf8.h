@@ -17,6 +17,16 @@
 
 
 /**
+ * @name JsonUtf8CodeAddUnit return codes
+ * @{
+ */
+#define JSON_UTF8_INVALID    -1 /**< UTF-8 code is invalid */
+#define JSON_UTF8_VALID      0  /**< UTF-8 code is valid */
+#define JSON_UTF8_INCOMPLETE 1  /**< UTF-8 code is incomplete */
+/** @} */
+
+
+/**
  * @brief Type used to hold a UTF-8 character code
  * @note The value that this holds is the UTF-8 code of a unicode character (padded with leading zeros).
  * @note Use \a `JsonUtf8CodeGetCharacter()` to get the actual character code point value.
@@ -80,10 +90,11 @@ tJsonUtf8Unit JsonUtf8CodeGetUnit(tJsonUtf8Code Code, size_t Index);
  * @brief Adds a code unit to a UTF-8 character code
  * @param Code The UTF-8 character code
  * @param Unit The code unit to add to the character code
- * @return A true value is returned if the code unit was added to the character code
- * @return A false value is returned if the code unit could not be added to the character code
+ * @return `JSON_UTF8_INVALID`    is returned if the code unit could not be added to the character code.
+ * @return `JSON_UTF8_VALID`      is returned if the code unit was added to the character code (and the character code is valid - no more code units need to be added).
+ * @return `JSON_UTF8_INCOMPLETE` is returned if the code unit was added to the character code (but the character code is incomplete - one or more code units still need to be added).
  */
-bool JsonUtf8CodeAddUnit(tJsonUtf8Code *Code, tJsonUtf8Unit Unit);
+int JsonUtf8CodeAddUnit(tJsonUtf8Code *Code, tJsonUtf8Unit Unit);
 
 
 /**
