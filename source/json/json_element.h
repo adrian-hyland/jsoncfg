@@ -88,7 +88,7 @@ tJsonElement *JsonElementGetNext(tJsonElement *Element, bool IgnoreComments);
  * @param Path    The path of elements to find
  * @param Create  Indicates if the elements in the path should be created if they do not exist
  * @return The last element in the path that was found
- * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is zero) or created (if \a `Create` is non-zero)
+ * @return A \a `NULL` value is returned if any of the elements in the path could not be found (if \a `Create` is \a `false`) or created (if \a `Create` is \a `true`)
  * @note The type of parameter \a `Element` must be equal to \a `json_TypeRoot` - use \a `JsonElementSetUp()` to set up an appropriate element
  */
 tJsonElement *JsonElementFind(tJsonElement *Element, tJsonPath Path, bool Create);
