@@ -227,7 +227,7 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 
 	Code = 0;
 
-	TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, 0), TestResult);
+	TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, 0), JSON_UTF16_VALID, TestResult);
 	TEST_IS_EQ(Code, 0, TestResult);
 
 	for (Unit1 = 1; Unit1 < 0xD800; Unit1++)
@@ -236,9 +236,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_VALID, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 	for (Unit1 = 1; Unit1 < 0xD800; Unit1++)
@@ -247,9 +247,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_VALID, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -259,9 +259,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_INCOMPLETE, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -271,11 +271,11 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_INCOMPLETE, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_VALID, TestResult);
 			TEST_IS_EQ(Code, ((tJsonUtf16Code)Unit1 << 16) + (tJsonUtf16Code)Unit2, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, 0), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, 0), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -285,9 +285,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_INCOMPLETE, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -295,7 +295,7 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 	{
 		Code = 0;
 
-		TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+		TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_INVALID, TestResult);
 	}
 
 	for (Unit1 = 0xE000; Unit1 != 0; Unit1++)
@@ -304,9 +304,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_VALID, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 	for (Unit1 = 0xE000; Unit1 != 0; Unit1++)
@@ -315,9 +315,9 @@ static tTestResult TestJsonUtf16CodeAddUnit(void)
 		{
 			Code = 0;
 
-			TEST_IS_TRUE(JsonUtf16CodeAddUnit(&Code, Unit1), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit1), JSON_UTF16_VALID, TestResult);
 			TEST_IS_EQ(Code, Unit1, TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddUnit(&Code, Unit2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -536,37 +536,37 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 				for (Nibble4 = 0x00; Nibble4 < 0x10; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + (tJsonUtf16Code)Nibble4, TestResult);
 					if (Code >= 0x1000)
 					{
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 								       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									       ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 									for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 									{
 										Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										       ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-										TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+										TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 									}
 								}
 							}
@@ -577,27 +577,27 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 				}
 			}
 
 			for (Nibble3 = 0x10; Nibble3 != 0; Nibble3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-				TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_INVALID, TestResult);
 			}
 		}
 
 		for (Nibble2 = 0x10; Nibble2 != 0; Nibble2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -610,35 +610,35 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 				for (Nibble4 = 0x0; Nibble4 < 0x10; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + (tJsonUtf16Code)Nibble4, TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
 					{
 						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -648,19 +648,19 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 				}
 			}
 
 			for (Nibble3 = 0x10; Nibble3 != 0; Nibble3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-				TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_INVALID, TestResult);
 			}
 		}
 
@@ -673,32 +673,32 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 					for (Nibble5 = 0x00; Nibble5 < 0x0D; Nibble5++)
 					{
 						Code = 0;
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INVALID, TestResult);
 
 						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -709,32 +709,28 @@ static tTestResult TestJsonUtf16CodeAddNibble(void)
 						for (Nibble6 = 0x00; Nibble6 < 0x0C; Nibble6++)
 						{
 							Code = 0;
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INCOMPLETE, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble6), JSON_UTF16_INVALID, TestResult);
 
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
-if (TEST_RESULT_IS_FAILURE(TestResult))
-{
-	break;
-}
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -746,87 +742,87 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = 0;
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble7), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble8), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble6), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble7), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble8), JSON_UTF16_VALID, TestResult);
 									TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 									                 ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + (tJsonUtf16Code)Nibble8, TestResult);
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 
 								for (Nibble8 = 0x10; Nibble8 != 0; Nibble8++)
 								{
 									Code = 0;
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
-									TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble7), TestResult);
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble8), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble6), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble7), JSON_UTF16_INCOMPLETE, TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble8), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 
 							for (Nibble7 = 0x10; Nibble7 != 0; Nibble7++)
 							{
 								Code = 0;
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
-								TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble7), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INCOMPLETE, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble6), JSON_UTF16_INCOMPLETE, TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble7), JSON_UTF16_INVALID, TestResult);
 							}
 						}
 
 						for (Nibble6 = 0x10; Nibble6 != 0; Nibble6++)
 						{
 							Code = 0;
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-							TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble6), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INCOMPLETE, TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble6), JSON_UTF16_INVALID, TestResult);
 						}
 					}
 
 					for (Nibble5 = 0x0E; Nibble5 < 0x10; Nibble5++)
 					{
 						Code = 0;
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INVALID, TestResult);
 
 						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -835,30 +831,30 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 					for (Nibble5 = 0x10; Nibble5 != 0; Nibble5++)
 					{
 						Code = 0;
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-						TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble5), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INCOMPLETE, TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble5), JSON_UTF16_INVALID, TestResult);
 					}
 				}
 
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 				}
 			}
 
 			for (Nibble3 = 0x10; Nibble3 != 0; Nibble3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-				TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_INVALID, TestResult);
 			}
 		}
 
@@ -869,36 +865,36 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 				for (Nibble4 = 0x0; Nibble4 < 0x10; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 
 					Code = ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + Nibble4;
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
 					{
 						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -908,27 +904,27 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 				}
 			}
 
 			for (Nibble3 = 0x10; Nibble3 != 0; Nibble3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-				TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_INVALID, TestResult);
 			}
 		}
 
 		for (Nibble2 = 0x10; Nibble2 != 0; Nibble2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
@@ -941,38 +937,38 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 				for (Nibble4 = 0x00; Nibble4 < 0x10; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + (tJsonUtf16Code)Nibble4, TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 					Code = ((tJsonUtf16Code)Nibble1 << 12) + ((tJsonUtf16Code)Nibble2 << 8) + ((tJsonUtf16Code)Nibble3 << 4) + Nibble4;
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 					for (Nibble5 = 0x00; Nibble5 < 0x10; Nibble5++)
 					{
 						Code = ((tJsonUtf16Code)Nibble1 << 16) + ((tJsonUtf16Code)Nibble2 << 12) + ((tJsonUtf16Code)Nibble3 << 8) + ((tJsonUtf16Code)Nibble4 << 4) + Nibble5;
-						TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+						TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 						for (Nibble6 = 0x00; Nibble6 < 0x10; Nibble6++)
 						{
 							Code = ((tJsonUtf16Code)Nibble1 << 20) + ((tJsonUtf16Code)Nibble2 << 16) + ((tJsonUtf16Code)Nibble3 << 12) + ((tJsonUtf16Code)Nibble4 << 8) +
 							       ((tJsonUtf16Code)Nibble5 << 4) + Nibble6;
-							TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+							TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 							for (Nibble7 = 0x00; Nibble7 < 0x10; Nibble7++)
 							{
 								Code = ((tJsonUtf16Code)Nibble1 << 24) + ((tJsonUtf16Code)Nibble2 << 20) + ((tJsonUtf16Code)Nibble3 << 16) + ((tJsonUtf16Code)Nibble4 << 12) +
 									    ((tJsonUtf16Code)Nibble5 << 8) + ((tJsonUtf16Code)Nibble6 << 4) + Nibble7;
-								TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+								TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 
 								for (Nibble8 = 0x00; Nibble8 < 0x10; Nibble8++)
 								{
 									Code = ((tJsonUtf16Code)Nibble1 << 28) + ((tJsonUtf16Code)Nibble2 << 24) + ((tJsonUtf16Code)Nibble3 << 20) + ((tJsonUtf16Code)Nibble4 << 16) +
 										     ((tJsonUtf16Code)Nibble5 << 12) + ((tJsonUtf16Code)Nibble6 << 8) + ((tJsonUtf16Code)Nibble7 << 4) + Nibble8;
-									TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, 0), TestResult);
+									TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, 0), JSON_UTF16_INVALID, TestResult);
 								}
 							}
 						}
@@ -982,34 +978,34 @@ if (TEST_RESULT_IS_FAILURE(TestResult))
 				for (Nibble4 = 0x10; Nibble4 != 0; Nibble4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-					TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
-					TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble4), TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_VALID, TestResult);
+					TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble4), JSON_UTF16_INVALID, TestResult);
 				}
 			}
 
 			for (Nibble3 = 0x10; Nibble3 != 0; Nibble3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-				TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
-				TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble3), TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_VALID, TestResult);
+				TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble3), JSON_UTF16_INVALID, TestResult);
 			}
 		}
 
 		for (Nibble2 = 0x10; Nibble2 != 0; Nibble2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
-			TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble2), TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_VALID, TestResult);
+			TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble2), JSON_UTF16_INVALID, TestResult);
 		}
 	}
 
 	for (Nibble1 = 0x10; Nibble1 != 0; Nibble1++)
 	{
 		Code = 0;
-		TEST_IS_FALSE(JsonUtf16CodeAddNibble(&Code, Nibble1), TestResult);
+		TEST_IS_EQ(JsonUtf16CodeAddNibble(&Code, Nibble1), JSON_UTF16_INVALID, TestResult);
 	}
 
 	return TestResult;
