@@ -99,29 +99,39 @@ bool JsonUtf16UnitSetNibble(tJsonUtf16Unit *Code, size_t Index, uint8_t Nibble)
 }
 
 
-bool JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit)
+int JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit)
 {
+	int Result;
+
 	if (*Code == 0)
 	{
 		if (JsonUtf16UnitIsLowSurrogate(Unit))
 		{
-			return false;
+			Result = JSON_UTF16_INVALID;
+		}
+		else if (JsonUtf16UnitIsHighSurrogate(Unit))
+		{
+			Result = JSON_UTF16_INCOMPLETE;
+		}
+		else
+		{
+			Result = JSON_UTF16_VALID;
 		}
 	}
 	else if (*Code < 0x10000)
 	{
-		if (!JsonUtf16UnitIsHighSurrogate(*Code) || !JsonUtf16UnitIsLowSurrogate(Unit))
-		{
-			return false;
-		}
+		Result = (JsonUtf16UnitIsHighSurrogate(*Code) && JsonUtf16UnitIsLowSurrogate(Unit)) ? JSON_UTF16_VALID : JSON_UTF16_INVALID;
 	}
 	else
 	{
-		return false;
+		Result = JSON_UTF16_INVALID;
 	}
 
-	*Code = (*Code << 16) + Unit;
-	return true;
+	if (Result != JSON_UTF16_INVALID)
+	{
+		*Code = (*Code << 16) + Unit;
+	}
+	return Result;
 }
 
 
@@ -142,52 +152,53 @@ uint8_t JsonUtf16CodeGetNibble(tJsonUtf16Code Code, size_t Index)
 }
 
 
-bool JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble)
+int JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble)
 {
+	int Result;
+
 	if (Nibble > 0x0F)
 	{
-		return false;
+		Result = JSON_UTF16_INVALID;
 	}
 	else if ((*Code & 0xFFFFF000) == 0)
 	{
-		if ((*Code >= 0xDC0) && (*Code < 0xE00))
+		if ((*Code < 0xD80) || (*Code >= 0xE00))
 		{
-			return false;
+			Result = JSON_UTF16_VALID;
+		}
+		else if (*Code < 0xDC0)
+		{
+			Result = JSON_UTF16_INCOMPLETE;
+		}
+		else
+		{
+			Result = JSON_UTF16_INVALID;
 		}
 	}
 	else if ((*Code & 0xFFFFF800) == 0xD800)
 	{
-		if ((*Code >= 0xDC00) || (Nibble != 0x0D))
-		{
-			return false;
-		}
+		Result = ((*Code >= 0xDC00) || (Nibble != 0x0D)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
 	}
 	else if ((*Code & 0xFFFF800F) == 0xD800D)
 	{
-		if ((*Code >= 0xDC00D) || (Nibble < 0x0C))
-		{
-			return false;
-		}
+		Result = ((*Code >= 0xDC00D) || (Nibble < 0x0C)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
 	}
 	else if ((*Code & 0xFFF800F8) == 0xD800D8)
 	{
-		if ((*Code >= 0xDC00D8) || ((*Code & 0xFC) < 0xDC))
-		{
-			return false;
-		}
+		Result = ((*Code >= 0xDC00D8) || ((*Code & 0xFC) < 0xDC)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
 	}
 	else if ((*Code & 0xFF800F80) == 0xD800D80)
 	{
-		if ((*Code >= 0xDC00D80) || ((*Code & 0xFC0) < 0xDC0))
-		{
-			return false;
-		}
+		Result = ((*Code >= 0xDC00D80) || ((*Code & 0xFC0) < 0xDC0)) ? JSON_UTF16_INVALID : JSON_UTF16_VALID;
 	}
 	else
 	{
-		return false;
+		Result = JSON_UTF16_INVALID;
 	}
 
-	*Code = (*Code << 4) + Nibble;
-	return true;
+	if (Result != JSON_UTF16_INVALID)
+	{
+		*Code = (*Code << 4) + Nibble;
+	}
+	return Result;
 }

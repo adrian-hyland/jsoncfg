@@ -17,6 +17,16 @@
 
 
 /**
+ * @name JsonUtf16CodeAddUnit and JsonUtf16CodeAddNibble return codes
+ * @{
+ */
+#define JSON_UTF16_INVALID    -1 /**< UTF-16 code is invalid */
+#define JSON_UTF16_VALID      0  /**< UTF-16 code is complete */
+#define JSON_UTF16_INCOMPLETE 1  /**< UTF-16 code is incomplete */
+/** @} */
+
+
+/**
  * @brief Type used to hold a UTF-16 character code
  * @note The value that this holds is the UTF-16 code of a unicode character (padded with leading zeros).
  * @note Use \a `JsonUtf16CodeGetCharacter()` to get the actual character code point value.
@@ -80,10 +90,11 @@ tJsonUtf16Unit JsonUtf16CodeGetUnit(tJsonUtf16Code Code, size_t Index);
  * @brief Adds a code unit to a UTF-16 character code
  * @param Code The UTF-16 character code
  * @param Unit The code unit to add to the character code
- * @return A true value is returned if the code unit was added to the character code
- * @return A false value is returned if the code unit could not be added to the character code
+ * @return `JSON_UTF16_INVALID`    is returned if the code unit could not be added to the character code.
+ * @return `JSON_UTF16_VALID`      is returned if the code unit was added to the character code (and the character code is valid - no more code units need to be added).
+ * @return `JSON_UTF16_INCOMPLETE` is returned if the code unit was added to the character code (but the character code is incomplete - one or more code units still need to be added).
  */
-bool JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit);
+int JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit);
 
 
 /**
@@ -109,10 +120,11 @@ uint8_t JsonUtf16CodeGetNibble(tJsonUtf16Code Code, size_t Index);
  * @brief Adds a nibble to a UTF-16 character code
  * @param Code   The UTF-16 character code
  * @param Nibble The nibble (value between 0x0 and 0xF) to add to the character code
- * @return A true value is returned if the nibble was added to the character code
- * @return A false value is returned if the nibble could not be added to the character code
+ * @return `JSON_UTF16_INVALID`    is returned if the nibble could not be added to the character code.
+ * @return `JSON_UTF16_VALID`      is returned if the nibble was added to the character code (and the character code is valid).
+ * @return `JSON_UTF16_INCOMPLETE` is returned if the nibble was added to the character code (but the character code is incomplete - one or more nibbles still need to be added to make it valid).
  */
-bool JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble);
+int JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble);
 
 
 /**
