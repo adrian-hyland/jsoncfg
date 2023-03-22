@@ -22,6 +22,7 @@
 const char AppName[] = APP_NAME;
 #endif
 
+#define JSONCFG_BUFFER_SIZE        1024
 
 #define JSONCFG_ERROR_NONE          0
 #define JSONCFG_ERROR_BAD_ARGS     -1
@@ -79,7 +80,7 @@ int main(int argc, const char *argv[])
 		{
 			Error = JSONCFG_ERROR_BAD_ARGS;
 		}
-		else if (!JsonReadFile(&Root, CommentType == json_CommentNone, stdin))
+		else if (!JsonReadFile(&Root, CommentType == json_CommentNone, stdin, JSONCFG_BUFFER_SIZE))
 		{
 			Error = JSONCFG_ERROR_READ_STDIN;
 		}
@@ -109,7 +110,7 @@ int main(int argc, const char *argv[])
 			}
 		}
 
-		if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, CommentType, stdout))
+		if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, CommentType, stdout, JSONCFG_BUFFER_SIZE))
 		{
 			Error = JSONCFG_ERROR_WRITE_STDOUT;
 		}

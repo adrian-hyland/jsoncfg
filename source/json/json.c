@@ -1,6 +1,9 @@
 #include "json.h"
 
 
+#define JSON_BUFFER_SIZE(n) (((n) != 0) ? (n) : 1)
+
+
 bool JsonReadStringAscii(tJsonElement *Root, bool StripComments, const char *String)
 {
 	return JsonReadStringUtf8(Root, StripComments, (const tJsonUtf8Unit *)String);
@@ -27,23 +30,27 @@ bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const tJsonUtf8U
 }
 
 
-bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream)
+bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t BufferSize)
 {
 	tJsonParse Parse;
-	int Character;
-	int Error;
+	tJsonUtf8Unit Buffer[JSON_BUFFER_SIZE(BufferSize)];
+	size_t Length;
+	size_t n;
+	int Error = JSON_PARSE_INCOMPLETE;
 
 	JsonParseSetUp(&Parse, StripComments, Root);
 
 	do
 	{
-		Character = fgetc(Stream);
-		if (Character == EOF)
+		Length = fread(Buffer, 1, JSON_BUFFER_SIZE(BufferSize), Stream);
+		for (n = 0; (Error == JSON_PARSE_INCOMPLETE) && (n < Length); n++)
 		{
-			Character = '\0';
+			Error = JsonParse(&Parse, Buffer[n]);
 		}
-
-		Error = JsonParse(&Parse, Character);
+		if ((Error == JSON_PARSE_INCOMPLETE) && (Length < JSON_BUFFER_SIZE(BufferSize)))
+		{
+			Error = JsonParse(&Parse, '\0');
+		}
 	}
 	while (Error == JSON_PARSE_INCOMPLETE);
 
@@ -53,11 +60,12 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream)
 }
 
 
-bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream)
+bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream, size_t BufferSize)
 {
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
-	int Error;
+	tJsonUtf8Unit Buffer[JSON_BUFFER_SIZE(BufferSize)];
+	size_t Length;
+	int Error = JSON_FORMAT_INCOMPLETE;
 
 	if (IndentSize == 0)
 	{
@@ -70,13 +78,18 @@ bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType Comme
 
 	do
 	{
-		Error = JsonFormat(&Format, &CodeUnit);
-		if (Error == JSON_FORMAT_INCOMPLETE)
+		for (Length = 0; (Error == JSON_FORMAT_INCOMPLETE) && (Length < JSON_BUFFER_SIZE(BufferSize)); Length++)
 		{
-			if (fputc(CodeUnit, Stream) == EOF)
+			Error = JsonFormat(&Format, &Buffer[Length]);
+			if (Error == JSON_FORMAT_COMPLETE)
 			{
-				Error = JSON_FORMAT_ERROR;
+				break;
 			}
+		}
+
+		if ((Error != JSON_FORMAT_ERROR) && (Length > 0) && (fwrite(Buffer, 1, Length, Stream) != Length))
+		{
+			Error = JSON_FORMAT_ERROR;
 		}
 	}
 	while (Error == JSON_FORMAT_INCOMPLETE);
