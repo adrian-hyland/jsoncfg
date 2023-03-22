@@ -128,12 +128,7 @@ static size_t JsonPathGetNextUtf16Code(tJsonPath Path, size_t Offset, tJsonUtf16
 	}
 
 	*Code = HighUnit;
-	if (!JsonUtf16CodeAddUnit(Code, LowUnit))
-	{
-		return 0;
-	}
-
-	if (!JsonUtf16CodeIsValid(*Code))
+	if (JsonUtf16CodeAddUnit(Code, LowUnit) != JSON_UTF16_VALID)
 	{
 		return 0;
 	}
@@ -173,12 +168,7 @@ static size_t JsonPathGetPreviousUtf16Code(tJsonPath Path, size_t Offset, tJsonU
 	}
 
 	*Code = HighUnit;
-	if (!JsonUtf16CodeAddUnit(Code, LowUnit))
-	{
-		return 0;
-	}
-
-	if (!JsonUtf16CodeIsValid(*Code))
+	if (JsonUtf16CodeAddUnit(Code, LowUnit) != JSON_UTF16_VALID)
 	{
 		return 0;
 	}
