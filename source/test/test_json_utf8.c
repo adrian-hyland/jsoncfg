@@ -224,36 +224,36 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 	for (Unit1 = 0; Unit1 < 0x80; Unit1++)
 	{
 		Code = 0;
-		TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_VALID, TestResult);
 		TEST_IS_EQ(Code, Unit1, TestResult);
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 8) + 0x80;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 16) + 0x8080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 24) + 0x808080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 	}
 
 	for (Unit1 = 0x80; Unit1 < 0xC2; Unit1++)
 	{
 		Code = 0;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INVALID, TestResult);
 
 		Code = Unit1;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 8) + 0x80;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 16) + 0x8080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 24) + 0x808080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 	}
 
 	for (Unit1 = 0xC2; Unit1 < 0xE0; Unit1++)
@@ -261,48 +261,48 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_VALID, TestResult);
 			TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 8) + (tJsonUtf8Code)Unit2, TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -311,17 +311,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0xA0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0xA0; Unit2 < 0xC0; Unit2++)
@@ -329,59 +329,59 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_VALID, TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -390,17 +390,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -408,59 +408,59 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_VALID, TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -469,17 +469,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xA0; Unit2++)
@@ -487,59 +487,59 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_VALID, TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xA0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -548,17 +548,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -566,59 +566,59 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_VALID, TestResult);
 				TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 16) + ((tJsonUtf8Code)Unit2 << 8) + (tJsonUtf8Code)Unit3, TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -627,17 +627,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x90; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x90; Unit2 < 0xC0; Unit2++)
@@ -645,15 +645,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -661,56 +661,56 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				for (Unit4 = 0x00; Unit4 < 0x80; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_INVALID, TestResult);
 
 					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4, TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -719,17 +719,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0xC0; Unit2++)
@@ -737,15 +737,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -753,56 +753,56 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				for (Unit4 = 0x00; Unit4 < 0x80; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_INVALID, TestResult);
 
 					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4, TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0xC0; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
@@ -811,17 +811,17 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 		for (Unit2 = 0; Unit2 < 0x80; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 
 		for (Unit2 = 0x80; Unit2 < 0x90; Unit2++)
@@ -829,15 +829,15 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 			for (Unit3 = 0; Unit2 < 0x80; Unit2++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 
 			for (Unit3 = 0x80; Unit3 < 0xC0; Unit3++)
@@ -845,72 +845,72 @@ static tTestResult TestJsonUtf8CodeAddUnit(void)
 				for (Unit4 = 0x00; Unit4 < 0x80; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_INVALID, TestResult);
 
 					Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + Unit4;
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 
 				for (Unit4 = 0x80; Unit4 < 0xC0; Unit4++)
 				{
 					Code = 0;
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
-					TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit4), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INCOMPLETE, TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit4), JSON_UTF8_VALID, TestResult);
 					TEST_IS_EQ(Code, ((tJsonUtf8Code)Unit1 << 24) + ((tJsonUtf8Code)Unit2 << 16) + ((tJsonUtf8Code)Unit3 << 8) + (tJsonUtf8Code)Unit4, TestResult);
-					TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+					TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 				}
 			}
 
 			for (Unit3 = 0xC0; Unit3 != 0; Unit3++)
 			{
 				Code = 0;
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-				TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit3), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INCOMPLETE, TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit3), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 16) + (Unit2 << 8) + Unit3;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 				Code = (Unit1 << 24) + (Unit2 << 16) + (Unit3 << 8) + 0x80;
-				TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+				TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 			}
 		}
 
 		for (Unit2 = 0x90; Unit2 != 0; Unit2++)
 		{
 			Code = 0;
-			TEST_IS_TRUE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit2), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit2), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 8) + Unit2;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 16) + (Unit2 << 8) + 0x80;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 			Code = (Unit1 << 24) + (Unit2 << 16) + 0x8080;
-			TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+			TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 		}
 	}
 
 	for (Unit1 = 0xF5; Unit1 != 0; Unit1++)
 	{
 		Code = 0;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, Unit1), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, Unit1), JSON_UTF8_INVALID, TestResult);
 
 		Code = Unit1;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 16) + 0x8080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 
 		Code = (Unit1 << 24) + 0x808080;
-		TEST_IS_FALSE(JsonUtf8CodeAddUnit(&Code, 0x80), TestResult);
+		TEST_IS_EQ(JsonUtf8CodeAddUnit(&Code, 0x80), JSON_UTF8_INVALID, TestResult);
 	}
 
 	return TestResult;
