@@ -1,13 +1,15 @@
-# make [all | clean] [DEBUG=1] [TEST=1]
+# make [all | clean | coverage | vscode] [DEBUG=1] [TEST=1] [COVERAGE=1]
 
 # Rules:
-#   all     - builds the application (default rule)
-#   clean   - cleans the application build
-#   vscode  - add a build configuration to VS Code 
+#   all      - builds the application (default rule)
+#   clean    - cleans the application build
+#   coverage - runs coverage on the test application (the 'TEST' and 'COVERAGE' options should be set)
+#   vscode   - add a build configuration to VS Code 
 
 # Options:
-#   DEBUG=1 - enables a debug build of the application (default is a release build with no debug information)
-#   TEST=1  - builds the unit test application
+#   DEBUG=1    - enables a debug build of the application (default is a release build with no debug information)
+#   TEST=1     - builds the unit test application
+#   COVERAGE=1 - enables coverage to get added to the application 
 
 APP_NAME := jsoncfg
 
@@ -52,10 +54,15 @@ SRC_DIR += $(call list_add,./source/test)
 else
 SRC_DIR += $(call list_add,./source/app)
 endif
+BIN_DIR := ./bin
+ifeq ($(COVERAGE),1)
+APP_NAME := $(APP_NAME)-coverage
+BIN_DIR := $(BIN_DIR)/coverage
+endif
 ifeq ($(DEBUG),1)
-BIN_DIR := ./bin/debug
+BIN_DIR := $(BIN_DIR)/debug
 else
-BIN_DIR := ./bin/release
+BIN_DIR := $(BIN_DIR)/release
 endif
 OBJ_DIR := $(BIN_DIR)/obj
 
@@ -68,15 +75,26 @@ D_FILES := $(O_FILES:.o=.d)
 ifeq ($(DEBUG),1)
 BUILD_NAME := Debug
 C_DEFINE += $(call list_add,DEBUG)
+ifeq ($(COVERAGE),1)
+C_FLAGS += --coverage
+endif
 C_FLAGS += -g3
 else
 BUILD_NAME := Release
 C_DEFINE += $(call list_add,RELEASE)
+ifeq ($(COVERAGE),1)
+C_FLAGS += --coverage
+else
 C_FLAGS += -O2
+endif
 endif
 
 C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
 C_FLAGS += -c -std=c11 -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+
+ifeq ($(COVERAGE),1)
+LNK_FLAGS += --coverage
+endif
 
 BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
@@ -105,6 +123,9 @@ vscode:
         }" >$(BUILD_CFG).tmp
 	mv $(BUILD_CFG).tmp $(BUILD_CFG)
 
+coverage: $(APP)
+	$(APP)
+	gcov -n -o $(OBJ_DIR) $(wildcard $(addsuffix /*.c,./source/json))
 
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $(NAME)
