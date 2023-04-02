@@ -12,6 +12,12 @@
 
 
 /**
+ * @brief The value of the unicode byte order mark character
+ */
+#define JSON_CHARACTER_BOM 0xFEFF
+
+
+/**
  * @brief Type used to hold a unicode character
  */
 typedef uint32_t tJsonCharacter;
