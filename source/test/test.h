@@ -43,12 +43,21 @@ typedef const char *tTestResult;
 #define TEST_RESULT_PASS NULL
 
 
+#ifdef DEBUG
+/**
+ * @brief Macro for getting a test result failure
+ * @param message The failure message for the test result
+ * @return The failure test result
+ */
+#define TEST_RESULT_FAILURE(message) (__builtin_trap(), message)
+#else
 /**
  * @brief Macro for getting a test result failure
  * @param message The failure message for the test result
  * @return The failure test result
  */
 #define TEST_RESULT_FAILURE(message) message
+#endif
 
 
 /**
