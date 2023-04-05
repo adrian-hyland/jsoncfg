@@ -8,8 +8,8 @@ static tTestResult TestJsonPathUtf8(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
 	tJsonPath Path;
-	const tJsonUtf8Unit EmptyString[] = "";
-	const tJsonUtf8Unit NonEmptyString[] = "a/b/c";
+	const uint8_t EmptyString[] = "";
+	const uint8_t NonEmptyString[] = "a/b/c";
 
 	Path = JsonPathUtf8(NULL);
 
@@ -44,12 +44,12 @@ static tTestResult TestJsonPathAscii(void)
 
 	Path = JsonPathAscii(EmptyString);
 
-	TEST_IS_EQ(Path.Value, (const tJsonUtf8Unit *)EmptyString, TestResult);
+	TEST_IS_EQ(Path.Value, (const uint8_t *)EmptyString, TestResult);
 	TEST_IS_EQ(Path.Length, 0, TestResult);
 
 	Path = JsonPathAscii(NonEmptyString);
 
-	TEST_IS_EQ(Path.Value, (const tJsonUtf8Unit *)NonEmptyString, TestResult);
+	TEST_IS_EQ(Path.Value, (const uint8_t *)NonEmptyString, TestResult);
 	TEST_IS_EQ(Path.Length, strlen(NonEmptyString), TestResult);
 
 	return TestResult;
@@ -59,7 +59,7 @@ static tTestResult TestJsonPathAscii(void)
 static tTestResult TestJsonPathLeft(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	const tJsonUtf8Unit String[] = "0123456789";
+	const uint8_t String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 
@@ -93,7 +93,7 @@ static tTestResult TestJsonPathLeft(void)
 static tTestResult TestJsonPathRight(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	const tJsonUtf8Unit String[] = "0123456789";
+	const uint8_t String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 
@@ -129,7 +129,7 @@ static tTestResult TestJsonPathRight(void)
 static tTestResult TestJsonPathMiddle(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	const tJsonUtf8Unit String[] = "0123456789";
+	const uint8_t String[] = "0123456789";
 	tJsonPath Path;
 	size_t n;
 
@@ -167,18 +167,18 @@ static tTestResult TestJsonPathMiddle(void)
 }
 
 
-static tTestResult TestJsonPathGetNextUtf8Code(void)
+static tTestResult TestJsonPathGetNextCharacter(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	const tJsonUtf8Unit Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
-	const tJsonUtf8Unit Unescaped[] = "\b\f\n\r\t\\\"";
-	const tJsonUtf8Unit Invalid[] = "\\";
-	tJsonUtf8Unit Valid[JSON_UTF8_MAX_SIZE + 1];
-	tJsonUtf8Unit EscapedUnicode[6 + 6 + 1 + 1];
 	tJsonPath Path;
 	tJsonCharacter Character;
-	tJsonUtf8Code Utf8Code;
-	tJsonUtf16Code Utf16Code;
+	tJsonCharacter PathCharacter;
+	const uint8_t Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
+	const uint8_t Unescaped[] = "\b\f\n\r\t\\\"";
+	const uint8_t Invalid[] = "\\";
+	uint8_t Valid[JSON_UTF8_MAX_SIZE + 1];
+	uint8_t EscapedUnicode[6 + 6 + 1 + 1];
+	uint8_t Utf16[JSON_UTF16_MAX_SIZE];
 	size_t Offset;
 	size_t Length;
 	bool IsEscaped;
@@ -188,216 +188,203 @@ static tTestResult TestJsonPathGetNextUtf8Code(void)
 	{
 		if (Character != '\\')
 		{
-			Utf8Code = JsonUtf8Code(Character);
-			Length = JsonUtf8CodeGetUnitLength(Utf8Code);
-			for (n = 0; n < Length; n++)
-			{
-				Valid[n] = JsonUtf8CodeGetUnit(Utf8Code, n);
-			}
-			Valid[n] = '\0';
-			Length = JsonPathGetNextUtf8Code(JsonPathUtf8(Valid), 0, &IsEscaped, &Utf8Code);
+			Length = JsonUtf8Encode(Valid, sizeof(Valid), 0, Character);
+			Valid[Length] = '\0';
+			Length = JsonPathGetNextCharacter(JsonPathUtf8(Valid), 0, &IsEscaped, &PathCharacter);
 			TEST_IS_NOT_EQ(Length, 0, TestResult);
 			TEST_IS_FALSE(IsEscaped, TestResult);
-			TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+			TEST_IS_EQ(PathCharacter, Character, TestResult);
 		}
 	}
 
 	for (Character = 0xE000; Character < 0x110000; Character++)
 	{
-		Utf8Code = JsonUtf8Code(Character);
-		Length = JsonUtf8CodeGetUnitLength(Utf8Code);
-		for (n = 0; n < Length; n++)
-		{
-			Valid[n] = JsonUtf8CodeGetUnit(Utf8Code, n);
-		}
-		Valid[n] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(Valid), 0, &IsEscaped, &Utf8Code);
+		Length = JsonUtf8Encode(Valid, sizeof(Valid), 0, Character);
+		Valid[Length] = '\0';
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(Valid), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_NOT_EQ(Length, 0, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 	}
 
 	Path = JsonPathUtf8(Escaped);
 	for (Offset = 0, n = 0; n < sizeof(Unescaped) - 1; Offset = Offset + Length, n++)
 	{
-		Length = JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &PathCharacter);
 		TEST_IS_NOT_EQ(Length, 0, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(Utf8Code, Unescaped[n], TestResult);
+		TEST_IS_EQ(PathCharacter, Unescaped[n], TestResult);
 	}
-	TEST_IS_EQ(JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Utf8Code), 0, TestResult);
+	TEST_IS_EQ(JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &PathCharacter), 0, TestResult);
 
 	Path = JsonPathUtf8(Invalid);
-	TEST_IS_EQ(JsonPathGetNextUtf8Code(Path, 0, &IsEscaped, &Utf8Code), 0, TestResult);
+	TEST_IS_EQ(JsonPathGetNextCharacter(Path, 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 	for (Character = 0; Character < 0xD800; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode), TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode) - 1, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 	}
 
 	for (Character = 0xD800; Character < 0xE000; Character++)
 	{
-		Utf16Code = Character;
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 	}
 
 	for (Character = 0xE000; Character < 0x10000; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode), TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode) - 1, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 	}
 
 	for (Character = 0x10000; Character < 0x110000; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
+		JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = 'u';
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 28) & 0x0F);
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 24) & 0x0F);
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 20) & 0x0F);
-		EscapedUnicode[5] = JsonCharacterFromHexDigit((Utf16Code >> 16) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16[0] >> 4) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit(Utf16[0] & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16[1] >> 4) & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16[1] & 0x0F);
 		EscapedUnicode[6] = '\\';
 		EscapedUnicode[7] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[7] = 'u';
 		EscapedUnicode[8] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[8] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[8] = JsonCharacterFromHexDigit((Utf16[2] >> 4) & 0x0F);
 		EscapedUnicode[9] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[9] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[9] = JsonCharacterFromHexDigit(Utf16[2] & 0x0F);
 		EscapedUnicode[10] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[10] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[10] = JsonCharacterFromHexDigit((Utf16[3] >> 4) & 0x0F);
 		EscapedUnicode[11] = '\0';
-		TEST_IS_EQ(JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[11] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[11] = JsonCharacterFromHexDigit(Utf16[3] & 0x0F);
 		EscapedUnicode[12] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode), TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[12] = '0';
 		EscapedUnicode[13] = '\0';
-		Length = JsonPathGetNextUtf8Code(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetNextCharacter(JsonPathUtf8(EscapedUnicode), 0, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, strlen((char *)EscapedUnicode) - 1, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 	}
 
 	return TestResult;
 }
 
 
-static tTestResult TestJsonPathGetPreviousUtf8Code(void)
+static tTestResult TestJsonPathGetPreviousCharacter(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	const tJsonUtf8Unit Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
-	const tJsonUtf8Unit Unescaped[] = "\b\f\n\r\t\\\"";
-	const tJsonUtf8Unit Invalid[] = "\\";
-	tJsonUtf8Unit Valid[JSON_UTF8_MAX_SIZE + 1];
-	tJsonUtf8Unit EscapedUnicode[6 + 6 + 1 + 1];
 	tJsonPath Path;
 	tJsonCharacter Character;
-	tJsonUtf8Code Utf8Code;
-	tJsonUtf16Code Utf16Code;
+	tJsonCharacter PathCharacter;
+	const uint8_t Escaped[] = "\\b\\f\\n\\r\\t\\\\\\\"";
+	const uint8_t Unescaped[] = "\b\f\n\r\t\\\"";
+	const uint8_t Invalid[] = "\\";
+	uint8_t Valid[JSON_UTF8_MAX_SIZE + 1];
+	uint8_t EscapedUnicode[6 + 6 + 1 + 1];
+	uint8_t Utf16[JSON_UTF16_MAX_SIZE];
 	size_t Offset;
 	size_t Length;
 	bool IsEscaped;
@@ -407,268 +394,255 @@ static tTestResult TestJsonPathGetPreviousUtf8Code(void)
 	{
 		if (Character != '\\')
 		{
-			Utf8Code = JsonUtf8Code(Character);
-			Length = JsonUtf8CodeGetUnitLength(Utf8Code);
-			for (n = 0; n < Length; n++)
-			{
-				Valid[n] = JsonUtf8CodeGetUnit(Utf8Code, n);
-			}
-			Valid[n] = '\0';
-			Length = JsonPathGetPreviousUtf8Code(JsonPathUtf8(Valid), Length, &IsEscaped, &Utf8Code);
+			Length = JsonUtf8Encode(Valid, sizeof(Valid), 0, Character);
+			Valid[Length] = '\0';
+			Length = JsonPathGetPreviousCharacter(JsonPathUtf8(Valid), Length, &IsEscaped, &PathCharacter);
 			TEST_IS_NOT_EQ(Length, 0, TestResult);
 			TEST_IS_FALSE(IsEscaped, TestResult);
-			TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+			TEST_IS_EQ(PathCharacter, Character, TestResult);
 		}
 	}
 
 	for (Character = 0xE000; Character < 0x110000; Character++)
 	{
-		Utf8Code = JsonUtf8Code(Character);
-		Length = JsonUtf8CodeGetUnitLength(Utf8Code);
-		for (n = 0; n < Length; n++)
-		{
-			Valid[n] = JsonUtf8CodeGetUnit(Utf8Code, n);
-		}
-		Valid[n] = '\0';
-		Length = JsonPathGetPreviousUtf8Code(JsonPathUtf8(Valid), Length, &IsEscaped, &Utf8Code);
+		Length = JsonUtf8Encode(Valid, sizeof(Valid), 0, Character);
+		Valid[Length] = '\0';
+		Length = JsonPathGetPreviousCharacter(JsonPathUtf8(Valid), Length, &IsEscaped, &PathCharacter);
 		TEST_IS_NOT_EQ(Length, 0, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult)
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 	}
 
 	Path = JsonPathUtf8(Escaped);
 	for (Offset = Path.Length, n = sizeof(Unescaped) - 1; n > 0; Offset = Offset - Length, n--)
 	{
-		Length = JsonPathGetPreviousUtf8Code(Path, Offset, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &PathCharacter);
 		TEST_IS_NOT_EQ(Length, 0, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(Utf8Code, Unescaped[n - 1], TestResult);
+		TEST_IS_EQ(PathCharacter, Unescaped[n - 1], TestResult);
 	}
-	TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Offset, &IsEscaped, &Utf8Code), 0, TestResult);
+	TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &PathCharacter), 0, TestResult);
 
 	Path = JsonPathUtf8(Invalid);
-	TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+	TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
 	for (Character = 0; Character < 0xD800; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[2], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[2], TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[3], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[3], TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[4], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[4], TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, Path.Length, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[6], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[6], TestResult);
 	}
 
 	for (Character = 0xD800; Character < 0xE000; Character++)
 	{
-		Utf16Code = Character;
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[2], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[2], TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[3], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[3], TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[4], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[4], TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[5], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[5], TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[6], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[6], TestResult);
 	}
 
 	for (Character = 0xE000; Character < 0x10000; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[1] = 'u';
 		EscapedUnicode[2] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Character >> 12) & 0x0F);
 		EscapedUnicode[3] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[2], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[2], TestResult);
 
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit((Character >> 8) & 0x0F);
 		EscapedUnicode[4] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[3], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[3], TestResult);
 
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Character >> 4) & 0x0F);
 		EscapedUnicode[5] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[4], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[4], TestResult);
 
-		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Character & 0x0F);
 		EscapedUnicode[6] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, Path.Length, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[6] = '0';
 		EscapedUnicode[7] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[6], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[6], TestResult);
 	}
 
 	for (Character = 0x10000; Character < 0x110000; Character++)
 	{
-		Utf16Code = JsonUtf16Code(Character);
+		JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, Character);
 		EscapedUnicode[0] = '\\';
 		EscapedUnicode[1] = 'u';
-		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16Code >> 28) & 0x0F);
-		EscapedUnicode[3] = JsonCharacterFromHexDigit((Utf16Code >> 24) & 0x0F);
-		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16Code >> 20) & 0x0F);
-		EscapedUnicode[5] = JsonCharacterFromHexDigit((Utf16Code >> 16) & 0x0F);
+		EscapedUnicode[2] = JsonCharacterFromHexDigit((Utf16[0] >> 4) & 0x0F);
+		EscapedUnicode[3] = JsonCharacterFromHexDigit(Utf16[0] & 0x0F);
+		EscapedUnicode[4] = JsonCharacterFromHexDigit((Utf16[1] >> 4) & 0x0F);
+		EscapedUnicode[5] = JsonCharacterFromHexDigit(Utf16[1] & 0x0F);
 		EscapedUnicode[6] = '\\';
 		EscapedUnicode[7] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
 		EscapedUnicode[7] = 'u';
 		EscapedUnicode[8] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		TEST_IS_EQ(JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code), 0, TestResult);
+		TEST_IS_EQ(JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter), 0, TestResult);
 
-		EscapedUnicode[8] = JsonCharacterFromHexDigit((Utf16Code >> 12) & 0x0F);
+		EscapedUnicode[8] = JsonCharacterFromHexDigit((Utf16[2] >> 4) & 0x0F);
 		EscapedUnicode[9] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[8], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[8], TestResult);
 
-		EscapedUnicode[9] = JsonCharacterFromHexDigit((Utf16Code >> 8) & 0x0F);
+		EscapedUnicode[9] = JsonCharacterFromHexDigit(Utf16[2] & 0x0F);
 		EscapedUnicode[10] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[9], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[9], TestResult);
 
-		EscapedUnicode[10] = JsonCharacterFromHexDigit((Utf16Code >> 4) & 0x0F);
+		EscapedUnicode[10] = JsonCharacterFromHexDigit((Utf16[3] >> 4) & 0x0F);
 		EscapedUnicode[11] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[10], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[10], TestResult);
 
-		EscapedUnicode[11] = JsonCharacterFromHexDigit(Utf16Code & 0x0F);
+		EscapedUnicode[11] = JsonCharacterFromHexDigit(Utf16[3] & 0x0F);
 		EscapedUnicode[12] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, Path.Length, TestResult);
 		TEST_IS_TRUE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), Character, TestResult);
+		TEST_IS_EQ(PathCharacter, Character, TestResult);
 
 		EscapedUnicode[12] = '0';
 		EscapedUnicode[13] = '\0';
 		Path = JsonPathUtf8(EscapedUnicode);
-		Length = JsonPathGetPreviousUtf8Code(Path, Path.Length, &IsEscaped, &Utf8Code);
+		Length = JsonPathGetPreviousCharacter(Path, Path.Length, &IsEscaped, &PathCharacter);
 		TEST_IS_EQ(Length, 1, TestResult);
 		TEST_IS_FALSE(IsEscaped, TestResult);
-		TEST_IS_EQ(JsonUtf8CodeGetCharacter(Utf8Code), EscapedUnicode[12], TestResult);
+		TEST_IS_EQ(PathCharacter, EscapedUnicode[12], TestResult);
 	}
 
 	return TestResult;
@@ -693,12 +667,12 @@ static tTestResult TestJsonPathSetString(void)
 	};
 	tJsonString String;
 	tJsonPath Path;
-	tJsonUtf8Code StringCode;
-	tJsonUtf8Code PathCode;
+	tJsonCharacter StringCharacter;
+	tJsonCharacter PathCharacter;
 	size_t StringOffset;
 	size_t PathOffset;
-	size_t StringCodeLength;
-	size_t PathCodeLength;
+	size_t StringLength;
+	size_t PathLength;
 	size_t n;
 	bool IsEscaped;
 
@@ -710,14 +684,14 @@ static tTestResult TestJsonPathSetString(void)
 
 		TEST_IS_TRUE(JsonPathSetString(Path, &String), TestResult);
 
-		for (StringOffset = 0, PathOffset = 0; PathOffset < Path.Length; StringOffset = StringOffset + StringCodeLength, PathOffset = PathOffset + PathCodeLength)
+		for (StringOffset = 0, PathOffset = 0; PathOffset < Path.Length; StringOffset = StringOffset + StringLength, PathOffset = PathOffset + PathLength)
 		{
-			PathCodeLength = JsonPathGetNextUtf8Code(Path, PathOffset, &IsEscaped, &PathCode);
-			StringCodeLength = JsonStringGetNextUtf8Code(&String, StringOffset, &StringCode);
+			PathLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &PathCharacter);
+			StringLength = JsonStringGetNextCharacter(&String, StringOffset, &StringCharacter);
 
-			TEST_IS_NOT_EQ(PathCodeLength, 0, TestResult);
-			TEST_IS_NOT_EQ(StringCodeLength, 0, TestResult);
-			TEST_IS_EQ(StringCode, PathCode, TestResult);
+			TEST_IS_NOT_EQ(PathLength, 0, TestResult);
+			TEST_IS_NOT_EQ(StringLength, 0, TestResult);
+			TEST_IS_EQ(StringCharacter, PathCharacter, TestResult);
 		}
 	}
 
@@ -972,16 +946,16 @@ static tTestResult TestJsonPathGetComponent(void)
 
 static const tTestCase TestCaseJsonPath[] =
 {
-	{ "JsonPathUtf8",                TestJsonPathUtf8                },
-	{ "JsonPathAscii",               TestJsonPathAscii               },
-	{ "JsonPathLeft",                TestJsonPathLeft                },
-	{ "JsonPathRight",               TestJsonPathRight               },
-	{ "JsonPathMiddle",              TestJsonPathMiddle              },
-	{ "JsonPathGetNextUtf8Code",     TestJsonPathGetNextUtf8Code     },
-	{ "JsonPathGetPreviousUtf8Code", TestJsonPathGetPreviousUtf8Code },
-	{ "JsonPathSetString",           TestJsonPathSetString           },
-	{ "JsonPathCompareString",       TestJsonPathCompareString       },
-	{ "JsonPathGetComponent",        TestJsonPathGetComponent        }
+	{ "JsonPathUtf8",                 TestJsonPathUtf8                 },
+	{ "JsonPathAscii",                TestJsonPathAscii                },
+	{ "JsonPathLeft",                 TestJsonPathLeft                 },
+	{ "JsonPathRight",                TestJsonPathRight                },
+	{ "JsonPathMiddle",               TestJsonPathMiddle               },
+	{ "JsonPathGetNextCharacter",     TestJsonPathGetNextCharacter     },
+	{ "JsonPathGetPreviousCharacter", TestJsonPathGetPreviousCharacter },
+	{ "JsonPathSetString",            TestJsonPathSetString            },
+	{ "JsonPathCompareString",        TestJsonPathCompareString        },
+	{ "JsonPathGetComponent",         TestJsonPathGetComponent         }
 };
 
 

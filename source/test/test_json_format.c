@@ -1,26 +1,24 @@
+#include <string.h>
 #include "json_parse.h"
 #include "json_format.h"
 #include "test_json.h"
 
 
-static tTestResult TestJsonFormatCompressContent(tTestResult TestResult, const tJsonUtf8Unit *Content)
+static tTestResult TestJsonFormatCompressContent(tTestResult TestResult, tJsonUtfType UtfType, const char *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
+	tJsonUtf Utf;
+	tJsonCharacter Character;
+	size_t Offset;
 	size_t Index;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (Index = 0; Content[Index] != '\0'; Index++)
-	{
-		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
-	}
-
-	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonParse(&Parse, json_Utf8, (const uint8_t *)Content, strlen(Content) + 1, 0), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
@@ -28,12 +26,16 @@ static tTestResult TestJsonFormatCompressContent(tTestResult TestResult, const t
 
 	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+		Offset = 0;
+		TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+		TEST_IS_EQ(Character, Content[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+	Offset = 0;
+	TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+	TEST_IS_EQ(Character, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -43,24 +45,21 @@ static tTestResult TestJsonFormatCompressContent(tTestResult TestResult, const t
 }
 
 
-static tTestResult TestJsonFormatSpaceContent(tTestResult TestResult, const tJsonUtf8Unit *Content)
+static tTestResult TestJsonFormatSpaceContent(tTestResult TestResult, tJsonUtfType UtfType, const char *Content)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
+	tJsonUtf Utf;
+	tJsonCharacter Character;
+	size_t Offset;
 	size_t Index;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (Index = 0; Content[Index] != '\0'; Index++)
-	{
-		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
-	}
-
-	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonParse(&Parse, json_Utf8, (const uint8_t *)Content, strlen(Content) + 1, 0), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
@@ -68,12 +67,16 @@ static tTestResult TestJsonFormatSpaceContent(tTestResult TestResult, const tJso
 
 	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+		Offset = 0;
+		TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+		TEST_IS_EQ(Character, Content[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+	Offset = 0;
+	TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+	TEST_IS_EQ(Character, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -83,24 +86,21 @@ static tTestResult TestJsonFormatSpaceContent(tTestResult TestResult, const tJso
 }
 
 
-static tTestResult TestJsonFormatIndentContent(tTestResult TestResult, const tJsonUtf8Unit *Content, size_t IndentSize, tJsonCommentType CommentType)
+static tTestResult TestJsonFormatIndentContent(tTestResult TestResult, tJsonUtfType UtfType, const char *Content, size_t IndentSize, tJsonCommentType CommentType)
 {
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
+	tJsonUtf Utf;
+	tJsonCharacter Character;
+	size_t Offset;
 	size_t Index;
 
 	JsonElementSetUp(&Root);
 
 	JsonParseSetUp(&Parse, false, &Root);
 
-	for (Index = 0; Content[Index] != '\0'; Index++)
-	{
-		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
-	}
-
-	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonParse(&Parse, json_Utf8, (const uint8_t *)Content, strlen(Content) + 1, 0), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
@@ -108,12 +108,16 @@ static tTestResult TestJsonFormatIndentContent(tTestResult TestResult, const tJs
 
 	for (Index = 0; Content[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+		Offset = 0;
+		TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+		TEST_IS_EQ(Character, Content[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, Content[Index], TestResult);
+	Offset = 0;
+	TEST_IS_EQ(JsonFormat(&Format, UtfType, Utf, sizeof(Utf), &Offset), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonUtfDecode(UtfType, Utf, Offset, 0, &Character), Offset, TestResult);
+	TEST_IS_EQ(Character, Content[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -126,61 +130,66 @@ static tTestResult TestJsonFormatIndentContent(tTestResult TestResult, const tJs
 static tTestResult TestJsonFormatCompress(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	static const tJsonUtf8Unit *Content[] =
+	static const char *Content[] =
 	{
-		(const tJsonUtf8Unit *)"{"
-		                          "\"key-true\":true,"
-		                          "\"key-false\":false,"
-		                          "\"key-null\":null,"
-		                          "\"key-int\":123,"
-		                          "\"key-real\":1.23e4,"
-		                          "\"key-real-nan\":NaN,"
-		                          "\"key-string\":\"hello world\","
-		                          "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
-		                          "\"key-object-empty\":{},"
-		                          "\"key-object\":{\"key\":value},"
-		                          "\"key-array-empty\":[],"
-		                          "\"key-array\":["
-		                              "true,"
-		                              "false,"
-		                              "null,"
-		                              "123,"
-		                              "1.23e4,"
-		                              "NaN,"
-		                              "\"hello world\","
-		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
-		                              "{},"
-		                              "{\"key\":value},"
-		                              "[],"
-		                              "[1,2,3]"
-		                          "]"
-		                       "}",
-		(const tJsonUtf8Unit *)"["
-		                          "true,"
-		                          "false,"
-		                          "null,"
-		                          "123,"
-		                          "1.23e4,"
-		                          "NaN,"
-		                          "\"hello world\","
-		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
-		                          "{},"
-		                          "{\"key\":value},"
-		                          "[],"
-		                          "[1,2,3]"
-		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
-		(const tJsonUtf8Unit *)"true",
-		(const tJsonUtf8Unit *)"false",
-		(const tJsonUtf8Unit *)"null",
-		(const tJsonUtf8Unit *)"1234567890",
-		(const tJsonUtf8Unit *)"1.234567890e-99"
+		"{"
+		   "\"key-true\":true,"
+		   "\"key-false\":false,"
+		   "\"key-null\":null,"
+		   "\"key-int\":123,"
+		   "\"key-real\":1.23e4,"
+		   "\"key-real-nan\":NaN,"
+		   "\"key-string\":\"hello world\","
+		   "\"key-string-escape\":\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
+		   "\"key-object-empty\":{},"
+		   "\"key-object\":{\"key\":value},"
+		   "\"key-array-empty\":[],"
+		   "\"key-array\":["
+		      "true,"
+		      "false,"
+		      "null,"
+		      "123,"
+		      "1.23e4,"
+		      "NaN,"
+		      "\"hello world\","
+		      "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
+		      "{},"
+		      "{\"key\":value},"
+		      "[],"
+		      "[1,2,3]"
+		   "]"
+		"}",
+		"["
+		   "true,"
+		   "false,"
+		   "null,"
+		   "123,"
+		   "1.23e4,"
+		   "NaN,"
+		   "\"hello world\","
+		   "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\","
+		   "{},"
+		   "{\"key\":value},"
+		   "[],"
+		   "[1,2,3]"
+		"]",
+		"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
+		"true",
+		"false",
+		"null",
+		"1234567890",
+		"1.234567890e-99"
 	};
+	tJsonUtfType UtfTypes[] = { json_Utf8, json_Utf16be, json_Utf16le };
+	size_t Type;
 	size_t n;
 
-	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+	for (Type = 0; Type < sizeof(UtfTypes) / sizeof(UtfTypes[0]); Type++)
 	{
-		TestResult = TestJsonFormatCompressContent(TestResult, Content[n]);
+		for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+		{
+			TestResult = TestJsonFormatCompressContent(TestResult, UtfTypes[Type], Content[n]);
+		}
 	}
 
 	return TestResult;
@@ -190,61 +199,66 @@ static tTestResult TestJsonFormatCompress(void)
 static tTestResult TestJsonFormatSpace(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	static const tJsonUtf8Unit *Content[] =
+	static const char *Content[] =
 	{
-		(const tJsonUtf8Unit *)"{ "
-		                          "\"key-true\": true, "
-		                          "\"key-false\": false, "
-		                          "\"key-null\": null, "
-		                          "\"key-int\": 123, "
-		                          "\"key-real\": 1.23e4, "
-		                          "\"key-real-nan\": NaN, "
-		                          "\"key-string\": \"hello world\", "
-		                          "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
-		                          "\"key-object-empty\": {}, "
-		                          "\"key-object\": { \"key\": value }, "
-		                          "\"key-array-empty\": [], "
-		                          "\"key-array\": [ "
-		                              "true, "
-		                              "false, "
-		                              "null, "
-		                              "123, "
-		                              "1.23e4, "
-		                              "NaN, "
-		                              "\"hello world\", "
-		                              "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
-		                              "{}, "
-		                              "{ \"key\": value }, "
-		                              "[], "
-		                              "[ 1, 2, 3 ] "
-		                          "] "
-		                       "}",
-		(const tJsonUtf8Unit *)"[ "
-		                          "true, "
-		                          "false, "
-		                          "null, "
-		                          "123, "
-		                          "1.23e4, "
-		                          "NaN, "
-		                          "\"hello world\", "
-		                          "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
-		                          "{}, "
-		                          "{ \"key\": value }, "
-		                          "[], "
-		                          "[ 1, 2, 3 ] "
-		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
-		(const tJsonUtf8Unit *)"true",
-		(const tJsonUtf8Unit *)"false",
-		(const tJsonUtf8Unit *)"null",
-		(const tJsonUtf8Unit *)"1234567890",
-		(const tJsonUtf8Unit *)"1.234567890e-99"
+		"{ "
+		   "\"key-true\": true, "
+		   "\"key-false\": false, "
+		   "\"key-null\": null, "
+		   "\"key-int\": 123, "
+		   "\"key-real\": 1.23e4, "
+		   "\"key-real-nan\": NaN, "
+		   "\"key-string\": \"hello world\", "
+		   "\"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
+		   "\"key-object-empty\": {}, "
+		   "\"key-object\": { \"key\": value }, "
+		   "\"key-array-empty\": [], "
+		   "\"key-array\": [ "
+		      "true, "
+		      "false, "
+		      "null, "
+		      "123, "
+		      "1.23e4, "
+		      "NaN, "
+		      "\"hello world\", "
+		      "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
+		      "{}, "
+		      "{ \"key\": value }, "
+		      "[], "
+		      "[ 1, 2, 3 ] "
+		   "] "
+		"}",
+		"[ "
+		   "true, "
+		   "false, "
+		   "null, "
+		   "123, "
+		   "1.23e4, "
+		   "NaN, "
+		   "\"hello world\", "
+		   "\"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\", "
+		   "{}, "
+		   "{ \"key\": value }, "
+		   "[], "
+		   "[ 1, 2, 3 ] "
+		"]",
+		"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
+		"true",
+		"false",
+		"null",
+		"1234567890",
+		"1.234567890e-99"
 	};
+	tJsonUtfType UtfTypes[] = { json_Utf8, json_Utf16be, json_Utf16le };
+	size_t Type;
 	size_t n;
 
-	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+	for (Type = 0; Type < sizeof(UtfTypes) / sizeof(UtfTypes[0]); Type++)
 	{
-		TestResult = TestJsonFormatSpaceContent(TestResult, Content[n]);
+		for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+		{
+			TestResult = TestJsonFormatSpaceContent(TestResult, UtfTypes[Type], Content[n]);
+		}
 	}
 
 	return TestResult;
@@ -254,103 +268,108 @@ static tTestResult TestJsonFormatSpace(void)
 static tTestResult TestJsonFormatIndent(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	static const tJsonUtf8Unit *Content[] =
+	static const char *Content[] =
 	{
-		(const tJsonUtf8Unit *)"{\n"
-		                       "   \"key-true\": true,\n"
-		                       "   \"key-false\": false,\n"
-		                       "   \"key-null\": null,\n"
-		                       "   \"key-int\": 123,\n"
-		                       "   \"key-real\": 1.23e4,\n"
-		                       "   \"key-real-nan\": NaN,\n"
-		                       "   \"key-string\": \"hello world\",\n"
-		                       "   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
-		                       "   \"key-object-empty\": {},\n"
-		                       "   \"key-object\": {\n"
-		                       "      \"key\": value\n"
-		                       "   },\n"
-		                       "   \"key-array-empty\": [],\n"
-		                       "   \"key-array\": [\n"
-		                       "      true,\n"
-		                       "      false,\n"
-		                       "      null,\n"
-		                       "      123,\n"
-		                       "      1.23e4,\n"
-		                       "      NaN,\n"
-		                       "      \"hello world\",\n"
-		                       "      \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
-		                       "      {},\n"
-		                       "      {\n"
-		                       "         \"key\": value\n"
-		                       "      },\n"
-		                       "      [],\n"
-		                       "      [\n"
-		                       "         1,\n"
-		                       "         2,\n"
-		                       "         3\n"
-		                       "      ]\n"
-		                       "   ]\n"
-		                       "}",
-		(const tJsonUtf8Unit *)"[]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   1\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   {}\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   {\n"
-		                       "      \"key\": \"value\"\n"
-		                       "   }\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   []\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   [\n"
-		                       "      1\n"
-		                       "   ]\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   [\n"
-		                       "      1,\n"
-		                       "      2\n"
-		                       "   ]\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"[\n"
-		                       "   true,\n"
-		                       "   false,\n"
-		                       "   null,\n"
-		                       "   123,\n"
-		                       "   1.23e4,\n"
-		                       "   NaN,\n"
-		                       "   \"hello world\",\n"
-		                       "   \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
-		                       "   {},\n"
-		                       "   {\n"
-		                       "      \"key\": value\n"
-		                       "   },\n"
-		                       "   [],\n"
-		                       "   [\n"
-		                       "      1,\n"
-		                       "      2,\n"
-		                       "      3\n"
-		                       "   ]\n"
-		                       "]",
-		(const tJsonUtf8Unit *)"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
-		(const tJsonUtf8Unit *)"true",
-		(const tJsonUtf8Unit *)"false",
-		(const tJsonUtf8Unit *)"null",
-		(const tJsonUtf8Unit *)"1234567890",
-		(const tJsonUtf8Unit *)"1.234567890e-99"
+		"{\n"
+		"   \"key-true\": true,\n"
+		"   \"key-false\": false,\n"
+		"   \"key-null\": null,\n"
+		"   \"key-int\": 123,\n"
+		"   \"key-real\": 1.23e4,\n"
+		"   \"key-real-nan\": NaN,\n"
+		"   \"key-string\": \"hello world\",\n"
+		"   \"key-string-escape\": \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
+		"   \"key-object-empty\": {},\n"
+		"   \"key-object\": {\n"
+		"      \"key\": value\n"
+		"   },\n"
+		"   \"key-array-empty\": [],\n"
+		"   \"key-array\": [\n"
+		"      true,\n"
+		"      false,\n"
+		"      null,\n"
+		"      123,\n"
+		"      1.23e4,\n"
+		"      NaN,\n"
+		"      \"hello world\",\n"
+		"      \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
+		"      {},\n"
+		"      {\n"
+		"         \"key\": value\n"
+		"      },\n"
+		"      [],\n"
+		"      [\n"
+		"         1,\n"
+		"         2,\n"
+		"         3\n"
+		"      ]\n"
+		"   ]\n"
+		"}",
+		"[]",
+		"[\n"
+		"   1\n"
+		"]",
+		"[\n"
+		"   {}\n"
+		"]",
+		"[\n"
+		"   {\n"
+		"      \"key\": \"value\"\n"
+		"   }\n"
+		"]",
+		"[\n"
+		"   []\n"
+		"]",
+		"[\n"
+		"   [\n"
+		"      1\n"
+		"   ]\n"
+		"]",
+		"[\n"
+		"   [\n"
+		"      1,\n"
+		"      2\n"
+		"   ]\n"
+		"]",
+		"[\n"
+		"   true,\n"
+		"   false,\n"
+		"   null,\n"
+		"   123,\n"
+		"   1.23e4,\n"
+		"   NaN,\n"
+		"   \"hello world\",\n"
+		"   \"\\t\\r\\n\\b\\f\\\\\\\"\\u0001\",\n"
+		"   {},\n"
+		"   {\n"
+		"      \"key\": value\n"
+		"   },\n"
+		"   [],\n"
+		"   [\n"
+		"      1,\n"
+		"      2,\n"
+		"      3\n"
+		"   ]\n"
+		"]",
+		"\"string:{}[]\\t\\r\\n\\b\\f\\\\\\\"\\u0001\"",
+		"true",
+		"false",
+		"null",
+		"1234567890",
+		"1.234567890e-99"
 	};
+	tJsonUtfType UtfTypes[] = { json_Utf8, json_Utf16be, json_Utf16le };
+	size_t Type;
 	size_t n;
 
-	for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+	for (Type = 0; Type < sizeof(UtfTypes) / sizeof(UtfTypes[0]); Type++)
 	{
-		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentNone);
-		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentLine);
-		TestResult = TestJsonFormatIndentContent(TestResult, Content[n], 3, json_CommentBlock);
+		for (n = 0; n < sizeof(Content) / sizeof(Content[0]); n++)
+		{
+			TestResult = TestJsonFormatIndentContent(TestResult, UtfTypes[Type], Content[n], 3, json_CommentNone);
+			TestResult = TestJsonFormatIndentContent(TestResult, UtfTypes[Type], Content[n], 3, json_CommentLine);
+			TestResult = TestJsonFormatIndentContent(TestResult, UtfTypes[Type], Content[n], 3, json_CommentBlock);
+		}
 	}
 
 	return TestResult;
@@ -360,7 +379,7 @@ static tTestResult TestJsonFormatIndent(void)
 static tTestResult TestJsonFormatCommentLine(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	static const tJsonUtf8Unit Content[] =
+	static const char Content[] =
 		"// Comment 1\n"
 		"// Comment 2\n"
 		"{ // Comment 3\n"
@@ -395,7 +414,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 		"     // Comment 32\n"
 		"} // Comment 33\n"
 		"// Comment 34\n";
-	static const tJsonUtf8Unit ContentIndentCommentNone[] =
+	static const char ContentIndentCommentNone[] =
 		"{\n"
 		"   \"key1\": \"value1\",\n"
 		"   \"key2\": [\n"
@@ -407,7 +426,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 		"      \"key5\": []\n"
 		"   }\n"
 		"}";
-	static const tJsonUtf8Unit ContentIndentCommentLine[] =
+	static const char ContentIndentCommentLine[] =
 		"// Comment 1\n"
 		"// Comment 2\n"
 		"{\n"
@@ -454,7 +473,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 		"}\n"
 		"// Comment 33\n"
 		"// Comment 34";
-	static const tJsonUtf8Unit ContentIndentCommentBlock[] =
+	static const char ContentIndentCommentBlock[] =
 		"/* Comment 1\n"
 		"   Comment 2 */\n"
 		"{\n"
@@ -501,7 +520,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 		"}\n"
 		"/* Comment 33\n"
 		"   Comment 34 */";
-	static const tJsonUtf8Unit ContentSpace[] =
+	static const char ContentSpace[] =
 		"{ "
 		   "\"key1\": \"value1\", "
 		   "\"key2\": [ "
@@ -513,7 +532,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 		     "\"key5\": [] "
 		   "} "
 		"}";
-	static const tJsonUtf8Unit ContentCompress[] =
+	static const char ContentCompress[] =
 		"{"
 		   "\"key1\":\"value1\","
 		   "\"key2\":["
@@ -528,7 +547,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
+	tJsonCharacter Character;
 	size_t Index;
 
 	JsonElementSetUp(&Root);
@@ -537,10 +556,10 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
+		TEST_IS_EQ(JsonParseCharacter(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
@@ -548,12 +567,12 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ContentIndentCommentNone[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentNone[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentNone[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -561,12 +580,12 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ContentIndentCommentLine[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentLine[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentLine[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -574,12 +593,12 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ContentIndentCommentBlock[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentBlock[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentBlock[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -587,12 +606,12 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ContentSpace[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentSpace[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentSpace[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -600,12 +619,12 @@ static tTestResult TestJsonFormatCommentLine(void)
 
 	for (Index = 0; ContentCompress[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentCompress[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentCompress[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -618,7 +637,7 @@ static tTestResult TestJsonFormatCommentLine(void)
 static tTestResult TestJsonFormatCommentBlock(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
-	static const tJsonUtf8Unit Content[] =
+	static const char Content[] =
 		"/* Comment 1\n"
 		"   Comment 2 */\n"
 		"{ /* Comment 3\n"
@@ -653,7 +672,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 		"        Comment 32 */\n"
 		"} /* Comment 33 */\n"
 		"/* Comment 34 */\n";
-	static const tJsonUtf8Unit ContentIndentCommentNone[] =
+	static const char ContentIndentCommentNone[] =
 		"{\n"
 		"   \"key1\": \"value1\",\n"
 		"   \"key2\": [\n"
@@ -665,7 +684,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 		"      \"key5\": []\n"
 		"   }\n"
 		"}";
-	static const tJsonUtf8Unit ContentIndentCommentLine[] =
+	static const char ContentIndentCommentLine[] =
 		"// Comment 1\n"
 		"//Comment 2 \n"
 		"{\n"
@@ -712,7 +731,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 		"}\n"
 		"// Comment 33 \n"
 		"// Comment 34 ";
-	static const tJsonUtf8Unit ContentIndentCommentBlock[] =
+	static const char ContentIndentCommentBlock[] =
 		"/* Comment 1\n"
 		"  Comment 2 */\n"
 		"{\n"
@@ -759,7 +778,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 		"}\n"
 		"/* Comment 33 \n"
 		"   Comment 34 */";
-	static const tJsonUtf8Unit ContentSpace[] =
+	static const char ContentSpace[] =
 		"{ "
 		   "\"key1\": \"value1\", "
 		   "\"key2\": [ "
@@ -771,7 +790,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 		     "\"key5\": [] "
 		   "} "
 		"}";
-	static const tJsonUtf8Unit ContentCompress[] =
+	static const char ContentCompress[] =
 		"{"
 		   "\"key1\":\"value1\","
 		   "\"key2\":["
@@ -786,7 +805,7 @@ static tTestResult TestJsonFormatCommentBlock(void)
 	tJsonElement Root;
 	tJsonParse Parse;
 	tJsonFormat Format;
-	tJsonUtf8Unit CodeUnit;
+	tJsonCharacter Character;
 	size_t Index;
 
 	JsonElementSetUp(&Root);
@@ -795,10 +814,10 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; Content[Index] != '\0'; Index++)
 	{
-		TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
+		TEST_IS_EQ(JsonParseCharacter(&Parse, Content[Index]), JSON_PARSE_INCOMPLETE, TestResult);
 	}
 
-	TEST_IS_EQ(JsonParse(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, Content[Index]), JSON_PARSE_COMPLETE, TestResult);
 
 	JsonParseCleanUp(&Parse);
 
@@ -806,12 +825,12 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ContentIndentCommentNone[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentNone[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentNone[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentNone[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -819,12 +838,12 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ContentIndentCommentLine[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentLine[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentLine[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentLine[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -832,12 +851,12 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ContentIndentCommentBlock[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentIndentCommentBlock[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentIndentCommentBlock[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentIndentCommentBlock[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -845,12 +864,12 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ContentSpace[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentSpace[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentSpace[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentSpace[Index], TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -858,12 +877,205 @@ static tTestResult TestJsonFormatCommentBlock(void)
 
 	for (Index = 0; ContentCompress[Index] != 0; Index++)
 	{
-		TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_INCOMPLETE, TestResult);
-		TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
+		TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+		TEST_IS_EQ(Character, ContentCompress[Index], TestResult);
 	}
 
-	TEST_IS_EQ(JsonFormat(&Format, &CodeUnit), JSON_FORMAT_COMPLETE, TestResult);
-	TEST_IS_EQ(CodeUnit, ContentCompress[Index], TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, ContentCompress[Index], TestResult);
+
+	JsonFormatCleanUp(&Format);
+
+	JsonElementCleanUp(&Root);
+
+	return TestResult;
+}
+
+
+static tTestResult TestJsonFormatKeyUtf16(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonCharacter Character;
+	tJsonCharacter ExpectedCharacter;
+	tJsonElement Root;
+	tJsonParse Parse;
+	tJsonFormat Format;
+	tJsonUtf16 Utf16;
+	size_t Length;
+	size_t n;
+
+	JsonElementSetUp(&Root);
+	JsonParseSetUp(&Parse, false, &Root);
+
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '{'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '"'), JSON_PARSE_INCOMPLETE, TestResult);
+
+	for (Character = 0x01; Character < 0x110000; Character++)
+	{
+		if (JsonCharacterIsEscapable(Character))
+		{
+			TEST_IS_EQ(JsonParseCharacter(&Parse, '\\'), JSON_PARSE_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonParseCharacter(&Parse, JsonCharacterToEscape(Character)), JSON_PARSE_INCOMPLETE, TestResult);
+		}
+		else if ((Character < 0xD800) || (Character >= 0xE000))
+		{
+			TEST_IS_EQ(JsonParseCharacter(&Parse, Character), JSON_PARSE_INCOMPLETE, TestResult);
+		}
+	}
+
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '"'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, ':'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '{'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '}'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '}'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '\0'), JSON_PARSE_COMPLETE, TestResult);
+
+	JsonParseCleanUp(&Parse);
+
+	JsonFormatSetUpCompress(&Format, &Root);
+
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '{', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '"', TestResult);
+
+	for (ExpectedCharacter = 0x01; ExpectedCharacter < 0x110000; ExpectedCharacter++)
+	{
+		if (JsonCharacterIsEscapable(ExpectedCharacter))
+		{
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(Character, '\\', TestResult);
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonCharacterFromEscape(Character), ExpectedCharacter, TestResult);
+		}
+		else if (JsonCharacterIsControl(ExpectedCharacter))
+		{
+			Length = JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, ExpectedCharacter);
+			for (n = 0; n < Length; n++)
+			{
+				if (n % JSON_UTF16_UNIT_SIZE == 0)
+				{
+					TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+					TEST_IS_EQ(Character, '\\', TestResult);
+					TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+					TEST_IS_EQ(Character, 'u', TestResult);
+				}
+				TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+				TEST_IS_TRUE(JsonCharacterIsHexDigit(Character), TestResult)
+				TEST_IS_EQ(JsonCharacterToHexDigit(Character), Utf16[n] >> 4, TestResult);
+				TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+				TEST_IS_TRUE(JsonCharacterIsHexDigit(Character), TestResult)
+				TEST_IS_EQ(JsonCharacterToHexDigit(Character), Utf16[n] & 0x0F, TestResult);
+			}
+		}
+		else if ((ExpectedCharacter < 0xD800) || (ExpectedCharacter >= 0xE000))
+		{
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(Character, ExpectedCharacter, TestResult);
+		}
+	}
+
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '"', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, ':', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '{', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '}', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '}', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, '\0', TestResult);
+
+	JsonFormatCleanUp(&Format);
+
+	JsonElementCleanUp(&Root);
+
+	return TestResult;
+}
+
+
+static tTestResult TestJsonFormatValueUtf16(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonCharacter Character;
+	tJsonCharacter ExpectedCharacter;
+	tJsonElement Root;
+	tJsonParse Parse;
+	tJsonFormat Format;
+	tJsonUtf16 Utf16;
+	size_t Length;
+	size_t n;
+
+	JsonElementSetUp(&Root);
+	JsonParseSetUp(&Parse, false, &Root);
+
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '"'), JSON_PARSE_INCOMPLETE, TestResult);
+
+	for (Character = 0x01; Character < 0x110000; Character++)
+	{
+		if (JsonCharacterIsEscapable(Character))
+		{
+			TEST_IS_EQ(JsonParseCharacter(&Parse, '\\'), JSON_PARSE_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonParseCharacter(&Parse, JsonCharacterToEscape(Character)), JSON_PARSE_INCOMPLETE, TestResult);
+		}
+		else if ((Character < 0xD800) || (Character >= 0xE000))
+		{
+			TEST_IS_EQ(JsonParseCharacter(&Parse, Character), JSON_PARSE_INCOMPLETE, TestResult);
+		}
+	}
+
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '"'), JSON_PARSE_INCOMPLETE, TestResult);
+	TEST_IS_EQ(JsonParseCharacter(&Parse, '\0'), JSON_PARSE_COMPLETE, TestResult);
+
+	JsonParseCleanUp(&Parse);
+
+	JsonFormatSetUpCompress(&Format, &Root);
+
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '"', TestResult);
+
+	for (ExpectedCharacter = 0x01; ExpectedCharacter < 0x110000; ExpectedCharacter++)
+	{
+		if (JsonCharacterIsEscapable(ExpectedCharacter))
+		{
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(Character, '\\', TestResult);
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(JsonCharacterFromEscape(Character), ExpectedCharacter, TestResult);
+		}
+		else if (JsonCharacterIsControl(ExpectedCharacter))
+		{
+			Length = JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, ExpectedCharacter);
+			for (n = 0; n < Length; n++)
+			{
+				if (n % JSON_UTF16_UNIT_SIZE == 0)
+				{
+					TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+					TEST_IS_EQ(Character, '\\', TestResult);
+					TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+					TEST_IS_EQ(Character, 'u', TestResult);
+				}
+				TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+				TEST_IS_TRUE(JsonCharacterIsHexDigit(Character), TestResult)
+				TEST_IS_EQ(JsonCharacterToHexDigit(Character), Utf16[n] >> 4, TestResult);
+				TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+				TEST_IS_TRUE(JsonCharacterIsHexDigit(Character), TestResult)
+				TEST_IS_EQ(JsonCharacterToHexDigit(Character), Utf16[n] & 0x0F, TestResult);
+			}
+		}
+		else if ((ExpectedCharacter < 0xD800) || (ExpectedCharacter >= 0xE000))
+		{
+			TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+			TEST_IS_EQ(Character, ExpectedCharacter, TestResult);
+		}
+	}
+
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_INCOMPLETE, TestResult);
+	TEST_IS_EQ(Character, '"', TestResult);
+	TEST_IS_EQ(JsonFormatCharacter(&Format, &Character), JSON_FORMAT_COMPLETE, TestResult);
+	TEST_IS_EQ(Character, '\0', TestResult);
 
 	JsonFormatCleanUp(&Format);
 
@@ -879,7 +1091,9 @@ static const tTestCase TestCaseJsonFormat[] =
 	{ "JsonFormatSpace",        TestJsonFormatSpace        },
 	{ "JsonFormatIndent",       TestJsonFormatIndent       },
 	{ "JsonFormatCommentLine",  TestJsonFormatCommentLine  },
-	{ "JsonFormatCommentBlock", TestJsonFormatCommentBlock }
+	{ "JsonFormatCommentBlock", TestJsonFormatCommentBlock },
+	{ "JsonFormatKeyUtf16",     TestJsonFormatKeyUtf16     },
+	{ "JsonFormatValueUtf16",   TestJsonFormatValueUtf16   },
 };
 
 

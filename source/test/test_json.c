@@ -1,4 +1,4 @@
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(__WIN32__)
 #include <mcheck.h>
 #endif
 #include "test_json.h"
@@ -9,24 +9,18 @@ static const tTest *Tests[] =
 	&TestJsonCharacter,
 	&TestJsonUtf8,
 	&TestJsonUtf16,
+	&TestJsonUtf,
 	&TestJsonString,
 	&TestJsonPath,
 	&TestJsonElement,
 	&TestJsonParse,
 	&TestJsonFormat,
-	&TestJsonKeyUtf8,
-	&TestJsonValueUtf8,
-	&TestJsonLiteralUtf8,
-	&TestJsonCommentLineUtf8,
-	&TestJsonCommentBlockUtf8,
-	&TestJsonValueUtf16,
-	&TestJsonKeyUtf16,
 };
 
 
 int main()
 {
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(__WIN32__)
 	mtrace();
 #endif
 
