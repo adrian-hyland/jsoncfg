@@ -21,7 +21,7 @@
  * @param arg The argument
  * @return The argument as a string value
  */
-#define TO_STRING(x) STRINGIFY(x)
+#define TO_STRING(arg) STRINGIFY(arg)
 #endif
 
 
