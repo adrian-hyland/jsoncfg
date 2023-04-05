@@ -25,7 +25,7 @@ bool JsonReadStringAscii(tJsonElement *Root, bool StripComments, const char *Str
  * @return A true value is returned if the JSON content was successfully read from the string.
  * @return A false value is returned if the JSON content could not be read from the string.
  */
-bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const tJsonUtf8Unit *String);
+bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const uint8_t *String);
 
 
 /**
@@ -37,7 +37,6 @@ bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const tJsonUtf8U
  * @return A true value is returned if the JSON content was successfully read from the file.
  * @return A false value is returned if the JSON content could not be read from the file.
  * @note The buffer is allocated on the stack and should not be too large.
- * @note A single byte buffer will be used if a zero value is passed to \a `BufferSize`.
  */
 bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t BufferSize);
 
@@ -45,6 +44,8 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t B
 /**
  * @brief Writes JSON content to a file
  * @param Root        The root JSON element
+ * @param UtfType     The type of encoding to use
+ * @param RequireBOM  Indicates if a byte order mark should be encoded at the start of the content
  * @param IndentSize  The number of spaces to use for each indentation
  * @param CommentType Indicates how to format any comments
  * @param Stream      The file to wite the JSON content to
@@ -53,9 +54,8 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t B
  * @return A false value is returned if the JSON content could not be written to the file.
  * @note If the parameter \a `IndentSize` is zero then the content will use a 'spaced' format. Any comments will also be stripped (the value of the parameter \a `CommentType` will be ignored)
  * @note The buffer is allocated on the stack and should not be too large.
- * @note A single byte buffer will be used if a zero value is passed to \a `BufferSize`.
  */
-bool JsonWriteFile(tJsonElement *Root, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream, size_t BufferSize);
+bool JsonWriteFile(tJsonElement *Root, tJsonUtfType UtfType, bool RequireBOM, size_t IndentSize, tJsonCommentType CommentType, FILE *Stream, size_t BufferSize);
 
 
 #endif
