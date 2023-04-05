@@ -71,6 +71,9 @@ VPATH := $(call list_get,,$(SRC_DIR),)
 C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(SRC_DIR),)))
 O_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(C_FILES:.c=.o)))
 D_FILES := $(O_FILES:.o=.d)
+ifeq ($(COVERAGE),1)
+GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
+endif
 
 ifeq ($(DEBUG),1)
 BUILD_NAME := Debug
@@ -110,7 +113,7 @@ all: $(APP)
 
 clean:
 	rm -f $(APP)
-	rm -f $(O_FILES) $(D_FILES)
+	rm -f $(O_FILES) $(D_FILES) $(GCX_FILES)
 
 vscode:
 	mkdir -p ./.vscode
