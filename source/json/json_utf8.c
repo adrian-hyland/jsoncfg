@@ -1,218 +1,187 @@
 #include "json_utf8.h"
 
 
-tJsonUtf8Code JsonUtf8Code(tJsonCharacter Character)
+size_t JsonUtf8Encode(uint8_t *Content, size_t Length, size_t Offset, tJsonCharacter Character)
 {
 	if (Character < 0x80)
 	{
-		return Character;
+		if (Offset < Length)
+		{
+			Content[Offset] = Character;
+			return 1;
+		}
 	}
 	else if (Character < 0x800)
 	{
-		return 0xC080 + ((Character & 0x7C0) << 2) + (Character & 0x3F);
+		if ((Length > 1) && (Offset < Length - 1))
+		{
+			Content[Offset] = 0xC0 + ((Character >> 6) & 0x1F);
+			Content[Offset + 1] = 0x80 + (Character & 0x3F);
+			return 2;
+		}
 	}
 	else if (Character < 0x10000)
 	{
 		if ((Character < 0xD800) || (Character > 0xDFFF))
 		{
-			return 0xE08080 + ((Character & 0xF000) << 4) + ((Character & 0xFC0) << 2) + (Character & 0x3F);
+			if ((Length > 2) && (Offset < Length - 2))
+			{
+				Content[Offset] = 0xE0 + ((Character >> 12) & 0x0F);
+				Content[Offset + 1] = 0x80 + ((Character >> 6) & 0x3F);
+				Content[Offset + 2] = 0x80 + (Character & 0x3F);
+				return 3;
+			}
 		}
 	}
 	else if (Character < 0x110000)
 	{
-		return 0xF0808080 + ((Character & 0x1C0000) << 6) + ((Character & 0x3F000) << 4) + ((Character & 0xFC0) << 2) + (Character & 0x3F);
-	}
-
-	return JSON_UTF8_CODE_REPLACEMENT;
-}
-
-
-tJsonCharacter JsonUtf8CodeGetCharacter(tJsonUtf8Code Code)
-{
-	if ((Code & 0xFFFFFF80) == 0)
-	{
-		return Code;
-	}
-	else if ((Code & 0xFFFFE0C0) == 0xC080)
-	{
-		if (Code >= 0xC280)
+		if ((Length > 3) && (Offset < Length - 3))
 		{
-			return ((Code & 0x1F00) >> 2) + (Code & 0x3F);
-		}
-	}
-	else if ((Code & 0xFFF0C0C0) == 0xE08080)
-	{
-		if ((Code >= 0xE0A080) && ((Code < 0xEDA080) || (Code >= 0xEE8080)))
-		{
-			return ((Code & 0xF0000) >> 4) + ((Code & 0x3F00) >> 2) + (Code & 0x3F);
-		}
-	}
-	else if ((Code & 0xF8C0C0C0) == 0xF0808080)
-	{
-		if ((Code >= 0xF0908080) && (Code < 0xF4908080))
-		{
-			return ((Code & 0x7000000) >> 6) + ((Code & 0x3F0000) >> 4) + ((Code & 0x3F00) >> 2) + (Code & 0x3F);
-		}
-	}
-
-	return JSON_CHARACTER_REPLACEMENT;
-}
-
-
-bool JsonUtf8CodeIsValid(tJsonUtf8Code Code)
-{
-	if ((Code & 0xFFFFFF80) == 0)
-	{
-		return true;
-	}
-	else if ((Code & 0xFFFFE0C0) == 0xC080)
-	{
-		return Code >= 0xC280;
-	}
-	else if ((Code & 0xFFF0C0C0) == 0xE08080)
-	{
-		return (Code >= 0xE0A080) && ((Code < 0xEDA080) || (Code >= 0xEE8080));
-	}
-	else if ((Code & 0xF8C0C0C0) == 0xF0808080)
-	{
-		return (Code >= 0xF0908080) && (Code < 0xF4908080);
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-size_t JsonUtf8CodeGetUnitLength(tJsonUtf8Code Code)
-{
-	if (JsonUtf8CodeIsValid(Code))
-	{
-		if ((Code & 0xFFFFFF80) == 0)
-		{
-			return 1;
-		}
-		else if ((Code & 0xFFFFE0C0) == 0xC080)
-		{
-			return 2;
-		}
-		else if ((Code & 0xFFF0C0C0) == 0xE08080)
-		{
-			return 3;
-		}
-		else if ((Code & 0xF8C0C0C0) == 0xF0808080)
-		{
+			Content[Offset] = 0xF0 + ((Character >> 18) & 0x07);
+			Content[Offset + 1] = 0x80 + ((Character >> 12) & 0x3F);
+			Content[Offset + 2] = 0x80 + ((Character >> 6) & 0x3F);
+			Content[Offset + 3] = 0x80 + (Character & 0x3F);
 			return 4;
 		}
 	}
+
 	return 0;
 }
 
 
-tJsonUtf8Unit JsonUtf8CodeGetUnit(tJsonUtf8Code Code, size_t Index)
+size_t JsonUtf8DecodeNext(const uint8_t *Content, size_t Length, size_t Offset, tJsonCharacter *Character)
 {
-	size_t Length = JsonUtf8CodeGetUnitLength(Code);
-	if (Index < Length)
+	if (Offset >= Length)
 	{
-		return Code >> ((Length - Index - 1) * 8);
+		*Character = '\0';
+		return 0;
 	}
+
+	if (Content[Offset] < 0x80)
+	{
+		*Character = Content[Offset];
+		return 1;
+	}
+	
+	if ((Length < 2) || (Offset > Length - 2) || (Content[Offset] < 0xC2) || ((Content[Offset + 1] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if (Content[Offset] < 0xE0)
+	{
+		*Character = ((Content[Offset] & 0x1F) << 6) + (Content[Offset + 1] & 0x3F);
+		return 2;
+	}
+	
+	if ((Length < 3) || (Offset > Length - 3) || ((Content[Offset + 2] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if (Content[Offset] < 0xF0)
+	{
+		if (((Content[Offset] == 0xE0) && (Content[Offset + 1] < 0xA0)) ||
+		    ((Content[Offset] == 0xED) && (Content[Offset + 1] >= 0xA0)))
+		{
+			*Character = JSON_CHARACTER_REPLACEMENT;
+			return 0;
+		}
+
+		*Character = ((Content[Offset] & 0x0F) << 12) + ((Content[Offset + 1] & 0x3F) << 6) + (Content[Offset + 2] & 0x3F);
+		return 3;
+	}
+	
+	if ((Length < 4) || (Offset > Length - 4) || ((Content[Offset + 3] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if (Content[Offset] < 0xF5)
+	{
+		if (((Content[Offset] == 0xF0) && (Content[Offset + 1] < 0x90)) ||
+		    ((Content[Offset] == 0xF4) && (Content[Offset + 1] >= 0x90)))
+		{
+			*Character = JSON_CHARACTER_REPLACEMENT;
+			return 0;
+		}
+		
+		*Character = ((Content[Offset] & 0x07) << 18) + ((Content[Offset + 1] & 0x3F) << 12) + ((Content[Offset + 2] & 0x3F) << 6) + (Content[Offset + 3] & 0x3F);
+		return 4;
+	}
+
+	*Character = JSON_CHARACTER_REPLACEMENT;
 	return 0;
 }
 
 
-int JsonUtf8CodeAddUnit(tJsonUtf8Code *Code, tJsonUtf8Unit Unit)
+size_t JsonUtf8DecodePrevious(const uint8_t *Content, size_t Length, size_t Offset, tJsonCharacter *Character)
 {
-	int Result;
-
-	if (*Code == 0)
+	if ((Offset < 1) || (Offset > Length))
 	{
-		if (Unit < 0x80)
+		*Character = 0;
+		return 0;
+	}
+
+	if (Content[Offset - 1] < 0x80)
+	{
+		*Character = Content[Offset - 1];
+		return 1;
+	}
+	
+	if ((Offset < 2) || ((Content[Offset - 1] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset - 2] >= 0xC2) && (Content[Offset - 2] < 0xE0))
+	{
+		*Character = ((Content[Offset - 2] & 0x1F) << 6) + (Content[Offset - 1] & 0x3F);
+		return 2;
+	}
+	
+	if ((Offset < 3) || ((Content[Offset - 2] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset - 3] >= 0xE0) && (Content[Offset - 3] < 0xF0))
+	{
+		if (((Content[Offset - 3] == 0xE0) && (Content[Offset - 2] < 0xA0)) ||
+		    ((Content[Offset - 3] == 0xED) && (Content[Offset - 2] >= 0xA0)))
 		{
-			Result = JSON_UTF8_VALID;
+			*Character = JSON_CHARACTER_REPLACEMENT;
+			return 0;
 		}
-		else if ((Unit >= 0xC2) && (Unit < 0xF5))
+
+		*Character = ((Content[Offset - 3] & 0x0F) << 12) + ((Content[Offset - 2] & 0x3F) << 6) + (Content[Offset - 1] & 0x3F);
+		return 3;
+	}
+	
+	if ((Offset < 4) || ((Content[Offset - 3] & 0xC0) != 0x80))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset - 4] >= 0xF0) && (Content[Offset - 4] < 0xF5))
+	{
+		if (((Content[Offset - 4] == 0xF0) && (Content[Offset - 3] < 0x90)) ||
+		    ((Content[Offset - 4] == 0xF4) && (Content[Offset - 3] >= 0x90)))
 		{
-			Result = JSON_UTF8_INCOMPLETE;
+			*Character = JSON_CHARACTER_REPLACEMENT;
+			return 0;
 		}
-		else
-		{
-			Result = JSON_UTF8_INVALID;
-		}
-	}
-	else if ((Unit & 0xC0) != 0x80)
-	{
-		Result = JSON_UTF8_INVALID;
-	}
-	else if ((*Code & 0xFFFFFFE0) == 0xC0)
-	{
-		Result = (*Code < 0xC2) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
-	}
-	else if ((*Code & 0xFFFFFFF0) == 0xE0)
-	{
-		Result = (((*Code == 0xE0) && (Unit < 0xA0)) || ((*Code == 0xED) && (Unit >= 0xA0))) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
-	}
-	else if ((*Code & 0xFFFFFFF8) == 0xF0)
-	{
-		Result = (((*Code == 0xF0) && (Unit < 0x90)) || ((*Code == 0xF4) && (Unit >= 0x90)) || (*Code >= 0xF5)) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
-	}
-	else if ((*Code & 0xFFFFF0C0) == 0xE080)
-	{
-		Result = ((*Code < 0xE0A0) || ((*Code >= 0xEDA0) && (*Code < 0xEE80))) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
-	}
-	else if ((*Code & 0xFFFFF8C0) == 0xF080)
-	{
-		Result = ((*Code < 0xF090) || (*Code >= 0xF490)) ? JSON_UTF8_INVALID : JSON_UTF8_INCOMPLETE;
-	}
-	else if ((*Code & 0xFFF8C0C0) == 0xF08080)
-	{
-		Result = ((*Code < 0xF09080) || (*Code >= 0xF49080)) ? JSON_UTF8_INVALID : JSON_UTF8_VALID;
-	}
-	else
-	{
-		Result = JSON_UTF8_INVALID;
+		
+		*Character = ((Content[Offset - 4] & 0x07) << 18) + ((Content[Offset - 3] & 0x3F) << 12) + ((Content[Offset - 2] & 0x3F) << 6) + (Content[Offset - 1] & 0x3F);
+		return 4;
 	}
 
-	if (Result != JSON_UTF8_INVALID)
-	{
-		*Code = (*Code << 8) | Unit;
-	}
-	return Result;
-}
-
-
-size_t JsonUtf8GetNextCode(const tJsonUtf8Unit *Content, size_t Length, size_t Offset, tJsonUtf8Code *Code)
-{
-	bool IsValid = false;
-	size_t n = 0;
-
-	*Code = 0;
-	if (Offset < Length)
-	{
-		for (n = 0; !IsValid && (n < JSON_UTF8_MAX_SIZE) && (n < Length - Offset); n++)
-		{
-			*Code = (*Code << 8) + Content[Offset + n];
-			IsValid = JsonUtf8CodeIsValid(*Code);
-		}
-	}
-
-	return IsValid ? n : 0;
-}
-
-
-size_t JsonUtf8GetPreviousCode(const tJsonUtf8Unit *Content, size_t Length, size_t Offset, tJsonUtf8Code *Code)
-{
-	bool IsValid = false;
-	size_t n = 0;
-
-	*Code = 0;
-	if (Offset <= Length)
-	{
-		for (n = 0; !IsValid && (n < JSON_UTF8_MAX_SIZE) && (n < Offset); n++)
-		{
-			*Code = (Content[Offset - n - 1] << (n * 8)) + *Code;
-			IsValid = JsonUtf8CodeIsValid(*Code);
-		}
-	}
-
-	return IsValid ? n : 0;
+	*Character = JSON_CHARACTER_REPLACEMENT;
+	return 0;
 }
