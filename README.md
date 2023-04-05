@@ -38,7 +38,7 @@ The JSON content is provided using the input stream. The modified JSON content i
 
 ***Parameters***
 ```
-[-c{n|l|b}] [-i{0-9}] [<key> <value>]*
+[-c{n|l|b}] [-i{0-9}] [-utf{8|16be|16le}] [-bom] [<key> <value>]*
 ```
 
 ***Description***
@@ -52,12 +52,23 @@ This parameter is optional - if it is not given then line comments will be used 
 Set the indentation size (to a value between 0 and 9).\
 A value of zero will turn off indentation - the JSON content will be formatted using just spaces (without any comments).\
 This parameter is optional - if it is not given then an indentation size of 3 will be used.
+- `-utf{8|16be|16le}`\
+Set the type encoding to use for the JSON content.\
+`-utf8` will encode the JSON content using UTF-8.\
+`-utf16be` will encode the JSON content using UTF-16 (big endian).\
+`-utf16le` will encode the JSON content using UTF-16 (little endian).\
+This paramter is optional - if it is not given then UTF-8 will be used to encode the JSON content.
+- `-bom` \
+Indicates that a 'byte order mark' should be output at the start of the JSON content.\
+This parameter is optional - if it is not given then a 'byte order mark' will not be output.
 - `<key>`\
 Provides the path of the key that you want to set (see below for a description of the path format)
 - `<value>`\
 Provides the JSON content value for the key
 
 ***Notes***
+- A 'byte order mark' is not required if the JSON content is encoded using UTF-8.
+- A 'byte order mark' is recommended if the JSON content is encoded using UTF-16 (big or little endian).
 - There can be any number of `<key>` `<value>` pairs provided in the parameters
 
 ***Key Path Format***\
