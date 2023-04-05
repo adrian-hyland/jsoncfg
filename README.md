@@ -53,7 +53,7 @@ Set the indentation size (to a value between 0 and 9).\
 A value of zero will turn off indentation - the JSON content will be formatted using just spaces (without any comments).\
 This parameter is optional - if it is not given then an indentation size of 3 will be used.
 - `-utf{8|16be|16le}`\
-Set the type encoding to use for the JSON content.\
+Set the type of encoding to use for the JSON content.\
 `-utf8` will encode the JSON content using UTF-8.\
 `-utf16be` will encode the JSON content using UTF-16 (big endian).\
 `-utf16le` will encode the JSON content using UTF-16 (little endian).\
@@ -128,12 +128,12 @@ $ cat c_cpp_properties.json | jsoncfg -cn -i4
 
 ### Known Limitations and Exceptions
 
-- The input JSON content should be encoded using UTF-8 (without a byte order mark).
+- The input JSON content may be encoded using UTF-8 or UTF-16 (big or little endian). A byte order mark may or may not be present.
 - The input JSON content may contain any line or block comments even though, technically, comments should not be used for JSON. Support for handling comments was added as they can be used quite a lot in JSON configuration files.
 - The parsing functionality does not check the validity of any literals that are contained in the input JSON content - it will accept any literal value that that is composed of alphanumeric, '+', '-' and '.' characters.
 - The parsing functionality will not accept any NUL characters in the input JSON content, even if they have been escaped as \u0000.
-- The output JSON content is encoded using UTF-8 (without a byte order mark)
-- The formatting functionality will escape any control characters (U+00000..U+001F) in the output JSON content.
+- The output JSON content may be encoded using UTF-8 or UTF-16 (big or little endian). A byte order mark may also be given.
+- The formatting functionality will escape any control characters (U+0001..U+001F) in the output JSON content.
 
 ## Adding build configurations to the VS Code project
 
@@ -170,7 +170,7 @@ $ make clean TEST=1 DEBUG=1
 ```
 
 ***Notes***\
-The debug version of the unit test harness has malloc tracing enabled. To produce the malloc trace and check for any memory issues during testing, you can do the following:
+The debug version of the unit test harness has malloc tracing enabled (except for windows builds). To produce the malloc trace and check for any memory issues during testing, you can do the following:
 ```bash
 $ export MALLOC_TRACE=./malloc-trace
 $ ./bin/debug/jsoncfg-test
