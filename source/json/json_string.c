@@ -7,12 +7,12 @@
 #define JSON_STRING_INITIAL_LENGTH 32
 
 
-static bool JsonStringAddUtf8CodeUnit(tJsonString *String, tJsonUtf8Unit CodeUnit)
+static bool JsonStringAddByte(tJsonString *String, uint8_t Byte)
 {
-	tJsonUtf8Unit *NewContent;
+	uint8_t *NewContent;
 	size_t NewLength;
 
-	if (CodeUnit == '\0')
+	if (Byte == '\0')
 	{
 		return false;
 	}
@@ -25,7 +25,7 @@ static bool JsonStringAddUtf8CodeUnit(tJsonString *String, tJsonUtf8Unit CodeUni
 			return false;
 		}
 
-		NewContent = (tJsonUtf8Unit *)realloc(String->Content, NewLength);
+		NewContent = (uint8_t *)realloc(String->Content, NewLength);
 		if (NewContent == NULL)
 		{
 			return false;
@@ -37,7 +37,7 @@ static bool JsonStringAddUtf8CodeUnit(tJsonString *String, tJsonUtf8Unit CodeUni
 		String->Content = NewContent;
 	}
 
-	String->Content[String->Length] = CodeUnit;
+	String->Content[String->Length] = Byte;
 	String->Length++;
 
 	return true;
@@ -74,43 +74,26 @@ size_t JsonStringGetLength(const tJsonString *String)
 }
 
 
-bool JsonStringAddUtf8Code(tJsonString *String, tJsonUtf8Code Code)
-{
-	size_t Length = JsonUtf8CodeGetUnitLength(Code);
-	size_t n;
-	bool ok;
-
-	ok = (Length != 0);
-
-	for (n = 0; ok && (n < Length); n++)
-	{
-		ok = JsonStringAddUtf8CodeUnit(String, JsonUtf8CodeGetUnit(Code, n));
-	}
-
-	return ok;
-}
-
-
 bool JsonStringAddCharacter(tJsonString *String, tJsonCharacter Character)
 {
-	return JsonStringAddUtf8Code(String, JsonUtf8Code(Character));
-}
+	tJsonUtf8 Utf8;
+	size_t Length;
+	size_t n;
 
+	Length = JsonUtf8Encode(Utf8, sizeof(Utf8), 0, Character);
+	if (Length == 0)
+	{
+		return false;
+	}
 
-size_t JsonStringGetNextUtf8Code(const tJsonString *String, size_t Offset, tJsonUtf8Code *Code)
-{
-	return JsonUtf8GetNextCode(String->Content, String->Length, Offset, Code);
+	for (n = 0; (n < Length) && JsonStringAddByte(String, Utf8[n]); n++)
+		;
+
+	return n == Length;
 }
 
 
 size_t JsonStringGetNextCharacter(const tJsonString *String, size_t Offset, tJsonCharacter *Character)
 {
-	tJsonUtf8Code Code;
-	size_t Length;
-
-	Length = JsonStringGetNextUtf8Code(String, Offset, &Code);
-
-	*Character = (Length != 0) ? JsonUtf8CodeGetCharacter(Code) : 0;
-
-	return Length;
+	return JsonUtf8DecodeNext(String->Content, String->Length, Offset, Character);
 }

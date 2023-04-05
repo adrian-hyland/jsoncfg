@@ -10,8 +10,8 @@
  */
 typedef struct
 {
-	tJsonUtf8Unit *Content;   /**< The content of the string (null terminated) */
-	size_t         Length;    /**< The length of the string */
+	uint8_t *Content;   /**< The content of the string (null terminated) */
+	size_t   Length;    /**< The length of the string */
 } tJsonString;
 
 
@@ -49,16 +49,6 @@ size_t JsonStringGetLength(const tJsonString *String);
 
 
 /**
- * @brief Adds a UTF-8 character code to the end of a string
- * @param String The string
- * @param Code   The UTF-8 character code to add to the string
- * @return A true value is returned if the character code was added to the string ok.
- * @return A false value is returned if the character code could not be added to the string (out of memory or invalid code).
- */
-bool JsonStringAddUtf8Code(tJsonString *String, tJsonUtf8Code Code);
-
-
-/**
  * @brief Adds a character to the end of a string
  * @param String    The string
  * @param Character The unicode character to add to the string
@@ -66,18 +56,6 @@ bool JsonStringAddUtf8Code(tJsonString *String, tJsonUtf8Code Code);
  * @return A false value is returned if the character could not be added to the string (out of memory or invalid character).
  */
 bool JsonStringAddCharacter(tJsonString *String, tJsonCharacter Character);
-
-
-/**
- * @brief Gets the next UTF-8 character code from a string
- * @param String The string
- * @param Offset The offset to the start of the next character code to get
- * @param Code   Used to return the next UTF-8 character code
- * @return The length of the UTF-8 character code that was returned.
- * @return A zero value is returned if the index is out of bounds (and a null character code is returned in \a `Code`).
- * @note Add the returned length to the \a `Index` value to advance to the next character code in the string.
- */
-size_t JsonStringGetNextUtf8Code(const tJsonString *String, size_t Index, tJsonUtf8Code *Code);
 
 
 /**
