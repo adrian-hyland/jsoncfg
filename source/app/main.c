@@ -40,7 +40,9 @@ int main(int argc, const char *argv[])
 	tJsonElement *Element;
 	tJsonElement *ChildValue;
 	tJsonCommentType CommentType = json_CommentLine;
+	tJsonUtfType UtfType = json_Utf8;
 	size_t IndentSize = 3;
+	bool RequireBOM = false;
 	int Argument;
 	int Error;
 
@@ -67,6 +69,36 @@ int main(int argc, const char *argv[])
 		else if ((argv[Argument][1] == 'i') && (argv[Argument][2] >= '0') && (argv[Argument][2] <= '9') && (argv[Argument][3] == '\0'))
 		{
 			IndentSize = argv[Argument][2] - '0';
+		}
+		else if ((argv[Argument][1] == 'u') && (argv[Argument][2] == 't') && (argv[Argument][3] == 'f'))
+		{
+			if ((argv[Argument][4] == '8') && (argv[Argument][5] == '\0'))
+			{
+				UtfType = json_Utf8;
+			}
+			else if ((argv[Argument][4] == '1') && (argv[Argument][5] == '6'))
+			{
+				if ((argv[Argument][6] == 'l') && (argv[Argument][7] == 'e') && (argv[Argument][8] == '\0'))
+				{
+					UtfType = json_Utf16le;
+				}
+				else if ((argv[Argument][6] == 'b') && (argv[Argument][7] == 'e') && (argv[Argument][8] == '\0'))
+				{
+					UtfType = json_Utf16be;
+				}
+				else
+				{
+					Error = JSONCFG_ERROR_BAD_ARGS;
+				}
+			}
+			else
+			{
+				Error = JSONCFG_ERROR_BAD_ARGS;
+			}
+		}
+		else if ((argv[Argument][1] == 'b') && (argv[Argument][2] == 'o') && (argv[Argument][3] == 'm') && (argv[Argument][4] == '\0'))
+		{
+			RequireBOM = true;
 		}
 		else
 		{
@@ -110,7 +142,7 @@ int main(int argc, const char *argv[])
 			}
 		}
 
-		if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, IndentSize, CommentType, stdout, JSONCFG_BUFFER_SIZE))
+		if ((Error == JSONCFG_ERROR_NONE) && !JsonWriteFile(&Root, UtfType, RequireBOM, IndentSize, CommentType, stdout, JSONCFG_BUFFER_SIZE))
 		{
 			Error = JSONCFG_ERROR_WRITE_STDOUT;
 		}
