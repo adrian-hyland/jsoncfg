@@ -1,204 +1,149 @@
 #include "json_utf16.h"
 
 
-tJsonUtf16Code JsonUtf16Code(tJsonCharacter Character)
+bool JsonUtf16beIsHighSurrogate(const tJsonUtf16Unit Unit)
+{
+	return (Unit[0] >= 0xD8) && (Unit[0] < 0xDC);
+}
+
+
+bool JsonUtf16beIsLowSurrogate(const tJsonUtf16Unit Unit)
+{
+	return (Unit[0] >= 0xDC) && (Unit[0] < 0xE0);
+}
+
+
+size_t JsonUtf16beDecodeNext(const uint8_t *Content, size_t Length, size_t Offset, tJsonCharacter *Character)
+{
+	if (Offset >= Length)
+	{
+		*Character = '\0';
+		return 0;
+	}
+
+	if ((Length < 2) || (Offset > Length - 2))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset] < 0xD8) || (Content[Offset] >= 0xE0))
+	{
+		*Character = (Content[Offset] << 8) + Content[Offset + 1];
+		return 2;
+	}
+
+	if ((Length < 4) || (Offset > Length - 4) || (Content[Offset] >= 0xDC))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset + 2] >= 0xDC) && (Content[Offset + 2] < 0xE0))
+	{
+		*Character = 0x10000 + ((Content[Offset] & 0x03) << 18) + (Content[Offset + 1] << 10) + ((Content[Offset + 2] & 0x03) << 8) + Content[Offset + 3];
+		return 4;
+	}
+
+	*Character = JSON_CHARACTER_REPLACEMENT;
+	return 0;
+}
+
+
+size_t JsonUtf16beEncode(uint8_t *Content, size_t Size, size_t Offset, tJsonCharacter Character)
 {
 	if (Character < 0x10000)
 	{
-		if ((Character < 0xD800) || (Character > 0xDFFF))
+		if ((Character < 0xD800) || (Character >= 0xE000))
 		{
-			return Character;
+			if ((Size > 1) && (Offset < Size - 1))
+			{
+				Content[Offset] = (Character >> 8) & 0xFF;
+				Content[Offset + 1] = Character & 0xFF;
+				return 2;
+			}
 		}
 	}
 	else if (Character < 0x110000)
 	{
-		Character = Character - 0x10000;
-		return 0xD800DC00 + ((Character << 6) & 0x3FF0000) + (Character & 0x3FF);
-	}
-
-	return JSON_UTF16_CODE_REPLACEMENT;
-}
-
-
-tJsonCharacter JsonUtf16CodeGetCharacter(tJsonUtf16Code Code)
-{
-	if (Code < 0x10000)
-	{
-		if ((Code < 0xD800) || (Code > 0xDFFF))
+		if ((Size > 3) && (Offset < Size - 3))
 		{
-			return Code;
+			Character = Character - 0x10000;
+			Content[Offset] = 0xD8 + ((Character >> 18) & 0x03);
+			Content[Offset + 1] = Character >> 10;
+			Content[Offset + 2] = 0xDC + ((Character >> 8) & 0x03);
+			Content[Offset + 3] = Character;
+			return 4;
 		}
 	}
-	else if ((((Code & 0xFC000000) >= 0xD8000000) && ((Code & 0xFC000000) <= 0xDB000000)) &&
-		      (((Code & 0x0000FC00) >= 0x0000DC00) && ((Code & 0x0000FC00) <= 0x0000DF00)))
-	{
-		return 0x10000 + ((Code & 0x3FF0000) >> 6) + (Code & 0x3FF);
-	}
 
-	return JSON_CHARACTER_REPLACEMENT;
-}
-
-
-bool JsonUtf16CodeIsValid(tJsonUtf16Code Code)
-{
-	if (Code < 0x10000)
-	{
-		return (Code < 0xD800) || (Code > 0xDFFF);
-	}
-	else
-	{
-		return ((((Code & 0xFC000000) >= 0xD8000000) && ((Code & 0xFC000000) <= 0xDB000000)) &&
-		        (((Code & 0x0000FC00) >= 0x0000DC00) && ((Code & 0x0000FC00) <= 0x0000DF00)));
-	}
-}
-
-
-size_t JsonUtf16CodeGetUnitLength(tJsonUtf16Code Code)
-{
-	if (JsonUtf16CodeIsValid(Code))
-	{
-		return (Code < 0x10000) ? 1 : 2;
-	}
 	return 0;
 }
 
 
-tJsonUtf16Unit JsonUtf16CodeGetUnit(tJsonUtf16Code Code, size_t Index)
+size_t JsonUtf16leDecodeNext(const uint8_t *Content, size_t Length, size_t Offset, tJsonCharacter *Character)
 {
-	size_t Length = JsonUtf16CodeGetUnitLength(Code);
-	if (Index < Length)
+	if (Offset >= Length)
 	{
-		return Code >> ((Length - Index - 1) * 16);
+		*Character = '\0';
+		return 0;
 	}
+
+	if ((Length < 2) || (Offset > Length - 2))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset + 1] < 0xD8) || (Content[Offset + 1] >= 0xE0))
+	{
+		*Character = (Content[Offset + 1] << 8) + Content[Offset];
+		return 2;
+	}
+
+	if ((Length < 4) || (Offset > Length - 4) || (Content[Offset + 1] >= 0xDC))
+	{
+		*Character = JSON_CHARACTER_REPLACEMENT;
+		return 0;
+	}
+
+	if ((Content[Offset + 3] >= 0xDC) && (Content[Offset + 3] < 0xE0))
+	{
+		*Character = 0x10000 + ((Content[Offset + 1] & 0x03) << 18) + (Content[Offset] << 10) + ((Content[Offset + 3] & 0x03) << 8) + Content[Offset + 2];
+		return 4;
+	}
+
+	*Character = JSON_CHARACTER_REPLACEMENT;
 	return 0;
 }
 
 
-bool JsonUtf16UnitIsHighSurrogate(tJsonUtf16Unit Unit)
+size_t JsonUtf16leEncode(uint8_t *Content, size_t Size, size_t Offset, tJsonCharacter Character)
 {
-	return (Unit >= 0xD800) && (Unit < 0xDC00);
-}
-
-
-bool JsonUtf16UnitIsLowSurrogate(tJsonUtf16Unit Unit)
-{
-	return (Unit >= 0xDC00) && (Unit < 0xE000);
-}
-
-
-bool JsonUtf16UnitSetNibble(tJsonUtf16Unit *Code, size_t Index, uint8_t Nibble)
-{
-	if ((Index < 4) && (Nibble < 0x10))
+	if (Character < 0x10000)
 	{
-		Index = 3 - Index;
-		*Code = (*Code & ~(0xF << (Index * 4))) | (Nibble << (Index * 4));
-		return true;
-	}
-
-	return false;
-}
-
-
-int JsonUtf16CodeAddUnit(tJsonUtf16Code *Code, tJsonUtf16Unit Unit)
-{
-	int Result;
-
-	if (*Code == 0)
-	{
-		if (JsonUtf16UnitIsLowSurrogate(Unit))
+		if ((Character < 0xD800) || (Character >= 0xE000))
 		{
-			Result = JSON_UTF16_INVALID;
-		}
-		else if (JsonUtf16UnitIsHighSurrogate(Unit))
-		{
-			Result = JSON_UTF16_INCOMPLETE;
-		}
-		else
-		{
-			Result = JSON_UTF16_VALID;
+			if ((Size > 1) && (Offset < Size - 1))
+			{
+				Content[Offset] = Character & 0xFF;
+				Content[Offset + 1] = (Character >> 8) & 0xFF;
+				return 2;
+			}
 		}
 	}
-	else if (*Code < 0x10000)
+	else if (Character < 0x110000)
 	{
-		Result = (JsonUtf16UnitIsHighSurrogate(*Code) && JsonUtf16UnitIsLowSurrogate(Unit)) ? JSON_UTF16_VALID : JSON_UTF16_INVALID;
+		if ((Size > 3) && (Offset < Size - 3))
+		{
+			Character = Character - 0x10000;
+			Content[Offset] = Character >> 10;
+			Content[Offset + 1] = 0xD8 + ((Character >> 18) & 0x03);
+			Content[Offset + 2] = Character;
+			Content[Offset + 3] = 0xDC + ((Character >> 8) & 0x03);
+			return 4;
+		}
 	}
-	else
-	{
-		Result = JSON_UTF16_INVALID;
-	}
 
-	if (Result != JSON_UTF16_INVALID)
-	{
-		*Code = (*Code << 16) + Unit;
-	}
-	return Result;
-}
-
-
-size_t JsonUtf16CodeGetNibbleLength(tJsonUtf16Code Code)
-{
-	return JsonUtf16CodeGetUnitLength(Code) * 4;
-}
-
-
-uint8_t JsonUtf16CodeGetNibble(tJsonUtf16Code Code, size_t Index)
-{
-	size_t Length = JsonUtf16CodeGetNibbleLength(Code);
-	if (Index < Length)
-	{
-		return (Code >> ((Length - Index - 1) * 4)) & 0x0F;
-	}
 	return 0;
-}
-
-
-int JsonUtf16CodeAddNibble(tJsonUtf16Code *Code, uint8_t Nibble)
-{
-	int Result;
-
-	if (Nibble > 0x0F)
-	{
-		Result = JSON_UTF16_INVALID;
-	}
-	else if ((*Code & 0xFFFFF000) == 0)
-	{
-		if ((*Code < 0xD80) || (*Code >= 0xE00))
-		{
-			Result = JSON_UTF16_VALID;
-		}
-		else if (*Code < 0xDC0)
-		{
-			Result = JSON_UTF16_INCOMPLETE;
-		}
-		else
-		{
-			Result = JSON_UTF16_INVALID;
-		}
-	}
-	else if ((*Code & 0xFFFFF800) == 0xD800)
-	{
-		Result = ((*Code >= 0xDC00) || (Nibble != 0x0D)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
-	}
-	else if ((*Code & 0xFFFF800F) == 0xD800D)
-	{
-		Result = ((*Code >= 0xDC00D) || (Nibble < 0x0C)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
-	}
-	else if ((*Code & 0xFFF800F8) == 0xD800D8)
-	{
-		Result = ((*Code >= 0xDC00D8) || ((*Code & 0xFC) < 0xDC)) ? JSON_UTF16_INVALID : JSON_UTF16_INCOMPLETE;
-	}
-	else if ((*Code & 0xFF800F80) == 0xD800D80)
-	{
-		Result = ((*Code >= 0xDC00D80) || ((*Code & 0xFC0) < 0xDC0)) ? JSON_UTF16_INVALID : JSON_UTF16_VALID;
-	}
-	else
-	{
-		Result = JSON_UTF16_INVALID;
-	}
-
-	if (Result != JSON_UTF16_INVALID)
-	{
-		*Code = (*Code << 4) + Nibble;
-	}
-	return Result;
 }
