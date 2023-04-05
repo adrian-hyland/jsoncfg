@@ -3,6 +3,7 @@
 
 #include "json_element.h"
 #include "json_utf16.h"
+#include "json_utf.h"
 
 
 /**
@@ -15,10 +16,7 @@ typedef enum
 	json_ParseEscape,           /**< Parsing an escaped character */
 	json_ParseUtf16Escape,      /**< Parsing an escaped unicode character */
 	json_ParseUtf16,            /**< Parsing the start of an escaped unicode character */
-	json_ParseUtf16Digit1,      /**< Parsing the first digit of an escaped unicode character */
-	json_ParseUtf16Digit2,      /**< Parsing the second digit of an escaped unicode character */
-	json_ParseUtf16Digit3,      /**< Parsing the third digit of an escaped unicode character */
-	json_ParseUtf16Digit4,      /**< Parsing the fourth digit of an escaped unicode character */
+	json_ParseUtf16Digit,       /**< Parsing the digit of an escaped unicode character */
 	json_ParseKeyStart,         /**< Parsing the start of a key string */
 	json_ParseKey,              /**< Parsing a character in a key string */
 	json_ParseKeyEnd,           /**< Parsing the end of a key string */
@@ -41,10 +39,10 @@ typedef struct
 {
 	tJsonParseState State;         /**< The current parse state */
 	tJsonElement   *Element;       /**< The current element being parsed */
-	tJsonUtf8Code   Utf8Code;      /**< The current UTF-8 character code being parsed */
-	tJsonUtf16Code  Utf16Code;     /**< The current UTF-16 character being escaped */
 	tJsonParseState CommentState;  /**< The state that the parser is in when a comment is encountered (so that it can be restored afterwards) */
 	tJsonParseState EscapeState;   /**< The state that the parser is in when a character needs to be escaped (so that it can be restored afterwards) */
+	tJsonUtf16      Utf16;         /**< The UTF-16 encoding of a character being escaped */
+	size_t          Utf16Length;   /**< The length of the UTF-16 encoding */
 	bool            AllocateChild; /**< Indicates whether an allocated element should be a child element (or the next sibling element) */
 	bool            StripComments; /**< Indicates whether to strip or keep any comments that are in the content */
 } tJsonParse;
@@ -79,15 +77,31 @@ void JsonParseCleanUp(tJsonParse *Parse);
 
 
 /**
- * @brief Parses the next UTF-8 code unit in the JSON content
- * @param Parse    The JSON content parser
- * @param CodeUnit The next UTF-8 code unit in the JSON content
- * @return `JSON_PARSE_ERROR`      is returned if there was a parsing error
- * @return `JSON_PARSE_COMPLETE`   is returned if the parsing is complete
- * @return `JSON_PARSE_INCOMPLETE` is returned if parsing is not yet complete
- * @note The parsing should be completed by passing a null character (zero value code unit)
+ * @brief Parses the next character in the JSON content
+ * @param Parse     The JSON content parser
+ * @param Character The next character in the JSON content
+ * @return `JSON_PARSE_ERROR`      is returned if there was a parsing error.
+ * @return `JSON_PARSE_COMPLETE`   is returned if the parsing is complete.
+ * @return `JSON_PARSE_INCOMPLETE` is returned if parsing is not yet complete.
+ * @note The parsing should be completed by passing a null (zero value) character
+ * @note The character should be a unicode code point value.
  */
-int JsonParse(tJsonParse *Parse, tJsonUtf8Unit CodeUnit);
+int JsonParseCharacter(tJsonParse *Parse, tJsonCharacter Character);
+
+
+/**
+ * @brief Parses JSON content using a UTF encoding
+ * @param Parse   The JSON content parser
+ * @param UtfType The type of UTF to use to decode the content
+ * @param Content The JSON content
+ * @param Length  The length of the JSON content
+ * @param Offset  Used to pass and return the offset where the JSON content is parsed
+ * @return `JSON_PARSE_ERROR`      is returned if there was a parsing error.
+ * @return `JSON_PARSE_COMPLETE`   is returned if the parsing is complete.
+ * @return `JSON_PARSE_INCOMPLETE` is returned if parsing is not yet complete.
+ * @note The parsing should be completed by parsing an encoded null character.
+ */
+int JsonParse(tJsonParse *Parse, tJsonUtfType UtfType, const uint8_t *Content, size_t Length, size_t *Offset);
 
 
 #endif
