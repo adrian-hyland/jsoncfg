@@ -10,8 +10,8 @@
  */
 typedef struct
 {
-	const tJsonUtf8Unit *Value;  /* The path value */
-	size_t               Length; /* The length of the path value (in bytes) */
+	const uint8_t *Value;  /* The path value */
+	size_t         Length; /* The length of the path value (in bytes) */
 } tJsonPath;
 
 
@@ -21,7 +21,7 @@ typedef struct
  * @return The JSON path
  * @note The life time of the returned JSON path must be longer than than \a 'PathString'.
  */
-tJsonPath JsonPathUtf8(const tJsonUtf8Unit *PathString);
+tJsonPath JsonPathUtf8(const uint8_t *PathString);
 
 
 /**
@@ -66,30 +66,30 @@ tJsonPath JsonPathMiddle(tJsonPath Path, size_t FromOffset, size_t ToOffset);
 
 
 /**
- * @brief Gets the next UTF-8 character code from a JSON path
+ * @brief Gets the next character from a JSON path
  * @param Path      The JSON path
- * @param Offset    The offset to the start of the next character code to get
- * @param IsEscaped Used to return a boolean value that indicates whether the next character code has been escaped or not
- * @param Code      Used to return the next UTF-8 character code
- * @return The length of the UTF-8 character code that was returned.
- * @return A zero value is returned if a character code could not be returned.
+ * @param Offset    The offset to the start of the next character to get
+ * @param IsEscaped Used to return a boolean value that indicates whether the next character has been escaped or not
+ * @param Character Used to return the next character
+ * @return The encoded length of the character that was returned.
+ * @return A zero value is returned if a character could not be returned.
  * @note Add the returned length to the \a `Offset` value to advance it to the next character in the path.
  */
-size_t JsonPathGetNextUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code);
+size_t JsonPathGetNextCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonCharacter *Character);
 
 
 /**
- * @brief Gets the previous UTF-8 character code from a JSON path
+ * @brief Gets the previous character from a JSON path
  * @param Path      The JSON path
  * @param Offset    The offset of the character to retrieve
  * @param IsEscaped Used to return a boolean value that indicates whether the previous character has been escaped or not
- * @param Code      The offset to the end of the previous character code to get
- * @return The length of the UTF-8 character code that was returned.
- * @return A zero value is returned if a character code could not be returned.
+ * @param Character The offset to the end of the previous character to get
+ * @return The encoded length of the character that was returned.
+ * @return A zero value is returned if a character could not be returned.
  * @note Pass \a 'Path.Length' in the \a 'Offset' parameter to get the last character in the path.
  * @note Subtract the returned length from the \a `Offset` value to advance it to the previous character in the path.
  */
-size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code);
+size_t JsonPathGetPreviousCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonCharacter *Character);
 
 
 /**

@@ -4,7 +4,7 @@
 #include "json_path.h"
 
 
-tJsonPath JsonPathUtf8(const tJsonUtf8Unit *PathString)
+tJsonPath JsonPathUtf8(const uint8_t *PathString)
 {
 	tJsonPath Path;
 
@@ -19,245 +19,239 @@ tJsonPath JsonPathAscii(const char *PathString)
 {
 	tJsonPath Path;
 
-	Path.Value = (const tJsonUtf8Unit *)PathString;
+	Path.Value = (const uint8_t *)PathString;
 	Path.Length = (PathString != NULL) ? strlen(PathString) : 0;
 
 	return Path;
 }
 
 
-static size_t JsonPathGetNextUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit *Unit)
+static size_t JsonPathGetNextUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit Unit)
 {
-	tJsonUtf8Code Utf8Code;
+	tJsonCharacter Character1;
+	tJsonCharacter Character2;
 	size_t NextOffset;
-	size_t CodeLength;
+	size_t DecodeLength;
 	size_t n;
 
-	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset, &Utf8Code);
-	if ((CodeLength == 0) || (Utf8Code != '\\'))
+	DecodeLength = JsonUtf8DecodeNext(Path.Value, Path.Length, Offset, &Character1);
+	if ((DecodeLength == 0) || (Character1 != '\\'))
 	{
 		return 0;
 	}
-	NextOffset = Offset + CodeLength;
+	NextOffset = Offset + DecodeLength;
 
-	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
-	if ((CodeLength == 0) || (Utf8Code != 'u'))
+	DecodeLength = JsonUtf8DecodeNext(Path.Value, Path.Length, NextOffset, &Character1);
+	if ((DecodeLength == 0) || (Character1 != 'u'))
 	{
 		return 0;
 	}
-	NextOffset = NextOffset + CodeLength;
+	NextOffset = NextOffset + DecodeLength;
 
-	for (n = 0; n < 4; n++)
+	for (n = 0; n < JSON_UTF16_UNIT_SIZE; n++)
 	{
-		CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
-		if ((CodeLength == 0) || !JsonCharacterIsHexDigit(Utf8Code) || !JsonUtf16UnitSetNibble(Unit, n, JsonCharacterToHexDigit(Utf8Code)))
+		DecodeLength = JsonUtf8DecodeNext(Path.Value, Path.Length, NextOffset, &Character1);
+		if ((DecodeLength == 0) || !JsonCharacterIsHexDigit(Character1))
 		{
 			return 0;
 		}
-		NextOffset = NextOffset + CodeLength;
+		NextOffset = NextOffset + DecodeLength;
+		DecodeLength = JsonUtf8DecodeNext(Path.Value, Path.Length, NextOffset, &Character2);
+		if ((DecodeLength == 0) || !JsonCharacterIsHexDigit(Character2))
+		{
+			return 0;
+		}
+		NextOffset = NextOffset + DecodeLength;
+		Unit[n] = (JsonCharacterToHexDigit(Character1) << 4) + JsonCharacterToHexDigit(Character2);
 	}
 
 	return NextOffset - Offset;
 }
 
 
-static size_t JsonPathGetPreviousUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit *Unit)
+static size_t JsonPathGetPreviousUtf16Unit(tJsonPath Path, size_t Offset, tJsonUtf16Unit Unit)
 {
-	tJsonUtf8Code Utf8Code;
+	tJsonCharacter Character1;
+	tJsonCharacter Character2;
 	size_t PreviousOffset = Offset;
-	size_t CodeLength;
+	size_t DecodeLength;
 	size_t n;
 
-	for (n = 0; n < 4; n++)
+	for (n = 0; n < JSON_UTF16_UNIT_SIZE; n++)
 	{
-		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
-		if ((CodeLength == 0) || !JsonCharacterIsHexDigit(Utf8Code) || !JsonUtf16UnitSetNibble(Unit, 3 - n, JsonCharacterToHexDigit(Utf8Code)))
+		DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, PreviousOffset, &Character1);
+		if ((DecodeLength == 0) || !JsonCharacterIsHexDigit(Character1))
 		{
 			return 0;
 		}
-		PreviousOffset = PreviousOffset - CodeLength;
+		PreviousOffset = PreviousOffset - DecodeLength;
+		DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, PreviousOffset, &Character2);
+		if ((DecodeLength == 0) || !JsonCharacterIsHexDigit(Character2))
+		{
+			return 0;
+		}
+		PreviousOffset = PreviousOffset - DecodeLength;
+		Unit[JSON_UTF16_UNIT_SIZE - n - 1] = (JsonCharacterToHexDigit(Character2) << 4) + JsonCharacterToHexDigit(Character1);
 	}
 
-	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
-	if ((CodeLength == 0) || (Utf8Code != 'u'))
+	DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, PreviousOffset, &Character1);
+	if ((DecodeLength == 0) || (Character1 != 'u'))
 	{
 		return 0;
 	}
-	PreviousOffset = PreviousOffset - CodeLength;
+	PreviousOffset = PreviousOffset - DecodeLength;
 
-	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &Utf8Code);
-	if ((CodeLength == 0) || (Utf8Code != '\\'))
+	DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, PreviousOffset, &Character1);
+	if ((DecodeLength == 0) || (Character1 != '\\'))
 	{
 		return 0;
 	}
-	PreviousOffset = PreviousOffset - CodeLength;
+	PreviousOffset = PreviousOffset - DecodeLength;
 
 	return Offset - PreviousOffset;
 }
 
 
-static size_t JsonPathGetNextUtf16Code(tJsonPath Path, size_t Offset, tJsonUtf16Code *Code)
+static size_t JsonPathGetNextUtf16Character(tJsonPath Path, size_t Offset, tJsonCharacter *Character)
 {
-	tJsonUtf16Unit LowUnit;
-	tJsonUtf16Unit HighUnit;
+	tJsonUtf16 Utf16;
 	size_t NextOffset;
-	size_t CodeLength;
+	size_t DecodeLength;
+	size_t Length;
 
-	*Code = 0;
-
-	CodeLength = JsonPathGetNextUtf16Unit(Path, Offset, &HighUnit);
-	if (CodeLength == 0)
+	Length = JsonPathGetNextUtf16Unit(Path, Offset, Utf16);
+	if (Length == 0)
 	{
 		return 0;
 	}
-	NextOffset = Offset + CodeLength;
+	NextOffset = Offset + Length;
 
-	if (JsonUtf16UnitIsHighSurrogate(HighUnit))
+	if (!JsonUtf16beIsHighSurrogate(Utf16))
 	{
-		CodeLength = JsonPathGetNextUtf16Unit(Path, NextOffset, &LowUnit);
-		if (CodeLength == 0)
-		{
-			return 0;
-		}
-		NextOffset = NextOffset + CodeLength;
-	}
-	else
-	{
-		LowUnit = HighUnit;
-		HighUnit = 0;
+		DecodeLength = JsonUtf16beDecodeNext(Utf16, JSON_UTF16_UNIT_SIZE, 0, Character);
+		return (DecodeLength != 0) ? NextOffset - Offset : 0;
 	}
 
-	*Code = HighUnit;
-	if (JsonUtf16CodeAddUnit(Code, LowUnit) != JSON_UTF16_VALID)
+	Length = JsonPathGetNextUtf16Unit(Path, NextOffset, &Utf16[JSON_UTF16_UNIT_SIZE]);
+	if (Length == 0)
 	{
 		return 0;
 	}
+	NextOffset = NextOffset + Length;
 
-	return NextOffset - Offset;
+	DecodeLength = JsonUtf16beDecodeNext(Utf16, 2 * JSON_UTF16_UNIT_SIZE, 0, Character);
+	return (DecodeLength != 0) ? NextOffset - Offset : 0;
 }
 
 
-static size_t JsonPathGetPreviousUtf16Code(tJsonPath Path, size_t Offset, tJsonUtf16Code *Code)
+static size_t JsonPathGetPreviousUtf16Character(tJsonPath Path, size_t Offset, tJsonCharacter *Character)
 {
-	tJsonUtf16Unit LowUnit;
-	tJsonUtf16Unit HighUnit;
-	size_t PreviousOffset = Offset;
-	size_t CodeLength;
+	tJsonUtf16 Utf16;
+	size_t PreviousOffset;
+	size_t DecodeLength;
+	size_t Length;
 
-	*Code = 0;
-
-	CodeLength = JsonPathGetPreviousUtf16Unit(Path, PreviousOffset, &LowUnit);
-	if (CodeLength == 0)
+	Length = JsonPathGetPreviousUtf16Unit(Path, Offset, &Utf16[JSON_UTF16_UNIT_SIZE]);
+	if (Length == 0)
 	{
 		return 0;
 	}
-	PreviousOffset = PreviousOffset - CodeLength;
+	PreviousOffset = Offset - Length;
 
-	if (JsonUtf16UnitIsLowSurrogate(LowUnit))
+	if (!JsonUtf16beIsLowSurrogate(&Utf16[JSON_UTF16_UNIT_SIZE]))
 	{
-		CodeLength = JsonPathGetPreviousUtf16Unit(Path, PreviousOffset, &HighUnit);
-		if (CodeLength == 0)
-		{
-			return 0;
-		}
-		PreviousOffset = PreviousOffset - CodeLength;
-	}
-	else
-	{
-		HighUnit = 0;
+		DecodeLength = JsonUtf16beDecodeNext(&Utf16[JSON_UTF16_UNIT_SIZE], JSON_UTF16_UNIT_SIZE, 0, Character);
+		return (DecodeLength != 0) ? Offset - PreviousOffset : 0;
 	}
 
-	*Code = HighUnit;
-	if (JsonUtf16CodeAddUnit(Code, LowUnit) != JSON_UTF16_VALID)
+	Length = JsonPathGetPreviousUtf16Unit(Path, PreviousOffset, Utf16);
+	if (Length == 0)
 	{
 		return 0;
 	}
+	PreviousOffset = PreviousOffset - Length;
 
-	return Offset - PreviousOffset;
+	DecodeLength = JsonUtf16beDecodeNext(Utf16, 2 * JSON_UTF16_UNIT_SIZE, 0, Character);
+	return (DecodeLength != 0) ? Offset - PreviousOffset : 0;
 }
 
 
-size_t JsonPathGetNextUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code)
+size_t JsonPathGetNextCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonCharacter *Character)
 {
-	tJsonUtf16Code Utf16Code;
-	tJsonUtf8Code Utf8Code;
 	size_t NextOffset;
-	size_t CodeLength;
+	size_t Length;
 
 	*IsEscaped = false;
-	*Code = 0;
+	*Character = '\0';
 
-	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, Offset, &Utf8Code);
-	if (CodeLength == 0)
+	Length = JsonUtf8DecodeNext(Path.Value, Path.Length, Offset, Character);
+	if (Length == 0)
 	{
 		return 0;
 	}
-	NextOffset = Offset + CodeLength;
+	NextOffset = Offset + Length;
 	
-	if (Utf8Code != '\\')
+	if (*Character != '\\')
 	{
-		*Code = Utf8Code;
 		return NextOffset - Offset;
 	}
-
-	CodeLength = JsonUtf8GetNextCode(Path.Value, Path.Length, NextOffset, &Utf8Code);
-	if (CodeLength == 0)
-	{
-		return 0;
-	}
-	NextOffset = NextOffset + CodeLength;
-
-	if (Utf8Code != 'u')
-	{
-		*IsEscaped = true;
-		*Code = JsonCharacterFromEscape(Utf8Code);
-		return NextOffset - Offset;
-	}
-
-	CodeLength = JsonPathGetNextUtf16Code(Path, Offset, &Utf16Code);
-	if (CodeLength == 0)
-	{
-		return 0;
-	}
-	NextOffset = Offset + CodeLength;
 
 	*IsEscaped = true;
-	*Code = JsonUtf8Code(JsonUtf16CodeGetCharacter(Utf16Code));
+
+	Length = JsonUtf8DecodeNext(Path.Value, Path.Length, NextOffset, Character);
+	if (Length == 0)
+	{
+		return 0;
+	}
+	NextOffset = NextOffset + Length;
+
+	if (*Character != 'u')
+	{
+		*Character = JsonCharacterFromEscape(*Character);
+		return NextOffset - Offset;
+	}
+
+	Length = JsonPathGetNextUtf16Character(Path, Offset, Character);
+	if (Length == 0)
+	{
+		return 0;
+	}
+	NextOffset = Offset + Length;
+
 	return NextOffset - Offset;
 }
 
 
-size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonUtf8Code *Code)
+size_t JsonPathGetPreviousCharacter(tJsonPath Path, size_t Offset, bool *IsEscaped, tJsonCharacter *Character)
 {
-	tJsonUtf16Code Utf16Code;
-	tJsonUtf8Code Utf8Code;
-	tJsonUtf8Code PreviousCode;
+	tJsonCharacter Utf16Character;
+	tJsonCharacter PreviousCharacter;
 	size_t UnescapedOffset;
 	size_t EscapedOffset;
 	size_t PreviousOffset;
-	size_t CodeLength;
+	size_t DecodeLength;
 	bool IsEscapedUtf16;
 
 	*IsEscaped = false;
-	*Code = 0;
+	*Character = '\0';
 
-	CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, Offset, &Utf8Code);
-	if (CodeLength == 0)
+	DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, Offset, Character);
+	if (DecodeLength == 0)
 	{
 		return 0;
 	}
-	UnescapedOffset = Offset - CodeLength;
+	UnescapedOffset = Offset - DecodeLength;
 
 	IsEscapedUtf16 = false;
 	EscapedOffset = UnescapedOffset;
-	if (JsonCharacterIsHexDigit(Utf8Code))
+	if (JsonCharacterIsHexDigit(*Character))
 	{
-		CodeLength = JsonPathGetPreviousUtf16Code(Path, Offset, &Utf16Code);
-		IsEscapedUtf16 = (CodeLength != 0);
+		DecodeLength = JsonPathGetPreviousUtf16Character(Path, Offset, &Utf16Character);
+		IsEscapedUtf16 = (DecodeLength != 0);
 		if (IsEscapedUtf16)
 		{
 			*IsEscaped = true;
-			EscapedOffset = Offset - CodeLength;
+			EscapedOffset = Offset - DecodeLength;
 		}
 	}
 
@@ -265,45 +259,43 @@ size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscape
 	{
 		if (UnescapedOffset == 0)
 		{
-			if (Utf8Code == '\\')
+			if (*Character == '\\')
 			{
 				return 0;
 			}
 
-			*Code = Utf8Code;
 			return Offset;
 		}
 
-		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, UnescapedOffset, &PreviousCode);
-		if (CodeLength == 0)
+		DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, UnescapedOffset, &PreviousCharacter);
+		if (DecodeLength == 0)
 		{
 			return 0;
 		}
 
-		if (PreviousCode != '\\')
+		if (PreviousCharacter != '\\')
 		{
-			if (Utf8Code == '\\')
+			if (*Character == '\\')
 			{
 				return 0;
 			}
 
-			*Code = Utf8Code;
 			return Offset - UnescapedOffset;
 		}
 
 		*IsEscaped = true;
-		EscapedOffset = UnescapedOffset - CodeLength;
+		EscapedOffset = UnescapedOffset - DecodeLength;
 	}
 
-	for (PreviousOffset = EscapedOffset; PreviousOffset > 0; PreviousOffset = PreviousOffset - CodeLength)
+	for (PreviousOffset = EscapedOffset; PreviousOffset > 0; PreviousOffset = PreviousOffset - DecodeLength)
 	{
-		CodeLength = JsonUtf8GetPreviousCode(Path.Value, Path.Length, PreviousOffset, &PreviousCode);
-		if (CodeLength == 0)
+		DecodeLength = JsonUtf8DecodePrevious(Path.Value, Path.Length, PreviousOffset, &PreviousCharacter);
+		if (DecodeLength == 0)
 		{
 			*IsEscaped = false;
 			return 0;
 		}
-		if (PreviousCode != '\\')
+		if (PreviousCharacter != '\\')
 		{
 			break;
 		}
@@ -312,23 +304,21 @@ size_t JsonPathGetPreviousUtf8Code(tJsonPath Path, size_t Offset, bool *IsEscape
 
 	if (!*IsEscaped)
 	{
-		if (Utf8Code == '\\')
+		if (*Character == '\\')
 		{
 			return 0;
 		}
 
-		*Code = Utf8Code;
-		
 		return Offset - UnescapedOffset;
 	}
 	else
 	{
-		if (Utf8Code == 'u')
+		if (*Character == 'u')
 		{
 			return 0;
 		}
 
-		*Code = IsEscapedUtf16 ? JsonUtf8Code(JsonUtf16CodeGetCharacter(Utf16Code)) : JsonCharacterFromEscape(Utf8Code);
+		*Character = IsEscapedUtf16 ? Utf16Character : JsonCharacterFromEscape(*Character);
 
 		return Offset - EscapedOffset;
 	}
@@ -393,27 +383,27 @@ tJsonPath JsonPathMiddle(tJsonPath Path, size_t FromOffset, size_t ToOffset)
 
 bool JsonPathSetString(tJsonPath Path, tJsonString *String)
 {
-	tJsonUtf8Code Code;
-	size_t CodeLength;
+	tJsonCharacter Character;
+	size_t DecodeLength;
 	size_t PathOffset;
 	bool IsEscaped;
 
 	JsonStringClear(String);
 
-	for (PathOffset = 0; (PathOffset < Path.Length); PathOffset = PathOffset + CodeLength)
+	for (PathOffset = 0; (PathOffset < Path.Length); PathOffset = PathOffset + DecodeLength)
 	{
-		CodeLength = JsonPathGetNextUtf8Code(Path, PathOffset, &IsEscaped, &Code);
-		if (CodeLength == 0)
+		DecodeLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &Character);
+		if (DecodeLength == 0)
 		{
 			return false;
 		}
 
-		if (!IsEscaped && ((Code == '/') || (Code == ':') || (Code == '[') || (Code == ']')))
+		if (!IsEscaped && ((Character == '/') || (Character == ':') || (Character == '[') || (Character == ']')))
 		{
 			return false;
 		}
 
-		if (!JsonStringAddUtf8Code(String, Code))
+		if (!JsonStringAddCharacter(String, Character))
 		{
 			return false;
 		}
@@ -425,10 +415,10 @@ bool JsonPathSetString(tJsonPath Path, tJsonString *String)
 
 bool JsonPathCompareString(tJsonPath Path, tJsonString *String)
 {
-	tJsonUtf8Code PathCode;
-	tJsonUtf8Code StringCode;
-	size_t PathCodeLength;
-	size_t StringCodeLength;
+	tJsonCharacter PathCharacter;
+	tJsonCharacter StringCharacter;
+	size_t PathDecodeLength;
+	size_t StringDecodeLength;
 	size_t StringOffset;
 	size_t StringLength;
 	size_t PathOffset;
@@ -436,21 +426,21 @@ bool JsonPathCompareString(tJsonPath Path, tJsonString *String)
 
 	StringLength = JsonStringGetLength(String);
 
-	for (StringOffset = 0, PathOffset = 0; (StringOffset < StringLength) && (PathOffset < Path.Length); StringOffset = StringOffset + StringCodeLength, PathOffset = PathOffset + PathCodeLength)
+	for (StringOffset = 0, PathOffset = 0; (StringOffset < StringLength) && (PathOffset < Path.Length); StringOffset = StringOffset + StringDecodeLength, PathOffset = PathOffset + PathDecodeLength)
 	{
-		PathCodeLength = JsonPathGetNextUtf8Code(Path, PathOffset, &IsEscaped, &PathCode);
-		if (PathCodeLength == 0)
+		PathDecodeLength = JsonPathGetNextCharacter(Path, PathOffset, &IsEscaped, &PathCharacter);
+		if (PathDecodeLength == 0)
 		{
 			return false;
 		}
 
-		if (!IsEscaped && ((PathCode == '/') || (PathCode == ':') || (PathCode == '[') || (PathCode == ']')))
+		if (!IsEscaped && ((PathCharacter == '/') || (PathCharacter == ':') || (PathCharacter == '[') || (PathCharacter == ']')))
 		{
 			return false;
 		}
 
-		StringCodeLength = JsonStringGetNextUtf8Code(String, StringOffset, &StringCode);
-		if ((StringCodeLength == 0) || (PathCode != StringCode))
+		StringDecodeLength = JsonStringGetNextCharacter(String, StringOffset, &StringCharacter);
+		if ((StringDecodeLength == 0) || (PathCharacter != StringCharacter))
 		{
 			return false;
 		}
@@ -462,15 +452,15 @@ bool JsonPathCompareString(tJsonPath Path, tJsonString *String)
 
 static size_t JsonPathSkipSpaceLeft(tJsonPath Path)
 {
-	tJsonUtf8Code Code;
-	size_t CodeLength;
+	tJsonCharacter Character;
+	size_t DecodeLength;
 	size_t Offset;
 	bool IsEscaped;
 
-	for (Offset = 0; Offset < Path.Length; Offset = Offset + CodeLength)
+	for (Offset = 0; Offset < Path.Length; Offset = Offset + DecodeLength)
 	{
-		CodeLength = JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Code);
-		if ((CodeLength == 0) || IsEscaped || (Code != ' '))
+		DecodeLength = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
+		if ((DecodeLength == 0) || IsEscaped || (Character != ' '))
 		{
 			break;
 		}
@@ -482,15 +472,15 @@ static size_t JsonPathSkipSpaceLeft(tJsonPath Path)
 
 static size_t JsonPathSkipSpaceRight(tJsonPath Path)
 {
-	tJsonUtf8Code Code;
-	size_t CodeLength;
+	tJsonCharacter Character;
+	size_t DecodeLength;
 	size_t Offset;
 	bool IsEscaped;
 
-	for (Offset = Path.Length; Offset > 0; Offset = Offset - CodeLength)
+	for (Offset = Path.Length; Offset > 0; Offset = Offset - DecodeLength)
 	{
-		CodeLength = JsonPathGetPreviousUtf8Code(Path, Offset, &IsEscaped, &Code);
-		if ((CodeLength == 0) || IsEscaped || (Code != ' '))
+		DecodeLength = JsonPathGetPreviousCharacter(Path, Offset, &IsEscaped, &Character);
+		if ((DecodeLength == 0) || IsEscaped || (Character != ' '))
 		{
 			break;
 		}
@@ -508,20 +498,20 @@ static tJsonPath JsonPathTrimSpaces(tJsonPath Path)
 
 static size_t JsonPathGetName(tJsonPath Path, tJsonPath *Name)
 {
-	tJsonUtf8Code Code;
-	size_t CodeLength;
+	tJsonCharacter Character;
+	size_t DecodeLength;
 	size_t Length;
 	bool IsEscaped;
 
-	for (Length = 0; Length < Path.Length; Length = Length + CodeLength)
+	for (Length = 0; Length < Path.Length; Length = Length + DecodeLength)
 	{
-		CodeLength = JsonPathGetNextUtf8Code(Path, Length, &IsEscaped, &Code);
-		if (CodeLength == 0)
+		DecodeLength = JsonPathGetNextCharacter(Path, Length, &IsEscaped, &Character);
+		if (DecodeLength == 0)
 		{
 			return 0;
 		}
 
-		if (!IsEscaped && ((Code == '/') || (Code == ':') || (Code == '[') || (Code == ']')))
+		if (!IsEscaped && ((Character == '/') || (Character == ':') || (Character == '[') || (Character == ']')))
 		{
 			break;
 		}
@@ -535,10 +525,10 @@ static size_t JsonPathGetName(tJsonPath Path, tJsonPath *Name)
 
 static bool JsonPathTrimQuotes(tJsonPath Path, tJsonPath *UnquotedPath)
 {
-	tJsonUtf8Code FirstCode;
-	tJsonUtf8Code LastCode;
-	size_t FirstCodeLength;
-	size_t LastCodeLength;
+	tJsonCharacter FirstCharacter;
+	tJsonCharacter LastCharacter;
+	size_t FirstDecodeLength;
+	size_t LastDecodeLength;
 	bool FirstIsEscaped;
 	bool LastIsEscaped;
 
@@ -549,34 +539,34 @@ static bool JsonPathTrimQuotes(tJsonPath Path, tJsonPath *UnquotedPath)
 		return true;
 	}
 
-	FirstCodeLength = JsonPathGetNextUtf8Code(Path, 0, &FirstIsEscaped, &FirstCode);
-	if (FirstCodeLength == 0)
+	FirstDecodeLength = JsonPathGetNextCharacter(Path, 0, &FirstIsEscaped, &FirstCharacter);
+	if (FirstDecodeLength == 0)
 	{
 		return false;
 	}
 
-	if (FirstCodeLength == Path.Length)
+	if (FirstDecodeLength == Path.Length)
 	{
-		return FirstCode != '"';
+		return FirstCharacter != '"';
 	}
 
-	LastCodeLength = JsonPathGetPreviousUtf8Code(Path, Path.Length, &LastIsEscaped, &LastCode);
-	if (LastCodeLength == 0)
+	LastDecodeLength = JsonPathGetPreviousCharacter(Path, Path.Length, &LastIsEscaped, &LastCharacter);
+	if (LastDecodeLength == 0)
 	{
 		return false;
 	}
 
 	if (FirstIsEscaped || LastIsEscaped)
 	{
-		return FirstIsEscaped ? LastIsEscaped || (LastCode != '"') : (FirstCode != '"');
+		return FirstIsEscaped ? LastIsEscaped || (LastCharacter != '"') : (FirstCharacter != '"');
 	}
 	else
 	{
-		if ((FirstCode == '"') && (LastCode == '"'))
+		if ((FirstCharacter == '"') && (LastCharacter == '"'))
 		{
-			*UnquotedPath = JsonPathMiddle(Path, FirstCodeLength, Path.Length - LastCodeLength);
+			*UnquotedPath = JsonPathMiddle(Path, FirstDecodeLength, Path.Length - LastDecodeLength);
 		}
-		return (FirstCode == '"') ? (LastCode == '"') : (LastCode != '"');
+		return (FirstCharacter == '"') ? (LastCharacter == '"') : (LastCharacter != '"');
 	}
 }
 
@@ -584,8 +574,8 @@ static bool JsonPathTrimQuotes(tJsonPath Path, tJsonPath *UnquotedPath)
 size_t JsonPathGetComponent(tJsonPath Path, tJsonType *ComponentType, tJsonPath *Component)
 {
 	tJsonPath Name;
-	tJsonUtf8Code Code;
-	size_t CodeLength;
+	tJsonCharacter Character;
+	size_t DecodeLength;
 	size_t Start;
 	size_t Length;
 	size_t Offset;
@@ -594,42 +584,42 @@ size_t JsonPathGetComponent(tJsonPath Path, tJsonType *ComponentType, tJsonPath 
 
 	Start = JsonPathSkipSpaceLeft(Path);
 
-	CodeLength = JsonPathGetNextUtf8Code(Path, Start, &IsEscaped, &Code);
-	if (CodeLength == 0)
+	DecodeLength = JsonPathGetNextCharacter(Path, Start, &IsEscaped, &Character);
+	if (DecodeLength == 0)
 	{
 		return 0;
 	}
 	
 	if (!IsEscaped)
 	{
-		if (Code == '/')
+		if (Character == '/')
 		{
 			*ComponentType = json_TypeObject;
 			*Component = JsonPathUtf8(NULL);
-			Offset = Start + CodeLength;
+			Offset = Start + DecodeLength;
 			return Offset + JsonPathSkipSpaceLeft(JsonPathRight(Path, Offset));
 		}
 	
-		if (Code == '[')
+		if (Character == '[')
 		{
 			NestedCount = 0;
-			for (Offset = Start + CodeLength; Offset < Path.Length; Offset = Offset + Length)
+			for (Offset = Start + DecodeLength; Offset < Path.Length; Offset = Offset + Length)
 			{
-				Length = JsonPathGetNextUtf8Code(Path, Offset, &IsEscaped, &Code);
+				Length = JsonPathGetNextCharacter(Path, Offset, &IsEscaped, &Character);
 				if (!IsEscaped)
 				{
-					if (Code == ']')
+					if (Character == ']')
 					{
 						if (NestedCount == 0)
 						{
 							*ComponentType = json_TypeArray;
-							*Component = JsonPathTrimSpaces(JsonPathMiddle(Path, Start + CodeLength, Offset));
+							*Component = JsonPathTrimSpaces(JsonPathMiddle(Path, Start + DecodeLength, Offset));
 							Offset = Offset + Length;
 							return Offset + JsonPathSkipSpaceLeft(JsonPathRight(Path, Offset));
 						}
 						NestedCount--;
 					}
-					else if (Code == '[')
+					else if (Character == '[')
 					{
 						NestedCount++;
 					}
@@ -639,14 +629,14 @@ size_t JsonPathGetComponent(tJsonPath Path, tJsonType *ComponentType, tJsonPath 
 			return 0;
 		}
 	
-		if (Code == ']')
+		if (Character == ']')
 		{
 			return 0;
 		}
 
-		if (Code == ':')
+		if (Character == ':')
 		{
-			Offset = Start + CodeLength;
+			Offset = Start + DecodeLength;
 
 			Length = JsonPathGetName(JsonPathRight(Path, Offset), &Name);
 			if ((Length == 0) || !JsonPathTrimQuotes(Name, Component))
