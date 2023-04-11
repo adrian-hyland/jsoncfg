@@ -39,7 +39,7 @@ size_t JsonUtfGetType(const uint8_t *Content, size_t Length, tJsonUtfType *UtfTy
 
 
 /**
- * @brief Encodes a character in a particular
+ * @brief Encodes a character in a particular UTF encoding
  * @param UtfType   The type of UTF to use to encode the character
  * @param Content   The UTF encoded content
  * @param Size      The maximum size of UTF encoded content
