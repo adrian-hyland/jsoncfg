@@ -92,8 +92,10 @@ C_FLAGS += -O2
 endif
 endif
 
+C_STD := c11
+
 C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
-C_FLAGS += -c -std=c11 -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
 
 ifeq ($(COVERAGE),1)
 LNK_FLAGS += --coverage
@@ -120,10 +122,11 @@ vscode:
 	touch $(BUILD_CFG)
 	cat $(BUILD_CFG) | ./bin/release/jsoncfg /configurations[/name:\"$(BUILD_NAME)\"] \
 	    "{ \
-            \"name\":\"$(BUILD_NAME)\", \
-            \"includePath\":[ $(BUILD_INCLUDE) ], \
-            \"defines\":[ $(BUILD_DEFINE) ] \
-        }" >$(BUILD_CFG).tmp
+	       \"name\":\"$(BUILD_NAME)\", \
+	       \"includePath\":[ $(BUILD_INCLUDE) ], \
+	       \"defines\":[ $(BUILD_DEFINE) ], \
+	       \"cStandard\":\"$(C_STD)\" \
+	     }" >$(BUILD_CFG).tmp
 	mv $(BUILD_CFG).tmp $(BUILD_CFG)
 
 coverage: $(APP)
