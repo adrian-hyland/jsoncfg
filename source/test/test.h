@@ -197,7 +197,7 @@ void TestRun(const tTest *Test[], size_t TestCount);
 #define TEST_IS_NOT_EQ(value, expected, result)                                                    \
 	if (TEST_RESULT_IS_PASS(result) && ((value) == (expected)))                                     \
 	{                                                                                               \
-		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "equal not to \"" #expected "\"")); \
+		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "not equal to \"" #expected "\"")); \
 	}
 
 
