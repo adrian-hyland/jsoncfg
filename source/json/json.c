@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <string.h>
 #include "json_utf.h"
 #include "json.h"
 

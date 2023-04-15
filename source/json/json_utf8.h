@@ -1,6 +1,7 @@
 #ifndef JSON_UTF8_H
 #define JSON_UTF8_H
 
+#include <stddef.h>
 #include "json_character.h"
 
 
