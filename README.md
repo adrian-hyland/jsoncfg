@@ -170,6 +170,16 @@ To clean the debug version of the unit test harness:
 $ make clean TEST=1 DEBUG=1
 ```
 
+To create and run coverage on the unit test harness:
+```bash
+$ make coverage TEST=1 DEBUG=1 COVERAGE=1
+```
+
+To clean the coverage on the unit test harness:
+```bash
+$ make clean TEST=1 DEBUG=1 COVERAGE=1
+```
+
 ***Notes***\
 The debug version of the unit test harness has malloc tracing enabled (except for windows builds). To produce the malloc trace and check for any memory issues during testing, you can do the following:
 ```bash
