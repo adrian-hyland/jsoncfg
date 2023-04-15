@@ -67,6 +67,7 @@ Provides the path of the key that you want to set (see below for a description o
 Provides the JSON content value for the key
 
 ***Notes***
+- The application will automatically detect the UTF encoding that is used in the input stream. It does not have to be the same as the UTF encoding that should be used in the output stream (indicated by either `-utf8`, `-utf16be` or `-utf16le` in the command line options). You can use this to change the UTF encoding of a JSON file.
 - A 'byte order mark' is not required if the JSON content is encoded using UTF-8.
 - A 'byte order mark' is recommended if the JSON content is encoded using UTF-16 (big or little endian).
 - There can be any number of `<key>` `<value>` pairs provided in the parameters
