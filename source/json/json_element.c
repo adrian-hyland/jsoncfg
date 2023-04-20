@@ -32,6 +32,10 @@ static bool JsonElementCheckChildType(tJsonType ParentType, tJsonType ChildType)
 		
 		ok = ok && ((ParentType != json_TypeArray) || (ChildType != json_TypeKey));
 	}
+	else
+	{
+		ok = ok && (ChildType != json_TypeKey);
+	}
 
 	return ok;
 }
@@ -320,24 +324,29 @@ tJsonElement *JsonElementMoveChild(tJsonElement *To, tJsonElement *From)
 
 	if (From != To)
 	{
-		if ((From->Child != NULL) && !JsonElementCheckChildType(To->Type, From->Child->Type))
+		if (((To->Type == json_TypeRoot)   && (From->Type == json_TypeRoot))   ||
+		    ((To->Type == json_TypeObject) && (From->Type == json_TypeObject)) ||
+			 ((To->Type == json_TypeKey)    && ((From->Type == json_TypeRoot) || (From->Type == json_TypeKey))) ||
+		    ((To->Type == json_TypeArray)  && ((From->Type == json_TypeRoot) || (From->Type == json_TypeArray))))
+		{
+			if (To->Child != NULL)
+			{
+				JsonElementFree(&To->Child);
+			}
+
+			To->Child = From->Child;
+			From->Child = NULL;
+
+			Child = To->Child;
+			while (Child != NULL)
+			{
+				Child->Parent = To;
+				Child = Child->Next;
+			}
+		}
+		else
 		{
 			return NULL;
-		}
-
-		if (To->Child != NULL)
-		{
-			JsonElementFree(&To->Child);
-		}
-
-		To->Child = From->Child;
-		From->Child = NULL;
-
-		Child = To->Child;
-		while (Child != NULL)
-		{
-			Child->Parent = To;
-			Child = Child->Next;
 		}
 	}
 
