@@ -17,7 +17,7 @@ static tTestResult TestJsonUtfGetType(void)
 
 	Length = JsonUtfGetType(NULL, 0, &UtfType);
 	TEST_IS_EQ(Length, 0, TestResult);
-	TEST_IS_EQ(UtfType, json_UtfUnknown, TestResult);
+	TEST_IS_EQ(UtfType, json_Utf8, TestResult);
 
 	for (Type = 0; Type < sizeof(UtfTypes) / sizeof(UtfTypes[0]); Type++)
 	{
