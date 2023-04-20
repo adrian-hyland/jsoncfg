@@ -610,7 +610,7 @@ int JsonFormat(tJsonFormat *Format, tJsonUtfType UtfType, uint8_t *Content, size
 	tJsonCharacter Character;
 	size_t DiscardOffset = 0;
 	size_t EncodeLength;
-	int State= JSON_FORMAT_INCOMPLETE;
+	int State = JSON_FORMAT_INCOMPLETE;
 
 	if (Size < JSON_FORMAT_MIN_SIZE)
 	{
@@ -622,18 +622,13 @@ int JsonFormat(tJsonFormat *Format, tJsonUtfType UtfType, uint8_t *Content, size
 		Offset = &DiscardOffset;
 	}
 
-	for (; *Offset <= Size - JSON_FORMAT_MIN_SIZE; *Offset = *Offset + EncodeLength)
+	for (; (State == JSON_FORMAT_INCOMPLETE) && (*Offset <= Size - JSON_FORMAT_MIN_SIZE); *Offset = *Offset + EncodeLength)
 	{
 		State = JsonFormatCharacter(Format, &Character);
-		if (State != JSON_FORMAT_INCOMPLETE)
+		EncodeLength = (State == JSON_FORMAT_INCOMPLETE) ? JsonUtfEncode(UtfType, Content, Size, *Offset, Character) : 0;
+		if ((State == JSON_FORMAT_INCOMPLETE) && (EncodeLength == 0))
 		{
-			break;
-		}
-
-		EncodeLength = JsonUtfEncode(UtfType, Content, Size, *Offset, Character);
-		if (EncodeLength == 0)
-		{
-			break;
+			State = JSON_FORMAT_ERROR;
 		}
 	}
 
