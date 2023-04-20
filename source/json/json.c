@@ -20,7 +20,7 @@ bool JsonReadStringUtf8(tJsonElement *Root, bool StripComments, const uint8_t *S
 
 	JsonParseSetUp(&Parse, StripComments, Root);
 
-	State = JsonParse(&Parse, json_Utf8, String, strlen((const char *)String) + 1, NULL);
+	State = JsonParse(&Parse, json_Utf8, String, (String != NULL) ? strlen((const char *)String) + 1 : 0, NULL);
 
 	JsonParseCleanUp(&Parse);
 
@@ -37,6 +37,8 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t B
 	size_t Offset;
 	int State = JSON_PARSE_INCOMPLETE;
 
+	JsonParseSetUp(&Parse, StripComments, Root);
+
 #ifdef __WIN32__
 	setmode(fileno(Stream), O_BINARY);
 #endif
@@ -44,8 +46,6 @@ bool JsonReadFile(tJsonElement *Root, bool StripComments, FILE *Stream, size_t B
 	Length = fread(Buffer, 1, JSON_BUFFER_SIZE(BufferSize), Stream);
 
 	Offset = JsonUtfGetType(Buffer, Length, &UtfType);
-
-	JsonParseSetUp(&Parse, StripComments, Root);
 
 	while ((State == JSON_PARSE_INCOMPLETE) && (Length > 0))
 	{
