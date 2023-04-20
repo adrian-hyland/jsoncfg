@@ -37,7 +37,7 @@ size_t JsonUtfGetType(const uint8_t *Content, size_t Length, tJsonUtfType *UtfTy
 		return 3;
 	}
 
-	*UtfType = (Length > 0) ? json_Utf8 : json_UtfUnknown;
+	*UtfType = json_Utf8;
 	return 0;
 }
 
