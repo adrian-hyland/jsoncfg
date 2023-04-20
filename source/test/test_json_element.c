@@ -1,3 +1,4 @@
+#include "json.h"
 #include "json_element.h"
 #include "test_json.h"
 
@@ -61,7 +62,7 @@ static tTestResult TestJsonElementAllocateChild(void)
 		{ json_TypeRoot,         json_TypeRoot,         false },
 		{ json_TypeRoot,         json_TypeObject,       true  },
 		{ json_TypeRoot,         json_TypeArray,        true  },
-		{ json_TypeRoot,         json_TypeKey,          true  },
+		{ json_TypeRoot,         json_TypeKey,          false },
 		{ json_TypeRoot,         json_TypeValueString,  true  },
 		{ json_TypeRoot,         json_TypeValueLiteral, true  },
 		{ json_TypeRoot,         json_TypeComment,      true  },
@@ -119,15 +120,24 @@ static tTestResult TestJsonElementAllocateChild(void)
 	{
 		if (TestAllocations[n].ParentType == json_TypeRoot)
 		{
-			TEST_IS_EQ(JsonElementAllocateChild(&Root, TestAllocations[n].ChildType), TestAllocations[n].Valid, TestResult);
-
 			Parent = &Root;
 		}
 		else
 		{
-			TEST_IS_TRUE(JsonElementAllocateChild(&Root, TestAllocations[n].ParentType), TestResult);
+			if (TestAllocations[n].ParentType == json_TypeKey)
+			{
+				TEST_IS_TRUE(JsonElementAllocateChild(&Root, json_TypeObject), TestResult);
 
-			Parent = JsonElementGetChild(&Root, false);
+				Parent = JsonElementGetChild(&Root, false);
+			}
+			else
+			{
+				Parent = &Root;
+			}
+
+			TEST_IS_TRUE(JsonElementAllocateChild(Parent, TestAllocations[n].ParentType), TestResult);
+
+			Parent = JsonElementGetChild(Parent, false);
 
 			TEST_IS_NOT_EQ(Parent, NULL, TestResult);
 
@@ -136,16 +146,9 @@ static tTestResult TestJsonElementAllocateChild(void)
 			TEST_IS_EQ(JsonElementGetChild(Parent, false), NULL, TestResult);
 
 			TEST_IS_EQ(JsonElementGetNext(Parent, false), NULL, TestResult);
-
-			if (TestAllocations[n].Valid)
-			{
-				TEST_IS_TRUE(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestResult);
-			}
-			else
-			{
-				TEST_IS_FALSE(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestResult);
-			}
 		}
+
+		TEST_IS_EQ(JsonElementAllocateChild(Parent, TestAllocations[n].ChildType), TestAllocations[n].Valid, TestResult);
 
 		Child = JsonElementGetChild(Parent, false);
 
@@ -190,13 +193,6 @@ static tTestResult TestJsonElementAllocateNext(void)
 		{ json_TypeRoot,         json_TypeArray,        json_TypeValueString,  false },
 		{ json_TypeRoot,         json_TypeArray,        json_TypeValueLiteral, false },
 		{ json_TypeRoot,         json_TypeArray,        json_TypeComment,      true  },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeRoot,         false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeObject,       false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeArray,        false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeKey,          false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeValueString,  false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeValueLiteral, false },
-		{ json_TypeRoot,         json_TypeKey,          json_TypeComment,      true  },
 		{ json_TypeRoot,         json_TypeValueString,  json_TypeRoot,         false },
 		{ json_TypeRoot,         json_TypeValueString,  json_TypeObject,       false },
 		{ json_TypeRoot,         json_TypeValueString,  json_TypeArray,        false },
@@ -214,7 +210,7 @@ static tTestResult TestJsonElementAllocateNext(void)
 		{ json_TypeRoot,         json_TypeComment,      json_TypeRoot,         false },
 		{ json_TypeRoot,         json_TypeComment,      json_TypeObject,       true  },
 		{ json_TypeRoot,         json_TypeComment,      json_TypeArray,        true  },
-		{ json_TypeRoot,         json_TypeComment,      json_TypeKey,          true  },
+		{ json_TypeRoot,         json_TypeComment,      json_TypeKey,          false },
 		{ json_TypeRoot,         json_TypeComment,      json_TypeValueString,  true  },
 		{ json_TypeRoot,         json_TypeComment,      json_TypeValueLiteral, true  },
 		{ json_TypeRoot,         json_TypeComment,      json_TypeComment,      true  },
@@ -319,9 +315,20 @@ static tTestResult TestJsonElementAllocateNext(void)
 		}
 		else
 		{
-			TEST_IS_TRUE(JsonElementAllocateChild(&Root, TestAllocations[n].ParentType), TestResult);
+			if (TestAllocations[n].ParentType == json_TypeKey)
+			{
+				TEST_IS_TRUE(JsonElementAllocateChild(&Root, json_TypeObject), TestResult);
 
-			Parent = JsonElementGetChild(&Root, false);
+				Parent = JsonElementGetChild(&Root, false);
+			}
+			else
+			{
+				Parent = &Root;
+			}
+
+			TEST_IS_TRUE(JsonElementAllocateChild(Parent, TestAllocations[n].ParentType), TestResult);
+
+			Parent = JsonElementGetChild(Parent, false);
 		}
 
 		TEST_IS_NOT_EQ(Parent, NULL, TestResult);
@@ -332,14 +339,7 @@ static tTestResult TestJsonElementAllocateNext(void)
 
 		TEST_IS_NOT_EQ(Child, NULL, TestResult);
 
-		if (TestAllocations[n].Valid)
-		{
-			TEST_IS_TRUE(JsonElementAllocateNext(Child, TestAllocations[n].SiblingType), TestResult);
-		}
-		else
-		{
-			TEST_IS_FALSE(JsonElementAllocateNext(Child, TestAllocations[n].SiblingType), TestResult);
-		}
+		TEST_IS_EQ(JsonElementAllocateNext(Child, TestAllocations[n].SiblingType), TestAllocations[n].Valid, TestResult);
 
 		Sibling = JsonElementGetNext(Child, false);
 
@@ -512,6 +512,481 @@ static tTestResult TestJsonElementFind(void)
 }
 
 
+static tTestResult TestJsonElementMoveChild(void)
+{
+	tTestResult TestResult = TEST_RESULT_INITIAL;
+	tJsonElement FromRoot;
+	tJsonElement ToRoot;
+	tJsonElement *FromElement;
+	tJsonElement *ToElement;
+	tJsonElement *KeyElement;
+	tJsonElement *ChildElement;
+	
+	JsonElementSetUp(&FromRoot);
+	JsonElementSetUp(&ToRoot);
+
+	TEST_IS_EQ(JsonElementMoveChild(NULL, NULL), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "123");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "123");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(&ToRoot, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "123");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "{ \"key\": \"value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "\"abc\"");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), ChildElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), FromElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	ChildElement = JsonElementGetChild(KeyElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(KeyElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "{ \"key\": \"value\" }");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	KeyElement = JsonElementGetChild(ToElement, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(KeyElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(KeyElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "123");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "\"abc\"");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "{ \"next-key\": \"next-value\" }");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), NULL, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), ChildElement, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, &FromRoot), FromElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(&FromRoot, false), NULL, TestResult);
+
+	JsonReadStringAscii(&ToRoot, false, "[ 1, 2, 3 ]");
+	JsonReadStringAscii(&FromRoot, false, "[ 1, 2, 3 ]");
+	ToElement = JsonElementGetChild(&ToRoot, false);
+	FromElement = JsonElementGetChild(&FromRoot, false);
+	ChildElement = JsonElementGetChild(FromElement, false);
+	TEST_IS_NOT_EQ(ToElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(FromElement, NULL, TestResult);
+	TEST_IS_NOT_EQ(ChildElement, NULL, TestResult);
+	TEST_IS_EQ(JsonElementMoveChild(ToElement, FromElement), ChildElement, TestResult);
+	TEST_IS_EQ(JsonElementGetChild(FromElement, false), NULL, TestResult);
+
+	JsonElementCleanUp(&ToRoot);
+	JsonElementCleanUp(&FromRoot);
+
+	return TestResult;
+}
+
+
 static const tTestCase TestCaseJsonElement[] =
 {
 	{ "JsonElementSetUp",         TestJsonElementSetUp         },
@@ -521,6 +996,7 @@ static const tTestCase TestCaseJsonElement[] =
 	{ "JsonElementGetChild",      TestJsonElementGetChild      },
 	{ "JsonElementGetNext",       TestJsonElementGetNext       },
 	{ "JsonElementFind",          TestJsonElementFind          },
+	{ "JsonElementMoveChild",     TestJsonElementMoveChild     }
 };
 
 
