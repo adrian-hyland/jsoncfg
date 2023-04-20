@@ -580,7 +580,7 @@ int JsonParse(tJsonParse *Parse, tJsonUtfType UtfType, const uint8_t *Content, s
 		Offset = &DiscardOffset;
 	}
 
-	for (; *Offset < Size; *Offset = *Offset + DecodeLength)
+	for (; (State == JSON_PARSE_INCOMPLETE) && (*Offset < Size); *Offset = *Offset + DecodeLength)
 	{
 		DecodeLength = JsonUtfDecode(UtfType, Content, Size, *Offset, &Character);
 		if (DecodeLength == 0)
@@ -589,10 +589,6 @@ int JsonParse(tJsonParse *Parse, tJsonUtfType UtfType, const uint8_t *Content, s
 		}
 
 		State = JsonParseCharacter(Parse, Character);
-		if (State != JSON_PARSE_INCOMPLETE)
-		{
-			break;
-		}
 	}
 
 	return State;
