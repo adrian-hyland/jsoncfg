@@ -15,6 +15,7 @@ static const tTest *Tests[] =
 	&TestJsonElement,
 	&TestJsonParse,
 	&TestJsonFormat,
+	&TestJsonMain,
 };
 
 
