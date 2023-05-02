@@ -55,7 +55,7 @@ static tTestResult TestJsonUtf8Encode(void)
 	for (Character = 0x110000; Character != 0; Character++)
 	{
 		Length = JsonUtf8Encode(Utf8, sizeof(Utf8), 0, Character);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 	}
 
 	return TestResult;
@@ -70,7 +70,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 	uint8_t Content[4] = {};
 	size_t Length;
 
-	TEST_IS_EQ(JsonUtf8DecodeNext(Content, 0, 0, &NextCharacter), 0, TestResult);
+	TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 0, 0, &NextCharacter), TestResult);
 
 	for (Character = 0; Character < 0x110000; Character++)
 	{
@@ -87,7 +87,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 	{
 		Content[0] = Character;
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 1, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 1, 0, &NextCharacter), TestResult);
 	}
 
 	for (Character = 0x8000; Character < 0x10000; Character++)
@@ -97,7 +97,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 			Content[0] = Character >> 8;
 			Content[1] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodeNext(Content, 2, 0, &NextCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 2, 0, &NextCharacter), TestResult);
 		}
 	}
 
@@ -109,7 +109,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 			Content[1] = Character >> 8;
 			Content[2] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), TestResult);
 		}
 	}
 
@@ -122,7 +122,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 			Content[2] = Character >> 8;
 			Content[3] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), TestResult);
 		}
 	}
 
@@ -131,7 +131,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 		Content[0] = 0xC0 + (Character >> 6);
 		Content[1] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 2, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 2, 0, &NextCharacter), TestResult);
 	}
 
 	for (Character = 0; Character < 0x800; Character++)
@@ -140,7 +140,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 		Content[1] = 0x80 + ((Character >> 6) & 0x3F);
 		Content[2] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), TestResult);
 	}
 
 	for (Character = 0; Character < 0x10000; Character++)
@@ -150,7 +150,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 		Content[2] = 0x80 + ((Character >> 6) & 0x3F);
 		Content[3] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), TestResult);
 	}
 
 	for (Character = 0xD800; Character < 0xE000; Character++)
@@ -159,7 +159,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 		Content[1] = 0x80 + ((Character >> 6) & 0x3F);
 		Content[2] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 3, 0, &NextCharacter), TestResult);
 	}
 
 	for (Character = 0x110000; Character < 0x200000; Character++)
@@ -169,7 +169,7 @@ static tTestResult TestJsonUtf8DecodeNext(void)
 		Content[2] = 0x80 + ((Character >> 6) & 0x3F);
 		Content[3] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodeNext(Content, 4, 0, &NextCharacter), TestResult);
 	}
 
 	return TestResult;
@@ -184,7 +184,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 	tJsonUtf8 Utf8 = {};
 	size_t Length;
 
-	TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 0, 0, &PreviousCharacter), 0, TestResult);
+	TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 0, 0, &PreviousCharacter), TestResult);
 
 	for (Character = 0; Character < 0x110000; Character++)
 	{
@@ -201,7 +201,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 	{
 		Utf8[0] = Character;
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 1, 1, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 1, 1, &PreviousCharacter), TestResult);
 	}
 
 	for (Character = 0x100; Character < 0x10000; Character++)
@@ -211,7 +211,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 			Utf8[0] = Character >> 8;
 			Utf8[1] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 2, 2, &PreviousCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 2, 2, &PreviousCharacter), TestResult);
 		}
 	}
 
@@ -223,7 +223,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 			Utf8[1] = Character >> 8;
 			Utf8[2] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), TestResult);
 		}
 	}
 
@@ -236,7 +236,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 			Utf8[2] = Character >> 8;
 			Utf8[3] = Character;
 
-			TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), 0, TestResult);
+			TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), TestResult);
 		}
 	}
 
@@ -245,7 +245,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 		Utf8[0] = 0xC0 + (Character >> 6);
 		Utf8[1] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 2, 2, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 2, 2, &PreviousCharacter), TestResult);
 	}
 
 	for (Character = 0; Character < 0x800; Character++)
@@ -254,7 +254,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 		Utf8[1] = 0x80 + ((Character >> 6) & 0x3F);
 		Utf8[2] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), TestResult);
 	}
 
 	for (Character = 0xD800; Character < 0xE000; Character++)
@@ -263,7 +263,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 		Utf8[1] = 0x80 + ((Character >> 6) & 0x3F);
 		Utf8[2] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 3, 3, &PreviousCharacter), TestResult);
 	}
 
 	for (Character = 0; Character < 0x10000; Character++)
@@ -273,7 +273,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 		Utf8[2] = 0x80 + ((Character >> 6) & 0x3F);
 		Utf8[3] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), TestResult);
 	}
 
 	for (Character = 0x110000; Character < 0x200000; Character++)
@@ -283,7 +283,7 @@ static tTestResult TestJsonUtf8DecodePrevious(void)
 		Utf8[2] = 0x80 + ((Character >> 6) & 0x3F);
 		Utf8[3] = 0x80 + (Character & 0x3F);
 
-		TEST_IS_EQ(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonUtf8DecodePrevious(Utf8, 4, 4, &PreviousCharacter), TestResult);
 	}
 
 	return TestResult;
