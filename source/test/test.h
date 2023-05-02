@@ -201,4 +201,64 @@ void TestRun(const tTest *Test[], size_t TestCount);
 	}
 
 
+/**
+ * @brief Macro that tests for a value to be zero
+ * @param value  The value being tested
+ * @param result The current test result
+ * @return None
+ * @note If \a `value` is not equal to \a `zero` then \a `result` will be set to \a `TEST_RESULT_FAILURE(..)`.
+ * @note \a `value` will not be tested if the \a `result` has already been set to \a `TEST_RESULT_FAILURE(..)`.
+ */
+#define TEST_IS_ZERO(value, result)                                               \
+	if (TEST_RESULT_IS_PASS(result) && ((value) != 0))                             \
+	{                                                                              \
+		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "zero")); \
+	}
+
+
+/**
+ * @brief Macro that tests for a value to be non-zero
+ * @param value  The value being tested
+ * @param result The current test result
+ * @return None
+ * @note If \a `value` is equal to \a `zero` then \a `result` will be set to \a `TEST_RESULT_FAILURE(..)`.
+ * @note \a `value` will not be tested if the \a `result` has already been set to \a `TEST_RESULT_FAILURE(..)`.
+ */
+#define TEST_IS_NOT_ZERO(value, result)                                               \
+	if (TEST_RESULT_IS_PASS(result) && ((value) == 0))                                 \
+	{                                                                                  \
+		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "non-zero")); \
+	}
+
+
+/**
+ * @brief Macro that tests for a pointer value to be equal to NULL
+ * @param value  The value being tested
+ * @param result The current test result
+ * @return None
+ * @note If \a `value` is not equal to \a `NULL` then \a `result` will be set to \a `TEST_RESULT_FAILURE(..)`.
+ * @note \a `value` will not be tested if the \a `result` has already been set to \a `TEST_RESULT_FAILURE(..)`.
+ */
+#define TEST_IS_NULL(value, result)                                                  \
+	if (TEST_RESULT_IS_PASS(result) && ((value) != NULL))                              \
+	{                                                                                  \
+		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "equal to \"NULL\"")); \
+	}
+
+
+/**
+ * @brief Macro that tests for a pointer value to be not equal to NULL
+ * @param value  The value being tested
+ * @param result The current test result
+ * @return None
+ * @note If \a `value` is equal to \a `NULL` then \a `result` will be set to \a `TEST_RESULT_FAILURE(..)`.
+ * @note \a `value` will not be tested if the \a `result` has already been set to \a `TEST_RESULT_FAILURE(..)`.
+ */
+#define TEST_IS_NOT_NULL(value, result)                                                  \
+	if (TEST_RESULT_IS_PASS(result) && ((value) == NULL))                                  \
+	{                                                                                      \
+		result = TEST_RESULT_FAILURE(TEST_STRING_FAILURE(#value, "not equal to \"NULL\"")); \
+	}
+
+
 #endif
