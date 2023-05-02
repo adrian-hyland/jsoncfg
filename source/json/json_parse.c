@@ -448,6 +448,7 @@ static tJsonParseState JsonParseCommentBlockEnd(tJsonParse *Parse, tJsonCharacte
 
 void JsonParseSetUp(tJsonParse *Parse, bool StripComments, tJsonElement *RootElement)
 {
+	JsonElementClear(RootElement);
 	Parse->State = json_ParseValueStart;
 	Parse->Element = RootElement;
 	Parse->Utf16Length = 0;
