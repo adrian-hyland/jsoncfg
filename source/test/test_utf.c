@@ -16,7 +16,7 @@ static tTestResult TestJsonUtfGetType(void)
 	size_t Type;
 
 	Length = JsonUtfGetType(NULL, 0, &UtfType);
-	TEST_IS_EQ(Length, 0, TestResult);
+	TEST_IS_ZERO(Length, TestResult);
 	TEST_IS_EQ(UtfType, json_Utf8, TestResult);
 
 	for (Type = 0; Type < sizeof(UtfTypes) / sizeof(UtfTypes[0]); Type++)
@@ -30,7 +30,7 @@ static tTestResult TestJsonUtfGetType(void)
 		{
 			UtfLength = JsonUtfEncode(UtfTypes[Type], Utf, sizeof(Utf), 0, Character);
 			Length = JsonUtfGetType(Utf, UtfLength, &UtfType);
-			TEST_IS_EQ(Length, 0, TestResult);
+			TEST_IS_ZERO(Length, TestResult);
 			TEST_IS_EQ(UtfType, UtfTypes[Type], TestResult);
 		}
 	}
@@ -48,7 +48,7 @@ static tTestResult TestJsonUtfEncode(void)
 	size_t DecodeLength;
 
 	EncodeLength = JsonUtfEncode(json_UtfUnknown, Utf, sizeof(Utf), 0, 0x10FFFF);
-	TEST_IS_EQ(EncodeLength, 0, TestResult);
+	TEST_IS_ZERO(EncodeLength, TestResult);
 
 	EncodeLength = JsonUtfEncode(json_Utf8, Utf, sizeof(Utf), 0, 0x10FFFF);
 	TEST_IS_EQ(EncodeLength, JSON_UTF8_MAX_SIZE, TestResult);
@@ -81,7 +81,7 @@ static tTestResult TestJsonUtfDecode(void)
 	size_t DecodeLength;
 
 	DecodeLength = JsonUtfDecode(json_UtfUnknown, NULL, 0, 0, &Character);
-	TEST_IS_EQ(DecodeLength, 0, TestResult);
+	TEST_IS_ZERO(DecodeLength, TestResult);
 
 	EncodeLength = JsonUtf8Encode(Utf, sizeof(Utf), 0, 0x10FFFF);
 	TEST_IS_EQ(EncodeLength, JSON_UTF8_MAX_SIZE, TestResult);
