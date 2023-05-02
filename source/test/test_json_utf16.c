@@ -20,7 +20,7 @@ static tTestResult TestJsonUtf16beEncode(void)
 	for (Character = 0xD800; Character < 0xE000; Character++)
 	{
 		Length = JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, Character);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 	}
 
 	for (Character = 0xE000; Character < 0x10000; Character++)
@@ -44,7 +44,7 @@ static tTestResult TestJsonUtf16beEncode(void)
 	for (Character = 0x110000; Character != 0; Character++)
 	{
 		Length = JsonUtf16beEncode(Utf16, sizeof(Utf16), 0, Character);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 	}
 
 	return TestResult;
@@ -61,7 +61,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 	size_t Length;
 
 	Length = JsonUtf16beDecodeNext(Utf16, 0, 0, &NextCharacter);
-	TEST_IS_EQ(Length, 0, TestResult);
+	TEST_IS_ZERO(Length, TestResult);
 	TEST_IS_EQ(NextCharacter, '\0', TestResult);
 
 	for (Character1 = 0; Character1 < 0xD800; Character1++)
@@ -72,7 +72,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 		TEST_IS_EQ(Length, 2, TestResult)
 		TEST_IS_EQ(NextCharacter, Character1, TestResult);
 		Length = JsonUtf16beDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult)
+		TEST_IS_ZERO(Length, TestResult)
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 	
@@ -85,7 +85,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 			Utf16[2] = Character2 >> 8;
 			Utf16[3] = Character2;
 			Length = JsonUtf16beDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult)
+			TEST_IS_ZERO(Length, TestResult)
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 		for (Character2 = 0xDC00; Character2 < 0xE000; Character2++)
@@ -96,7 +96,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 			TEST_IS_EQ(Length, 4, TestResult)
 			TEST_IS_EQ(NextCharacter, 0x10000 + ((Character1 - 0xD800) << 10) + Character2 - 0xDC00, TestResult);
 			Length = JsonUtf16beDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult)
+			TEST_IS_ZERO(Length, TestResult)
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 		for (Character2 = 0xE000; Character2 < 0x10000; Character2++)
@@ -104,7 +104,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 			Utf16[2] = Character2 >> 8;
 			Utf16[3] = Character2;
 			Length = JsonUtf16beDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult)
+			TEST_IS_ZERO(Length, TestResult)
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 	}
@@ -114,7 +114,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 		Utf16[0] = Character1 >> 8;
 		Utf16[1] = Character1;
 		Length = JsonUtf16beDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult)
+		TEST_IS_ZERO(Length, TestResult)
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 
@@ -126,7 +126,7 @@ static tTestResult TestJsonUtf16beDecodeNext(void)
 		TEST_IS_EQ(Length, 2, TestResult)
 		TEST_IS_EQ(NextCharacter, Character1, TestResult);
 		Length = JsonUtf16beDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult)
+		TEST_IS_ZERO(Length, TestResult)
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 
@@ -152,7 +152,7 @@ static tTestResult TestJsonUtf16leEncode(void)
 	for (Character = 0xD800; Character < 0xE000; Character++)
 	{
 		Length = JsonUtf16leEncode(Utf16, sizeof(Utf16), 0, Character);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 	}
 
 	for (Character = 0xE000; Character < 0x10000; Character++)
@@ -176,7 +176,7 @@ static tTestResult TestJsonUtf16leEncode(void)
 	for (Character = 0x110000; Character != 0; Character++)
 	{
 		Length = JsonUtf16leEncode(Utf16, sizeof(Utf16), 0, Character);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 	}
 
 	return TestResult;
@@ -193,7 +193,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 	size_t Length;
 
 	Length = JsonUtf16leDecodeNext(Utf16, 0, 0, &NextCharacter);
-	TEST_IS_EQ(Length, 0, TestResult);
+	TEST_IS_ZERO(Length, TestResult);
 	TEST_IS_EQ(NextCharacter, '\0', TestResult);
 
 	for (Character1 = 0; Character1 < 0xD800; Character1++)
@@ -204,7 +204,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 		TEST_IS_EQ(Length, 2, TestResult);
 		TEST_IS_EQ(NextCharacter, Character1, TestResult);
 		Length = JsonUtf16leDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 	
@@ -217,7 +217,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 			Utf16[2] = Character2;
 			Utf16[3] = Character2 >> 8;
 			Length = JsonUtf16leDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult);
+			TEST_IS_ZERO(Length, TestResult);
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 		for (Character2 = 0xDC00; Character2 < 0xE000; Character2++)
@@ -228,7 +228,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 			TEST_IS_EQ(Length, 4, TestResult);
 			TEST_IS_EQ(NextCharacter, 0x10000 + ((Character1 - 0xD800) << 10) + Character2 - 0xDC00, TestResult);
 			Length = JsonUtf16leDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult);
+			TEST_IS_ZERO(Length, TestResult);
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 		for (Character2 = 0xE000; Character2 < 0x10000; Character2++)
@@ -236,7 +236,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 			Utf16[2] = Character2;
 			Utf16[3] = Character2 >> 8;
 			Length = JsonUtf16leDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-			TEST_IS_EQ(Length, 0, TestResult);
+			TEST_IS_ZERO(Length, TestResult);
 			TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 		}
 	}
@@ -246,7 +246,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 		Utf16[0] = Character1;
 		Utf16[1] = Character1 >> 8;
 		Length = JsonUtf16leDecodeNext(Utf16, sizeof(Utf16), 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 
@@ -258,7 +258,7 @@ static tTestResult TestJsonUtf16leDecodeNext(void)
 		TEST_IS_EQ(Length, 2, TestResult);
 		TEST_IS_EQ(NextCharacter, Character1, TestResult);
 		Length = JsonUtf16leDecodeNext(Utf16, Length - 1, 0, &NextCharacter);
-		TEST_IS_EQ(Length, 0, TestResult);
+		TEST_IS_ZERO(Length, TestResult);
 		TEST_IS_EQ(NextCharacter, JSON_CHARACTER_REPLACEMENT, TestResult);
 	}
 
