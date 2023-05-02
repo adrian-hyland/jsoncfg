@@ -10,9 +10,9 @@ static tTestResult TestJsonStringSetUp(void)
 
 	JsonStringSetUp(&String);
 
-	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetLength(&String), TestResult);
 
-	TEST_IS_EQ(JsonStringGetNextCharacter(&String, 0, &Character), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetNextCharacter(&String, 0, &Character), TestResult);
 	
 	TEST_IS_EQ(Character, '\0', TestResult);
 
@@ -40,9 +40,9 @@ static tTestResult TestJsonStringCleanUp(void)
 
 	JsonStringCleanUp(&String);
 
-	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetLength(&String), TestResult);
 
-	TEST_IS_EQ(JsonStringGetNextCharacter(&String, 0, &Character), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetNextCharacter(&String, 0, &Character), TestResult);
 	
 	TEST_IS_EQ(Character, '\0', TestResult);
 
@@ -68,9 +68,9 @@ static tTestResult TestJsonStringClear(void)
 
 	JsonStringClear(&String);
 
-	TEST_IS_EQ(JsonStringGetLength(&String), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetLength(&String), TestResult);
 
-	TEST_IS_EQ(JsonStringGetNextCharacter(&String, 0, &Character), 0, TestResult);
+	TEST_IS_ZERO(JsonStringGetNextCharacter(&String, 0, &Character), TestResult);
 	
 	TEST_IS_EQ(Character, '\0', TestResult);
 
@@ -181,7 +181,7 @@ static tTestResult TestJsonStringGetNextCharacter(void)
 	{
 		Length = JsonUtf8Encode(Utf8, sizeof(Utf8), 0, Character);
 
-		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), TestResult);
 		
 		TEST_IS_EQ(NextCharacter, '\0', TestResult);
 
@@ -196,7 +196,7 @@ static tTestResult TestJsonStringGetNextCharacter(void)
 	{
 		Length = JsonUtf8Encode(Utf8, sizeof(Utf8), 0, Character);
 
-		TEST_IS_EQ(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), 0, TestResult);
+		TEST_IS_ZERO(JsonStringGetNextCharacter(&String, Offset, &NextCharacter), TestResult);
 		
 		TEST_IS_EQ(NextCharacter, '\0', TestResult);
 
