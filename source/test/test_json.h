@@ -58,4 +58,10 @@ extern const tTest TestJsonParse;
 extern const tTest TestJsonFormat;
 
 
+/**
+ * @brief Contains test cases for the main set of functions used for reading and writing JSON content
+ */
+extern const tTest TestJsonMain;
+
+
 #endif
