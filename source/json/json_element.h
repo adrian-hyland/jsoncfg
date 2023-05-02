@@ -37,6 +37,14 @@ void JsonElementCleanUp(tJsonElement *Element);
 
 
 /**
+ * @brief Clears a JSON element (so that it has no name, children or siblings)
+ * @param Element The element to clear
+ * @return None
+ */
+void JsonElementClear(tJsonElement *Element);
+
+
+/**
  * @brief Allocates a child for an element
  * @param Element The element to allocate a child for
  * @param Type    The type of child to allocate

@@ -71,6 +71,49 @@ static void JsonElementFree(tJsonElement **Element)
 }
 
 
+static void JsonElementClearChild(tJsonElement *Element);
+
+
+static void JsonElementClearNext(tJsonElement *Element)
+{
+	tJsonElement *Next;
+
+	while (Element->Next != NULL)
+	{
+		Next = Element->Next;
+		Element->Next = Next->Next;
+		Next->Next = NULL;
+		JsonStringClear(&Next->Name);
+		JsonElementClearChild(Next);
+		free(Next);
+	}
+}
+
+
+static void JsonElementClearChild(tJsonElement *Element)
+{
+	tJsonElement *Child;
+
+	while (Element->Child != NULL)
+	{
+		Child = Element->Child;
+		Element->Child = Child->Child;
+		Child->Child = NULL;
+		JsonStringClear(&Child->Name);
+		JsonElementClearNext(Child);
+		free(Child);
+	}
+}
+
+
+void JsonElementClear(tJsonElement *Element)
+{
+	JsonStringClear(&Element->Name);
+	JsonElementClearChild(Element);
+	JsonElementClearNext(Element);
+}
+
+
 void JsonElementSetUp(tJsonElement *Element)
 {
 	JsonElementSetUpType(Element, json_TypeRoot, NULL);
@@ -79,9 +122,7 @@ void JsonElementSetUp(tJsonElement *Element)
 
 void JsonElementCleanUp(tJsonElement *Element)
 {
-	JsonStringCleanUp(&Element->Name);
-	JsonElementFree(&Element->Child);
-	JsonElementFree(&Element->Next);
+	JsonElementClear(Element);
 }
 
 
