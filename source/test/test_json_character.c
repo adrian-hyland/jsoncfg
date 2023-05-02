@@ -120,7 +120,7 @@ static tTestResult TestJsonCharacterToHexDigit(void)
 		}
 		else
 		{
-			TEST_IS_EQ(HexDigit, 0, TestResult);
+			TEST_IS_ZERO(HexDigit, TestResult);
 		}
 	}
 
@@ -150,7 +150,7 @@ static tTestResult TestJsonCharacterFromHexDigit(void)
 
 	for (HexDigit = 0x10; HexDigit != 0; HexDigit++)
 	{
-		TEST_IS_EQ(JsonCharacterFromHexDigit(HexDigit), 0, TestResult);
+		TEST_IS_ZERO(JsonCharacterFromHexDigit(HexDigit), TestResult);
 	}
 
 	return TestResult;
