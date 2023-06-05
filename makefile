@@ -47,12 +47,13 @@ list_get = $(patsubst ¬%,$(1)%,$(patsubst %¬¬,%$(3),$(patsubst ¬%¬¬,$(1)%$
 # @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
 list_get_csv = $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(1)," $(COMMA)))¬)
 
-SRC_DIR := $(call list_add,./source/json)
+SRC_DIR = ./source
+INC_DIR := $(call list_add,$(SRC_DIR)/json)
 ifeq ($(TEST),1)
 APP_NAME := $(APP_NAME)-test
-SRC_DIR += $(call list_add,./source/test)
+INC_DIR += $(call list_add,$(SRC_DIR)/test)
 else
-SRC_DIR += $(call list_add,./source/app)
+INC_DIR += $(call list_add,$(SRC_DIR)/app)
 endif
 BIN_DIR := ./bin
 ifeq ($(COVERAGE),1)
@@ -66,10 +67,8 @@ BIN_DIR := $(BIN_DIR)/release
 endif
 OBJ_DIR := $(BIN_DIR)/obj
 
-VPATH := $(call list_get,,$(SRC_DIR),)
-
-C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(SRC_DIR),)))
-O_FILES := $(addprefix $(OBJ_DIR)/,$(notdir $(C_FILES:.c=.o)))
+C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(INC_DIR),)))
+O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(C_FILES:.c=.o))
 D_FILES := $(O_FILES:.o=.d)
 ifeq ($(COVERAGE),1)
 GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
@@ -95,7 +94,7 @@ endif
 C_STD := c11
 
 C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME))")
-C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(SRC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(C_DEFINE),")
 
 ifeq ($(COVERAGE),1)
 LNK_FLAGS += --coverage
@@ -103,7 +102,7 @@ endif
 
 BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
-BUILD_INCLUDE := $(call list_get_csv,$(SRC_DIR) $(call list_add,$${workspaceFolder}/**))
+BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFolder}/**))
 
 ifeq ($(CC),cc)
 CC := gcc
@@ -131,7 +130,7 @@ vscode:
 
 coverage: $(APP)
 	$(APP)
-	gcov -n -o $(OBJ_DIR) $(wildcard $(addsuffix /*.c,./source/json))
+	gcov -n -o $(OBJ_DIR)/json $(wildcard $(addsuffix /*.c,$(SRC_DIR)/json))
 
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $(NAME)
@@ -140,7 +139,7 @@ $(APP) : $(O_FILES)
 
 -include $(D_FILES)
 
-$(OBJ_DIR)/%.o : %.c
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
 	$(CC) $< $(C_FLAGS) -MMD -o $@
