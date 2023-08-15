@@ -200,7 +200,7 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
 	{
 		if ((Type == json_TypeKey) || (Type == json_TypeValueString) || (Type == json_TypeValueLiteral))
 		{
-			if (!JsonPathSetString(Path, &Element->Name))
+			if (!JsonPathGetString(Path, &Element->Name))
 			{
 				JsonElementFree(&Element);
 			}
@@ -220,13 +220,9 @@ static tJsonElement *JsonElementCreatePath(tJsonType Type, tJsonElement *Parent,
 
 static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElement *Parent, tJsonPath Path, bool Create)
 {
-	tJsonPath SubPath;
 	tJsonPath Component;
 	tJsonType ComponentType;
-	size_t Offset;
 	size_t Length;
-
-	Offset = 0;
 
 	for (;;)
 	{
@@ -235,9 +231,7 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 			Element = &(*Element)->Next;
 		}
 
-		SubPath = JsonPathRight(Path, Offset);
-
-		Length = JsonPathGetComponent(SubPath, &ComponentType, &Component);
+		Length = JsonPathGetComponent(Path, &ComponentType, &Component);
 		if (Length == 0)
 		{
 			return NULL;
@@ -319,8 +313,8 @@ static tJsonElement **JsonElementFindSubPath(tJsonElement **Element, tJsonElemen
 			return NULL;
 		}
 
-		Offset = Offset + Length;
-		if (Offset == Path.Length)
+		Path = JsonPathRight(Path, Length);
+		if (Path.Length == 0)
 		{
 			return Element;
 		}
