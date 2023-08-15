@@ -381,7 +381,7 @@ tJsonPath JsonPathMiddle(tJsonPath Path, size_t FromOffset, size_t ToOffset)
 }
 
 
-bool JsonPathSetString(tJsonPath Path, tJsonString *String)
+bool JsonPathGetString(tJsonPath Path, tJsonString *String)
 {
 	tJsonCharacter Character;
 	size_t DecodeLength;

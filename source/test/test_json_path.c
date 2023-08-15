@@ -649,7 +649,7 @@ static tTestResult TestJsonPathGetPreviousCharacter(void)
 }
 
 
-static tTestResult TestJsonPathSetString(void)
+static tTestResult TestJsonPathGetString(void)
 {
 	tTestResult TestResult = TEST_RESULT_INITIAL;
 	static const char *ValidPaths[] =
@@ -682,7 +682,7 @@ static tTestResult TestJsonPathSetString(void)
 	{
 		Path = JsonPathAscii(ValidPaths[n]);
 
-		TEST_IS_TRUE(JsonPathSetString(Path, &String), TestResult);
+		TEST_IS_TRUE(JsonPathGetString(Path, &String), TestResult);
 
 		for (StringOffset = 0, PathOffset = 0; PathOffset < Path.Length; StringOffset = StringOffset + StringLength, PathOffset = PathOffset + PathLength)
 		{
@@ -697,7 +697,7 @@ static tTestResult TestJsonPathSetString(void)
 
 	for (n = 0; n < sizeof(InvalidPaths) / sizeof(InvalidPaths[0]); n++)
 	{
-		TEST_IS_FALSE(JsonPathSetString(JsonPathAscii(InvalidPaths[n]), &String), TestResult);
+		TEST_IS_FALSE(JsonPathGetString(JsonPathAscii(InvalidPaths[n]), &String), TestResult);
 	}
 
 	JsonStringCleanUp(&String);
@@ -724,7 +724,7 @@ static tTestResult TestJsonPathCompareString(void)
 	{
 		PathLength = strlen(Paths[n]) - 1;
 
-		TEST_IS_TRUE(JsonPathSetString(JsonPathLeft(JsonPathAscii(Paths[n]), PathLength), &String), TestResult);
+		TEST_IS_TRUE(JsonPathGetString(JsonPathLeft(JsonPathAscii(Paths[n]), PathLength), &String), TestResult);
 
 		TEST_IS_FALSE(JsonPathCompareString(JsonPathLeft(JsonPathAscii(Paths[n]), PathLength - 1), &String), TestResult);
 
@@ -953,7 +953,7 @@ static const tTestCase TestCaseJsonPath[] =
 	{ "JsonPathMiddle",               TestJsonPathMiddle               },
 	{ "JsonPathGetNextCharacter",     TestJsonPathGetNextCharacter     },
 	{ "JsonPathGetPreviousCharacter", TestJsonPathGetPreviousCharacter },
-	{ "JsonPathSetString",            TestJsonPathSetString            },
+	{ "JsonPathGetString",            TestJsonPathGetString            },
 	{ "JsonPathCompareString",        TestJsonPathCompareString        },
 	{ "JsonPathGetComponent",         TestJsonPathGetComponent         }
 };
