@@ -133,7 +133,7 @@ coverage: $(APP)
 	gcov -n -o $(OBJ_DIR)/json $(wildcard $(addsuffix /*.c,$(SRC_DIR)/json))
 
 $(APP) : $(O_FILES)
-	@echo -- BUILDING $(NAME)
+	@echo -- BUILDING $@
 	mkdir -p $(@D)
 	$(CC) $(O_FILES) $(LNK_FLAGS) -o $@
 
